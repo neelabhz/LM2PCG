@@ -498,8 +498,20 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__mutex/tag_types.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__mutex/unique_lock.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__node_handle
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/accumulate.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/adjacent_difference.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/exclusive_scan.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/gcd_lcm.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/inclusive_scan.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/inner_product.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/iota.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/midpoint.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/partial_sum.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/pstl_reduce.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/pstl_transform_reduce.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/reduce.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/transform_exclusive_scan.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/transform_inclusive_scan.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/transform_reduce.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__random/is_valid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__random/log2.h
@@ -749,6 +761,7 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/memory_resource
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/mutex
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/new
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/numeric
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/optional
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/ostream
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/ratio
@@ -917,8 +930,29 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdarg.h
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp
  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/csv_writer.hpp
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp
  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/ply_io.hpp
+ /opt/homebrew/include/boost/algorithm/string/compare.hpp
+ /opt/homebrew/include/boost/algorithm/string/config.hpp
+ /opt/homebrew/include/boost/algorithm/string/constants.hpp
+ /opt/homebrew/include/boost/algorithm/string/detail/finder.hpp
+ /opt/homebrew/include/boost/algorithm/string/detail/predicate.hpp
+ /opt/homebrew/include/boost/algorithm/string/find.hpp
+ /opt/homebrew/include/boost/algorithm/string/finder.hpp
+ /opt/homebrew/include/boost/algorithm/string/predicate.hpp
+ /opt/homebrew/include/boost/assert.hpp
+ /opt/homebrew/include/boost/assert/source_location.hpp
+ /opt/homebrew/include/boost/concept/assert.hpp
+ /opt/homebrew/include/boost/concept/detail/backward_compatibility.hpp
+ /opt/homebrew/include/boost/concept/detail/concept_def.hpp
+ /opt/homebrew/include/boost/concept/detail/concept_undef.hpp
+ /opt/homebrew/include/boost/concept/detail/general.hpp
+ /opt/homebrew/include/boost/concept/detail/has_constraints.hpp
+ /opt/homebrew/include/boost/concept/usage.hpp
+ /opt/homebrew/include/boost/concept_check.hpp
  /opt/homebrew/include/boost/config.hpp
  /opt/homebrew/include/boost/config/compiler/clang.hpp
  /opt/homebrew/include/boost/config/compiler/clang_version.hpp
@@ -929,14 +963,76 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/config/detail/select_stdlib_config.hpp
  /opt/homebrew/include/boost/config/detail/suffix.hpp
  /opt/homebrew/include/boost/config/helper_macros.hpp
+ /opt/homebrew/include/boost/config/no_tr1/cmath.hpp
  /opt/homebrew/include/boost/config/platform/macos.hpp
  /opt/homebrew/include/boost/config/stdlib/libcpp.hpp
  /opt/homebrew/include/boost/config/user.hpp
  /opt/homebrew/include/boost/config/workaround.hpp
+ /opt/homebrew/include/boost/container/container_fwd.hpp
+ /opt/homebrew/include/boost/container/detail/std_fwd.hpp
+ /opt/homebrew/include/boost/container/detail/workaround.hpp
+ /opt/homebrew/include/boost/core/addressof.hpp
+ /opt/homebrew/include/boost/core/checked_delete.hpp
+ /opt/homebrew/include/boost/core/cmath.hpp
+ /opt/homebrew/include/boost/core/enable_if.hpp
+ /opt/homebrew/include/boost/core/noncopyable.hpp
+ /opt/homebrew/include/boost/core/ref.hpp
+ /opt/homebrew/include/boost/core/snprintf.hpp
+ /opt/homebrew/include/boost/core/use_default.hpp
+ /opt/homebrew/include/boost/cstdint.hpp
  /opt/homebrew/include/boost/current_function.hpp
+ /opt/homebrew/include/boost/detail/basic_pointerbuf.hpp
+ /opt/homebrew/include/boost/detail/lcast_precision.hpp
  /opt/homebrew/include/boost/detail/workaround.hpp
+ /opt/homebrew/include/boost/exception/exception.hpp
+ /opt/homebrew/include/boost/iterator/advance.hpp
+ /opt/homebrew/include/boost/iterator/detail/config_def.hpp
+ /opt/homebrew/include/boost/iterator/detail/config_undef.hpp
+ /opt/homebrew/include/boost/iterator/detail/eval_if_default.hpp
+ /opt/homebrew/include/boost/iterator/detail/facade_iterator_category.hpp
+ /opt/homebrew/include/boost/iterator/detail/type_traits/conjunction.hpp
+ /opt/homebrew/include/boost/iterator/detail/type_traits/disjunction.hpp
+ /opt/homebrew/include/boost/iterator/detail/type_traits/negation.hpp
+ /opt/homebrew/include/boost/iterator/detail/type_traits/type_identity.hpp
+ /opt/homebrew/include/boost/iterator/distance.hpp
+ /opt/homebrew/include/boost/iterator/enable_if_convertible.hpp
+ /opt/homebrew/include/boost/iterator/interoperable.hpp
+ /opt/homebrew/include/boost/iterator/is_iterator.hpp
+ /opt/homebrew/include/boost/iterator/iterator_adaptor.hpp
+ /opt/homebrew/include/boost/iterator/iterator_categories.hpp
+ /opt/homebrew/include/boost/iterator/iterator_concepts.hpp
+ /opt/homebrew/include/boost/iterator/iterator_facade.hpp
+ /opt/homebrew/include/boost/iterator/iterator_traits.hpp
+ /opt/homebrew/include/boost/iterator/reverse_iterator.hpp
+ /opt/homebrew/include/boost/lexical_cast.hpp
+ /opt/homebrew/include/boost/lexical_cast/bad_lexical_cast.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/buffer_view.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/converter_lexical.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/converter_lexical_streams.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/converter_numeric.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/inf_nan.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/is_character.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/lcast_basic_unlockedbuf.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/lcast_char_constants.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/lcast_unsigned_converters.hpp
+ /opt/homebrew/include/boost/lexical_cast/detail/widest_char.hpp
+ /opt/homebrew/include/boost/lexical_cast/try_lexical_convert.hpp
+ /opt/homebrew/include/boost/limits.hpp
+ /opt/homebrew/include/boost/move/detail/std_ns_begin.hpp
+ /opt/homebrew/include/boost/move/detail/std_ns_end.hpp
+ /opt/homebrew/include/boost/mp11/detail/config.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_defer.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_fold.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_front.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_list.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_rename.hpp
+ /opt/homebrew/include/boost/mp11/detail/mp_value.hpp
+ /opt/homebrew/include/boost/mp11/integral.hpp
+ /opt/homebrew/include/boost/mp11/utility.hpp
+ /opt/homebrew/include/boost/mp11/version.hpp
  /opt/homebrew/include/boost/mpl/O1_size.hpp
  /opt/homebrew/include/boost/mpl/O1_size_fwd.hpp
+ /opt/homebrew/include/boost/mpl/advance.hpp
  /opt/homebrew/include/boost/mpl/advance_fwd.hpp
  /opt/homebrew/include/boost/mpl/always.hpp
  /opt/homebrew/include/boost/mpl/and.hpp
@@ -949,12 +1045,16 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/mpl/at_fwd.hpp
  /opt/homebrew/include/boost/mpl/aux_/O1_size_impl.hpp
  /opt/homebrew/include/boost/mpl/aux_/adl_barrier.hpp
+ /opt/homebrew/include/boost/mpl/aux_/advance_backward.hpp
+ /opt/homebrew/include/boost/mpl/aux_/advance_forward.hpp
  /opt/homebrew/include/boost/mpl/aux_/arg_typedef.hpp
  /opt/homebrew/include/boost/mpl/aux_/arithmetic_op.hpp
  /opt/homebrew/include/boost/mpl/aux_/arity.hpp
  /opt/homebrew/include/boost/mpl/aux_/arity_spec.hpp
  /opt/homebrew/include/boost/mpl/aux_/begin_end_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/clear_impl.hpp
  /opt/homebrew/include/boost/mpl/aux_/common_name_wknd.hpp
+ /opt/homebrew/include/boost/mpl/aux_/comparison_op.hpp
  /opt/homebrew/include/boost/mpl/aux_/config/adl.hpp
  /opt/homebrew/include/boost/mpl/aux_/config/arrays.hpp
  /opt/homebrew/include/boost/mpl/aux_/config/bcc.hpp
@@ -992,10 +1092,13 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/mpl/aux_/has_tag.hpp
  /opt/homebrew/include/boost/mpl/aux_/has_type.hpp
  /opt/homebrew/include/boost/mpl/aux_/include_preprocessed.hpp
+ /opt/homebrew/include/boost/mpl/aux_/inserter_algorithm.hpp
  /opt/homebrew/include/boost/mpl/aux_/integral_wrapper.hpp
  /opt/homebrew/include/boost/mpl/aux_/is_msvc_eti_arg.hpp
  /opt/homebrew/include/boost/mpl/aux_/iter_apply.hpp
  /opt/homebrew/include/boost/mpl/aux_/iter_fold_if_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/iter_fold_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/joint_iter.hpp
  /opt/homebrew/include/boost/mpl/aux_/lambda_arity_param.hpp
  /opt/homebrew/include/boost/mpl/aux_/lambda_spec.hpp
  /opt/homebrew/include/boost/mpl/aux_/lambda_support.hpp
@@ -1011,6 +1114,8 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/mpl/aux_/nttp_decl.hpp
  /opt/homebrew/include/boost/mpl/aux_/numeric_cast_utils.hpp
  /opt/homebrew/include/boost/mpl/aux_/numeric_op.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/advance_backward.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/advance_forward.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/and.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/apply.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/apply_fwd.hpp
@@ -1018,83 +1123,118 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/arg.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/bind.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/bind_fwd.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/equal_to.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/fold_impl.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/full_lambda.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/inherit.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/iter_fold_if_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/iter_fold_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/less.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/minus.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/or.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/placeholders.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/plus.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/quote.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/reverse_fold_impl.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/template_arity.hpp
+ /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/times.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/vector.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessor/def_params_tail.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessor/default_params.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessor/enum.hpp
  /opt/homebrew/include/boost/mpl/aux_/preprocessor/params.hpp
+ /opt/homebrew/include/boost/mpl/aux_/push_back_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/push_front_impl.hpp
+ /opt/homebrew/include/boost/mpl/aux_/reverse_fold_impl.hpp
  /opt/homebrew/include/boost/mpl/aux_/static_cast.hpp
  /opt/homebrew/include/boost/mpl/aux_/template_arity.hpp
  /opt/homebrew/include/boost/mpl/aux_/template_arity_fwd.hpp
  /opt/homebrew/include/boost/mpl/aux_/traits_lambda_spec.hpp
  /opt/homebrew/include/boost/mpl/aux_/type_wrapper.hpp
+ /opt/homebrew/include/boost/mpl/aux_/unwrap.hpp
  /opt/homebrew/include/boost/mpl/aux_/value_wknd.hpp
  /opt/homebrew/include/boost/mpl/aux_/yes_no.hpp
  /opt/homebrew/include/boost/mpl/back_fwd.hpp
+ /opt/homebrew/include/boost/mpl/back_inserter.hpp
  /opt/homebrew/include/boost/mpl/begin_end.hpp
  /opt/homebrew/include/boost/mpl/begin_end_fwd.hpp
  /opt/homebrew/include/boost/mpl/bind.hpp
  /opt/homebrew/include/boost/mpl/bind_fwd.hpp
  /opt/homebrew/include/boost/mpl/bool.hpp
  /opt/homebrew/include/boost/mpl/bool_fwd.hpp
+ /opt/homebrew/include/boost/mpl/clear.hpp
  /opt/homebrew/include/boost/mpl/clear_fwd.hpp
  /opt/homebrew/include/boost/mpl/contains.hpp
  /opt/homebrew/include/boost/mpl/contains_fwd.hpp
  /opt/homebrew/include/boost/mpl/deref.hpp
+ /opt/homebrew/include/boost/mpl/distance.hpp
  /opt/homebrew/include/boost/mpl/distance_fwd.hpp
+ /opt/homebrew/include/boost/mpl/empty_base.hpp
  /opt/homebrew/include/boost/mpl/empty_fwd.hpp
+ /opt/homebrew/include/boost/mpl/equal_to.hpp
  /opt/homebrew/include/boost/mpl/eval_if.hpp
  /opt/homebrew/include/boost/mpl/find.hpp
  /opt/homebrew/include/boost/mpl/find_if.hpp
  /opt/homebrew/include/boost/mpl/fold.hpp
  /opt/homebrew/include/boost/mpl/front_fwd.hpp
+ /opt/homebrew/include/boost/mpl/front_inserter.hpp
  /opt/homebrew/include/boost/mpl/has_xxx.hpp
  /opt/homebrew/include/boost/mpl/identity.hpp
  /opt/homebrew/include/boost/mpl/if.hpp
+ /opt/homebrew/include/boost/mpl/inherit.hpp
+ /opt/homebrew/include/boost/mpl/inherit_linearly.hpp
+ /opt/homebrew/include/boost/mpl/inserter.hpp
  /opt/homebrew/include/boost/mpl/int.hpp
  /opt/homebrew/include/boost/mpl/int_fwd.hpp
  /opt/homebrew/include/boost/mpl/integral_c.hpp
  /opt/homebrew/include/boost/mpl/integral_c_fwd.hpp
  /opt/homebrew/include/boost/mpl/integral_c_tag.hpp
+ /opt/homebrew/include/boost/mpl/is_sequence.hpp
+ /opt/homebrew/include/boost/mpl/iter_fold.hpp
  /opt/homebrew/include/boost/mpl/iter_fold_if.hpp
+ /opt/homebrew/include/boost/mpl/iterator_category.hpp
+ /opt/homebrew/include/boost/mpl/iterator_range.hpp
  /opt/homebrew/include/boost/mpl/iterator_tags.hpp
+ /opt/homebrew/include/boost/mpl/joint_view.hpp
  /opt/homebrew/include/boost/mpl/lambda.hpp
  /opt/homebrew/include/boost/mpl/lambda_fwd.hpp
+ /opt/homebrew/include/boost/mpl/less.hpp
  /opt/homebrew/include/boost/mpl/limits/arity.hpp
  /opt/homebrew/include/boost/mpl/limits/vector.hpp
  /opt/homebrew/include/boost/mpl/logical.hpp
  /opt/homebrew/include/boost/mpl/long.hpp
  /opt/homebrew/include/boost/mpl/long_fwd.hpp
+ /opt/homebrew/include/boost/mpl/min_max.hpp
  /opt/homebrew/include/boost/mpl/minus.hpp
+ /opt/homebrew/include/boost/mpl/multiplies.hpp
+ /opt/homebrew/include/boost/mpl/negate.hpp
  /opt/homebrew/include/boost/mpl/next.hpp
  /opt/homebrew/include/boost/mpl/next_prior.hpp
  /opt/homebrew/include/boost/mpl/not.hpp
  /opt/homebrew/include/boost/mpl/numeric_cast.hpp
  /opt/homebrew/include/boost/mpl/or.hpp
  /opt/homebrew/include/boost/mpl/pair.hpp
+ /opt/homebrew/include/boost/mpl/pair_view.hpp
  /opt/homebrew/include/boost/mpl/placeholders.hpp
  /opt/homebrew/include/boost/mpl/plus.hpp
  /opt/homebrew/include/boost/mpl/pop_back_fwd.hpp
  /opt/homebrew/include/boost/mpl/pop_front_fwd.hpp
  /opt/homebrew/include/boost/mpl/prior.hpp
  /opt/homebrew/include/boost/mpl/protect.hpp
+ /opt/homebrew/include/boost/mpl/push_back.hpp
  /opt/homebrew/include/boost/mpl/push_back_fwd.hpp
+ /opt/homebrew/include/boost/mpl/push_front.hpp
  /opt/homebrew/include/boost/mpl/push_front_fwd.hpp
  /opt/homebrew/include/boost/mpl/quote.hpp
+ /opt/homebrew/include/boost/mpl/remove_if.hpp
+ /opt/homebrew/include/boost/mpl/reverse_fold.hpp
  /opt/homebrew/include/boost/mpl/same_as.hpp
  /opt/homebrew/include/boost/mpl/sequence_tag.hpp
  /opt/homebrew/include/boost/mpl/sequence_tag_fwd.hpp
  /opt/homebrew/include/boost/mpl/size_fwd.hpp
  /opt/homebrew/include/boost/mpl/tag.hpp
+ /opt/homebrew/include/boost/mpl/times.hpp
+ /opt/homebrew/include/boost/mpl/transform.hpp
  /opt/homebrew/include/boost/mpl/vector.hpp
  /opt/homebrew/include/boost/mpl/vector/aux_/O1_size.hpp
  /opt/homebrew/include/boost/mpl/vector/aux_/at.hpp
@@ -1120,14 +1260,55 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/mpl/vector/vector20.hpp
  /opt/homebrew/include/boost/mpl/void.hpp
  /opt/homebrew/include/boost/mpl/void_fwd.hpp
+ /opt/homebrew/include/boost/next_prior.hpp
+ /opt/homebrew/include/boost/numeric/conversion/bounds.hpp
+ /opt/homebrew/include/boost/numeric/conversion/cast.hpp
+ /opt/homebrew/include/boost/numeric/conversion/conversion_traits.hpp
+ /opt/homebrew/include/boost/numeric/conversion/converter.hpp
+ /opt/homebrew/include/boost/numeric/conversion/converter_policies.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/bounds.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/conversion_traits.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/converter.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/int_float_mixture.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/is_subranged.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/meta.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/numeric_cast_traits.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_common.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/preprocessed/numeric_cast_traits_long_long.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/sign_mixture.hpp
+ /opt/homebrew/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp
+ /opt/homebrew/include/boost/numeric/conversion/int_float_mixture_enum.hpp
+ /opt/homebrew/include/boost/numeric/conversion/numeric_cast_traits.hpp
+ /opt/homebrew/include/boost/numeric/conversion/sign_mixture_enum.hpp
+ /opt/homebrew/include/boost/numeric/conversion/udt_builtin_mixture_enum.hpp
+ /opt/homebrew/include/boost/predef/detail/_cassert.h
+ /opt/homebrew/include/boost/predef/detail/os_detected.h
+ /opt/homebrew/include/boost/predef/detail/test.h
+ /opt/homebrew/include/boost/predef/library/c/_prefix.h
+ /opt/homebrew/include/boost/predef/library/c/gnu.h
+ /opt/homebrew/include/boost/predef/make.h
+ /opt/homebrew/include/boost/predef/os/bsd.h
+ /opt/homebrew/include/boost/predef/os/bsd/bsdi.h
+ /opt/homebrew/include/boost/predef/os/bsd/dragonfly.h
+ /opt/homebrew/include/boost/predef/os/bsd/free.h
+ /opt/homebrew/include/boost/predef/os/bsd/net.h
+ /opt/homebrew/include/boost/predef/os/bsd/open.h
+ /opt/homebrew/include/boost/predef/os/ios.h
+ /opt/homebrew/include/boost/predef/os/macos.h
+ /opt/homebrew/include/boost/predef/other/endian.h
+ /opt/homebrew/include/boost/predef/platform/android.h
+ /opt/homebrew/include/boost/predef/version_number.h
  /opt/homebrew/include/boost/preprocessor/arithmetic/add.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/dec.hpp
+ /opt/homebrew/include/boost/preprocessor/arithmetic/detail/div_base.hpp
+ /opt/homebrew/include/boost/preprocessor/arithmetic/detail/is_1_number.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/detail/maximum_number.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/inc.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/limits/dec_256.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/limits/inc_256.hpp
+ /opt/homebrew/include/boost/preprocessor/arithmetic/mod.hpp
  /opt/homebrew/include/boost/preprocessor/arithmetic/sub.hpp
  /opt/homebrew/include/boost/preprocessor/array/data.hpp
  /opt/homebrew/include/boost/preprocessor/array/elem.hpp
@@ -1141,6 +1322,7 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/preprocessor/comparison/not_equal.hpp
  /opt/homebrew/include/boost/preprocessor/config/config.hpp
  /opt/homebrew/include/boost/preprocessor/config/limits.hpp
+ /opt/homebrew/include/boost/preprocessor/control/deduce_d.hpp
  /opt/homebrew/include/boost/preprocessor/control/detail/limits/while_256.hpp
  /opt/homebrew/include/boost/preprocessor/control/detail/while.hpp
  /opt/homebrew/include/boost/preprocessor/control/expr_iif.hpp
@@ -1182,17 +1364,21 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/preprocessor/repeat.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/detail/for.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/detail/limits/for_256.hpp
+ /opt/homebrew/include/boost/preprocessor/repetition/enum_binary_params.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/enum_params.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/enum_trailing_params.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/for.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/limits/for_256.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/limits/repeat_256.hpp
  /opt/homebrew/include/boost/preprocessor/repetition/repeat.hpp
+ /opt/homebrew/include/boost/preprocessor/repetition/repeat_from_to.hpp
+ /opt/homebrew/include/boost/preprocessor/seq/cat.hpp
  /opt/homebrew/include/boost/preprocessor/seq/detail/is_empty.hpp
  /opt/homebrew/include/boost/preprocessor/seq/elem.hpp
  /opt/homebrew/include/boost/preprocessor/seq/enum.hpp
  /opt/homebrew/include/boost/preprocessor/seq/fold_left.hpp
  /opt/homebrew/include/boost/preprocessor/seq/for_each.hpp
+ /opt/homebrew/include/boost/preprocessor/seq/for_each_i.hpp
  /opt/homebrew/include/boost/preprocessor/seq/limits/elem_256.hpp
  /opt/homebrew/include/boost/preprocessor/seq/limits/enum_256.hpp
  /opt/homebrew/include/boost/preprocessor/seq/limits/fold_left_256.hpp
@@ -1210,8 +1396,100 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/boost/preprocessor/variadic/limits/elem_64.hpp
  /opt/homebrew/include/boost/preprocessor/variadic/limits/size_64.hpp
  /opt/homebrew/include/boost/preprocessor/variadic/size.hpp
+ /opt/homebrew/include/boost/range/algorithm/equal.hpp
+ /opt/homebrew/include/boost/range/as_literal.hpp
+ /opt/homebrew/include/boost/range/begin.hpp
+ /opt/homebrew/include/boost/range/concepts.hpp
+ /opt/homebrew/include/boost/range/config.hpp
+ /opt/homebrew/include/boost/range/const_iterator.hpp
+ /opt/homebrew/include/boost/range/detail/common.hpp
+ /opt/homebrew/include/boost/range/detail/extract_optional_type.hpp
+ /opt/homebrew/include/boost/range/detail/has_member_size.hpp
+ /opt/homebrew/include/boost/range/detail/implementation_help.hpp
+ /opt/homebrew/include/boost/range/detail/misc_concept.hpp
+ /opt/homebrew/include/boost/range/detail/msvc_has_iterator_workaround.hpp
+ /opt/homebrew/include/boost/range/detail/safe_bool.hpp
+ /opt/homebrew/include/boost/range/detail/sfinae.hpp
+ /opt/homebrew/include/boost/range/detail/str_types.hpp
+ /opt/homebrew/include/boost/range/difference_type.hpp
+ /opt/homebrew/include/boost/range/distance.hpp
+ /opt/homebrew/include/boost/range/empty.hpp
+ /opt/homebrew/include/boost/range/end.hpp
+ /opt/homebrew/include/boost/range/functions.hpp
+ /opt/homebrew/include/boost/range/has_range_iterator.hpp
+ /opt/homebrew/include/boost/range/iterator.hpp
+ /opt/homebrew/include/boost/range/iterator_range.hpp
+ /opt/homebrew/include/boost/range/iterator_range_core.hpp
+ /opt/homebrew/include/boost/range/iterator_range_io.hpp
+ /opt/homebrew/include/boost/range/mutable_iterator.hpp
+ /opt/homebrew/include/boost/range/range_fwd.hpp
+ /opt/homebrew/include/boost/range/rbegin.hpp
+ /opt/homebrew/include/boost/range/rend.hpp
+ /opt/homebrew/include/boost/range/reverse_iterator.hpp
+ /opt/homebrew/include/boost/range/size.hpp
+ /opt/homebrew/include/boost/range/size_type.hpp
+ /opt/homebrew/include/boost/range/value_type.hpp
+ /opt/homebrew/include/boost/ref.hpp
+ /opt/homebrew/include/boost/static_assert.hpp
+ /opt/homebrew/include/boost/throw_exception.hpp
+ /opt/homebrew/include/boost/type.hpp
+ /opt/homebrew/include/boost/type_traits/add_const.hpp
+ /opt/homebrew/include/boost/type_traits/add_pointer.hpp
+ /opt/homebrew/include/boost/type_traits/add_reference.hpp
+ /opt/homebrew/include/boost/type_traits/add_rvalue_reference.hpp
+ /opt/homebrew/include/boost/type_traits/add_volatile.hpp
+ /opt/homebrew/include/boost/type_traits/conditional.hpp
+ /opt/homebrew/include/boost/type_traits/conversion_traits.hpp
+ /opt/homebrew/include/boost/type_traits/declval.hpp
+ /opt/homebrew/include/boost/type_traits/detail/config.hpp
+ /opt/homebrew/include/boost/type_traits/detail/has_binary_operator.hpp
+ /opt/homebrew/include/boost/type_traits/detail/is_function_cxx_11.hpp
+ /opt/homebrew/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp
+ /opt/homebrew/include/boost/type_traits/detail/yes_no_type.hpp
+ /opt/homebrew/include/boost/type_traits/function_traits.hpp
+ /opt/homebrew/include/boost/type_traits/has_minus.hpp
+ /opt/homebrew/include/boost/type_traits/has_minus_assign.hpp
+ /opt/homebrew/include/boost/type_traits/has_plus.hpp
+ /opt/homebrew/include/boost/type_traits/has_plus_assign.hpp
  /opt/homebrew/include/boost/type_traits/integral_constant.hpp
+ /opt/homebrew/include/boost/type_traits/intrinsics.hpp
+ /opt/homebrew/include/boost/type_traits/is_abstract.hpp
+ /opt/homebrew/include/boost/type_traits/is_arithmetic.hpp
+ /opt/homebrew/include/boost/type_traits/is_array.hpp
+ /opt/homebrew/include/boost/type_traits/is_base_and_derived.hpp
+ /opt/homebrew/include/boost/type_traits/is_class.hpp
+ /opt/homebrew/include/boost/type_traits/is_complete.hpp
+ /opt/homebrew/include/boost/type_traits/is_const.hpp
+ /opt/homebrew/include/boost/type_traits/is_convertible.hpp
+ /opt/homebrew/include/boost/type_traits/is_empty.hpp
+ /opt/homebrew/include/boost/type_traits/is_enum.hpp
+ /opt/homebrew/include/boost/type_traits/is_float.hpp
+ /opt/homebrew/include/boost/type_traits/is_floating_point.hpp
+ /opt/homebrew/include/boost/type_traits/is_function.hpp
+ /opt/homebrew/include/boost/type_traits/is_integral.hpp
+ /opt/homebrew/include/boost/type_traits/is_lvalue_reference.hpp
+ /opt/homebrew/include/boost/type_traits/is_member_function_pointer.hpp
+ /opt/homebrew/include/boost/type_traits/is_pointer.hpp
+ /opt/homebrew/include/boost/type_traits/is_reference.hpp
+ /opt/homebrew/include/boost/type_traits/is_rvalue_reference.hpp
  /opt/homebrew/include/boost/type_traits/is_same.hpp
+ /opt/homebrew/include/boost/type_traits/is_signed.hpp
+ /opt/homebrew/include/boost/type_traits/is_unsigned.hpp
+ /opt/homebrew/include/boost/type_traits/is_void.hpp
+ /opt/homebrew/include/boost/type_traits/is_volatile.hpp
+ /opt/homebrew/include/boost/type_traits/make_unsigned.hpp
+ /opt/homebrew/include/boost/type_traits/make_void.hpp
+ /opt/homebrew/include/boost/type_traits/remove_const.hpp
+ /opt/homebrew/include/boost/type_traits/remove_cv.hpp
+ /opt/homebrew/include/boost/type_traits/remove_pointer.hpp
+ /opt/homebrew/include/boost/type_traits/remove_reference.hpp
+ /opt/homebrew/include/boost/type_traits/type_identity.hpp
+ /opt/homebrew/include/boost/utility.hpp
+ /opt/homebrew/include/boost/utility/base_from_member.hpp
+ /opt/homebrew/include/boost/utility/binary.hpp
+ /opt/homebrew/include/boost/utility/enable_if.hpp
+ /opt/homebrew/include/boost/utility/identity_type.hpp
+ /opt/homebrew/include/boost/version.hpp
  /opt/homebrew/include/eigen3/Eigen/Cholesky
  /opt/homebrew/include/eigen3/Eigen/Core
  /opt/homebrew/include/eigen3/Eigen/Geometry
@@ -1387,11 +1665,28 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o
  /opt/homebrew/include/eigen3/Eigen/src/misc/Kernel.h
  /opt/homebrew/include/eigen3/Eigen/src/misc/RealSvd2x2.h
  /opt/homebrew/include/pcl-1.15/pcl/PCLHeader.h
+ /opt/homebrew/include/pcl-1.15/pcl/PCLImage.h
+ /opt/homebrew/include/pcl-1.15/pcl/PCLPointCloud2.h
  /opt/homebrew/include/pcl-1.15/pcl/PCLPointField.h
  /opt/homebrew/include/pcl-1.15/pcl/PointIndices.h
+ /opt/homebrew/include/pcl-1.15/pcl/PolygonMesh.h
+ /opt/homebrew/include/pcl-1.15/pcl/Vertices.h
+ /opt/homebrew/include/pcl-1.15/pcl/common/concatenate.h
+ /opt/homebrew/include/pcl-1.15/pcl/common/copy_point.h
+ /opt/homebrew/include/pcl-1.15/pcl/common/impl/copy_point.hpp
+ /opt/homebrew/include/pcl-1.15/pcl/common/impl/io.hpp
+ /opt/homebrew/include/pcl-1.15/pcl/common/io.h
  /opt/homebrew/include/pcl-1.15/pcl/console/print.h
+ /opt/homebrew/include/pcl-1.15/pcl/conversions.h
  /opt/homebrew/include/pcl-1.15/pcl/exceptions.h
+ /opt/homebrew/include/pcl-1.15/pcl/for_each_type.h
  /opt/homebrew/include/pcl-1.15/pcl/impl/point_types.hpp
+ /opt/homebrew/include/pcl-1.15/pcl/io/file_io.h
+ /opt/homebrew/include/pcl-1.15/pcl/io/ply/byte_order.h
+ /opt/homebrew/include/pcl-1.15/pcl/io/ply/io_operators.h
+ /opt/homebrew/include/pcl-1.15/pcl/io/ply/ply.h
+ /opt/homebrew/include/pcl-1.15/pcl/io/ply/ply_parser.h
+ /opt/homebrew/include/pcl-1.15/pcl/io/ply_io.h
  /opt/homebrew/include/pcl-1.15/pcl/memory.h
  /opt/homebrew/include/pcl-1.15/pcl/pcl_config.h
  /opt/homebrew/include/pcl-1.15/pcl/pcl_exports.h

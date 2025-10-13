@@ -88,12 +88,12 @@ clean: CMakeFiles/pcg_room.dir/clean
 CMakeFiles/pcg.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=1,2,3 "Built target pcg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=1,2,3,4,5,6 "Built target pcg"
 .PHONY : CMakeFiles/pcg.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/pcg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pcg.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 0
 .PHONY : CMakeFiles/pcg.dir/rule
@@ -105,7 +105,7 @@ pcg: CMakeFiles/pcg.dir/rule
 # codegen rule for target.
 CMakeFiles/pcg.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=1,2,3 "Finished codegen for target pcg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=1,2,3,4,5,6 "Finished codegen for target pcg"
 .PHONY : CMakeFiles/pcg.dir/codegen
 
 # clean rule for target.
@@ -120,12 +120,12 @@ CMakeFiles/pcg.dir/clean:
 CMakeFiles/pcg_room.dir/all: CMakeFiles/pcg.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=4,5 "Built target pcg_room"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=7,8 "Built target pcg_room"
 .PHONY : CMakeFiles/pcg_room.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/pcg_room.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 8
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/pcg_room.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles 0
 .PHONY : CMakeFiles/pcg_room.dir/rule
@@ -137,7 +137,7 @@ pcg_room: CMakeFiles/pcg_room.dir/rule
 # codegen rule for target.
 CMakeFiles/pcg_room.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=4,5 "Finished codegen for target pcg_room"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=7,8 "Finished codegen for target pcg_room"
 .PHONY : CMakeFiles/pcg_room.dir/codegen
 
 # clean rule for target.

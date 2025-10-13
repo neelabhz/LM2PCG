@@ -1380,6 +1380,9 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o: \
   /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/fold_impl.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h \
   /opt/homebrew/include/pcl-1.15/pcl/PointIndices.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/csv_writer.hpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/copy_options.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/file_status.h \

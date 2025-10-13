@@ -211,6 +211,30 @@ src/apps/pcg_room.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.s
 .PHONY : src/apps/pcg_room.cpp.s
 
+src/geometry/bbox.o: src/geometry/bbox.cpp.o
+.PHONY : src/geometry/bbox.o
+
+# target to build an object file
+src/geometry/bbox.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o
+.PHONY : src/geometry/bbox.cpp.o
+
+src/geometry/bbox.i: src/geometry/bbox.cpp.i
+.PHONY : src/geometry/bbox.i
+
+# target to preprocess a source file
+src/geometry/bbox.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/bbox.cpp.i
+.PHONY : src/geometry/bbox.cpp.i
+
+src/geometry/bbox.s: src/geometry/bbox.cpp.s
+.PHONY : src/geometry/bbox.s
+
+# target to generate assembly for a file
+src/geometry/bbox.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/bbox.cpp.s
+.PHONY : src/geometry/bbox.cpp.s
+
 src/geometry/clustering.o: src/geometry/clustering.cpp.o
 .PHONY : src/geometry/clustering.o
 
@@ -234,6 +258,54 @@ src/geometry/clustering.s: src/geometry/clustering.cpp.s
 src/geometry/clustering.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/clustering.cpp.s
 .PHONY : src/geometry/clustering.cpp.s
+
+src/io/csv_writer.o: src/io/csv_writer.cpp.o
+.PHONY : src/io/csv_writer.o
+
+# target to build an object file
+src/io/csv_writer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o
+.PHONY : src/io/csv_writer.cpp.o
+
+src/io/csv_writer.i: src/io/csv_writer.cpp.i
+.PHONY : src/io/csv_writer.i
+
+# target to preprocess a source file
+src/io/csv_writer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/csv_writer.cpp.i
+.PHONY : src/io/csv_writer.cpp.i
+
+src/io/csv_writer.s: src/io/csv_writer.cpp.s
+.PHONY : src/io/csv_writer.s
+
+# target to generate assembly for a file
+src/io/csv_writer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/csv_writer.cpp.s
+.PHONY : src/io/csv_writer.cpp.s
+
+src/io/params.o: src/io/params.cpp.o
+.PHONY : src/io/params.o
+
+# target to build an object file
+src/io/params.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/params.cpp.o
+.PHONY : src/io/params.cpp.o
+
+src/io/params.i: src/io/params.cpp.i
+.PHONY : src/io/params.i
+
+# target to preprocess a source file
+src/io/params.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/params.cpp.i
+.PHONY : src/io/params.cpp.i
+
+src/io/params.s: src/io/params.cpp.s
+.PHONY : src/io/params.s
+
+# target to generate assembly for a file
+src/io/params.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/params.cpp.s
+.PHONY : src/io/params.cpp.s
 
 src/io/ply_io.o: src/io/ply_io.cpp.o
 .PHONY : src/io/ply_io.o
@@ -276,9 +348,18 @@ help:
 	@echo "... src/apps/pcg_room.o"
 	@echo "... src/apps/pcg_room.i"
 	@echo "... src/apps/pcg_room.s"
+	@echo "... src/geometry/bbox.o"
+	@echo "... src/geometry/bbox.i"
+	@echo "... src/geometry/bbox.s"
 	@echo "... src/geometry/clustering.o"
 	@echo "... src/geometry/clustering.i"
 	@echo "... src/geometry/clustering.s"
+	@echo "... src/io/csv_writer.o"
+	@echo "... src/io/csv_writer.i"
+	@echo "... src/io/csv_writer.s"
+	@echo "... src/io/params.o"
+	@echo "... src/io/params.i"
+	@echo "... src/io/params.s"
 	@echo "... src/io/ply_io.o"
 	@echo "... src/io/ply_io.i"
 	@echo "... src/io/ply_io.s"

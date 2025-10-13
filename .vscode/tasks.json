@@ -14,6 +14,19 @@
 				"$gcc"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Build CMake project (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; build_dir=\"build\"; mkdir -p \"$build_dir\"; cd \"$build_dir\"; cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
 		}
 	]
 }

@@ -9,7 +9,10 @@ find_package(PCL 1.10 REQUIRED COMPONENTS common io kdtree)
 
 add_library(pcg
     src/geometry/clustering.cpp
+    src/geometry/bbox.cpp
     src/io/ply_io.cpp
+    src/io/csv_writer.cpp
+    src/io/params.cpp
 )
 
 target_include_directories(pcg PUBLIC include ${PCL_INCLUDE_DIRS})

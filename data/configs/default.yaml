@@ -1,0 +1,6 @@
+# Pipeline parameters
+radius: 0.02
+min_cluster_size: 50
+max_neighbors: 150
+filter_factor: 0.70
+no_filter_ratio: 2.0
