@@ -1,0 +1,4 @@
+set(__QT_DEPLOY_TARGET_pcg_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/libpcg.a)
+set(__QT_DEPLOY_TARGET_pcg_TYPE STATIC_LIBRARY)
+set(__QT_DEPLOY_TARGET_pcg_room_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_room)
+set(__QT_DEPLOY_TARGET_pcg_room_TYPE EXECUTABLE)

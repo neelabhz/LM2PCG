@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Configure and build (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; build_dir=\"build\"; mkdir -p \"$build_dir\"; cd \"$build_dir\"; cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		}
+	]
+}

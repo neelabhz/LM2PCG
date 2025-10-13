@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpcg.a CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o CMakeFiles/pcg.dir/src/io/ply_io.cpp.o
+/usr/bin/ranlib libpcg.a
