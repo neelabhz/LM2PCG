@@ -2315,8 +2315,8 @@ CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o: /Users/jacksonye/Documents/Git
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.h \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.hpp \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp \
   /opt/homebrew/include/boost/config.hpp \
   /opt/homebrew/include/boost/config/compiler/clang.hpp \
   /opt/homebrew/include/boost/config/compiler/clang_version.hpp \
@@ -5983,7 +5983,7 @@ CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: /Users/jacksonye/Documents/GitHub/Sparia
 
 /opt/homebrew/include/boost/core/enable_if.hpp:
 
-/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h:
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp:
 
 /opt/homebrew/include/pcl-1.15/pcl/register_point_struct.h:
 
@@ -7443,6 +7443,8 @@ CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: /Users/jacksonye/Documents/GitHub/Sparia
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/rank.h:
 
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.hpp:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__iterator/unreachable_sentinel.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__node_handle:
@@ -8716,8 +8718,6 @@ CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: /Users/jacksonye/Documents/GitHub/Sparia
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/operation_traits.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h:
-
-/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.h:
 
 /opt/homebrew/include/pcl-1.15/pcl/type_traits.h:
 

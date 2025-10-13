@@ -1,6 +1,6 @@
 CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o: \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/clustering.cpp \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp \
   /opt/homebrew/include/pcl-1.15/pcl/point_cloud.h \
   /opt/homebrew/include/eigen3/Eigen/StdVector \
   /opt/homebrew/include/eigen3/Eigen/Core \
@@ -1379,7 +1379,7 @@ CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o: \
   /opt/homebrew/include/boost/mpl/aux_/fold_impl.hpp \
   /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/fold_impl.hpp \
   /opt/homebrew/include/pcl-1.15/pcl/PointIndices.h \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.hpp \
   /opt/homebrew/include/pcl-1.15/pcl/kdtree/kdtree_flann.h \
   /opt/homebrew/include/pcl-1.15/pcl/kdtree/kdtree.h \
   /opt/homebrew/include/pcl-1.15/pcl/point_representation.h \

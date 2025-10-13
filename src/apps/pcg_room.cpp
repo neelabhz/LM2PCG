@@ -1,5 +1,5 @@
 #include "pcg/ply_io.hpp"
-#include "pcg/clustering.h"
+#include "pcg/clustering.hpp"
 #include "pcg/params.hpp"
 #include "pcg/bbox.hpp"
 #include "pcg/csv_writer.hpp"

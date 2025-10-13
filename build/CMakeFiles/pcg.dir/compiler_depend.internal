@@ -2317,8 +2317,8 @@ CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdarg.h
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h
- /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.h
- /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/FEC.hpp
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp
  /opt/homebrew/include/boost/config.hpp
  /opt/homebrew/include/boost/config/compiler/clang.hpp
  /opt/homebrew/include/boost/config/compiler/clang_version.hpp

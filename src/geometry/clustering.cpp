@@ -1,5 +1,5 @@
-#include "pcg/clustering.h"
-#include "pcg/FEC.h"
+#include "pcg/clustering.hpp"
+#include "pcg/FEC.hpp"
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>

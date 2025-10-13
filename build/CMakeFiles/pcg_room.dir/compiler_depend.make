@@ -930,7 +930,7 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o: /Users/jacksonye/Documents/GitH
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/csv_writer.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/ply_io.hpp \
@@ -2876,7 +2876,7 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o: /Users/jacksonye/Documents/GitH
 
 /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp:
 
-/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h:
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp:
 
 /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp:
 

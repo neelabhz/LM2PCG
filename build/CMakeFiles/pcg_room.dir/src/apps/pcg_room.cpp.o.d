@@ -1378,7 +1378,7 @@ CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.o: \
   /opt/homebrew/include/boost/mpl/aux_/has_size.hpp \
   /opt/homebrew/include/boost/mpl/aux_/fold_impl.hpp \
   /opt/homebrew/include/boost/mpl/aux_/preprocessed/gcc/fold_impl.hpp \
-  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.h \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/clustering.hpp \
   /opt/homebrew/include/pcl-1.15/pcl/PointIndices.h \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp \
