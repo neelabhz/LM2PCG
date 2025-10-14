@@ -1,0 +1,38 @@
+  Cluster size stats: min=508, max=508, ratio=1, no_filter_ratio=2 -> skip filtering
+File: table_006.ply, points: 508, clusters(raw/filtered): 1/1
+  Avg cluster size: 508, filter threshold (factor=0.7): 355.6
+  - raw cluster 0: size=508
+  - kept cluster 0: size=508
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/table_006/table_006_cluster_0_uobb.ply
+Saved 1/1 filtered clusters to: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/table_006
+  Detected *shell* -> treat as single cluster, skip clustering and filtering
+File: shell_006.ply, points: 965379, clusters(raw/filtered): 1/1
+  Avg cluster size: 965379, filter threshold (factor=0.7): 675765
+  - raw cluster 0: size=965379
+  - kept cluster 0: size=965379
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/shell_006/shell_006_cluster_0_uobb.ply
+Saved 1/1 filtered clusters to: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/shell_006
+  Cluster size stats: min=81, max=110, ratio=1.35802, no_filter_ratio=2 -> skip filtering
+File: window_006.ply, points: 345, clusters(raw/filtered): 3/3
+  Avg cluster size: 95.3333, filter threshold (factor=0.7): 66.7333
+  - raw cluster 0: size=81
+  - raw cluster 1: size=110
+  - raw cluster 2: size=95
+  - kept cluster 0: size=81
+  - kept cluster 1: size=110
+  - kept cluster 2: size=95
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/window_006/window_006_cluster_0_uobb.ply
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/window_006/window_006_cluster_1_uobb.ply
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/window_006/window_006_cluster_2_uobb.ply
+Saved 3/3 filtered clusters to: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/window_006
+  Cluster size stats: min=183, max=120109, ratio=656.333, no_filter_ratio=2 -> apply filtering
+File: door_006.ply, points: 135436, clusters(raw/filtered): 5/1
+  Avg cluster size: 27066.6, filter threshold (factor=0.7): 18946.6
+  - raw cluster 0: size=120109
+  - raw cluster 1: size=14079
+  - raw cluster 2: size=183
+  - raw cluster 3: size=564
+  - raw cluster 4: size=398
+  - kept cluster 0: size=120109
+  ✓ saved UOBB: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/door_006/door_006_cluster_0_uobb.ply
+Saved 1/1 filtered clusters to: ../output/client_room/floor_1/room_006/diagnostics/filtered_clusters/door_006
