@@ -115,31 +115,31 @@ Usage:
 
 Notes:
 - Input can be a site root (e.g., `output/client_room`), a floor, or a single room directory that contains `diagnostics/filtered_clusters`.
-- For每个 cluster，程序会先尝试 Poisson：
-  - 满足定向法线占比阈值
-  - （可选）要求输出网格闭合
-  - 网格体积需 ≤ 配置阈值 × 点云凸包体积
-  - 若通过，输出 `<stem>_poisson.ply`，不会再跑 AF
-- 若 Poisson 失败/无效，则回退 AF，输出 `<stem>_af.ply`
-- 输出位于：`<room>/diagnostics/recon/<object_stem>/`
+- For each cluster, the app tries Poisson first:
+  - Meets the oriented normals fraction threshold
+  - Optionally requires the output mesh to be closed
+  - Mesh volume must be ≤ configured ratio × convex hull volume of the input points
+  - If it passes, it writes `<stem>_poisson.ply` and does not run AF
+- If Poisson fails or is deemed invalid, it falls back to AF and writes `<stem>_af.ply`
+- Outputs are placed under: `<room>/diagnostics/recon/<object_stem>/`
 
 
 ### Mesh volume computation
-如果 CGAL 可用，使用体积计算 CLI：
+If CGAL is available, use the volume CLI:
 ```
 ./build/pcg_volume <mesh_file_1> [mesh_file_2 ...]
 ```
-输出包含：
-- 路径
-- closed: true/false（网格是否闭合）
-- volume: 数值（单位与坐标一致）
+The output includes:
+- path
+- closed: true/false (whether the mesh is closed)
+- volume: numeric value (units follow the input coordinates)
 
-开发者接口（库函数）：
-- 头文件：`include/pcg/geometry/volume.hpp`
+Developer API (library):
+- Header: `include/pcg/geometry/volume.hpp`
   - `double mesh_signed_volume(const pcg::geom::Mesh& mesh);`
-    - 计算网格体积（对闭合网格有效；异常/不适用返回 0.0）
+    - Computes mesh volume (valid for closed meshes; returns 0.0 on error or inapplicability)
   - `double convex_hull_volume(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud);`
-    - 计算点云三维凸包体积（点数不足或退化返回 0.0）
+    - Computes 3D convex hull volume of a point cloud (returns 0.0 if too few points or degenerate)
 
 
 ## Configuration
@@ -155,13 +155,13 @@ Pipeline parameters:
 Reconstruction parameters (Poisson):
 - `poisson_spacing_neighbors` (int): neighbors for average spacing
 - `poisson_normal_neighbors` (int): neighbors for jet normals & MST orientation
-- `poisson_min_oriented_fraction` (double): oriented normals fraction threshold；不足则跳过 Poisson
-- `poisson_require_closed` (bool): 是否要求 Poisson 输出闭合
-- `poisson_invalid_ratio_vs_hull` (double): 体积上限系数（Poisson 体积 ≤ ratio × 凸包体积）
+- `poisson_min_oriented_fraction` (double): oriented normals fraction threshold; skip Poisson if below threshold
+- `poisson_require_closed` (bool): require Poisson output to be closed
+- `poisson_invalid_ratio_vs_hull` (double): volume upper-bound factor (Poisson volume ≤ ratio × convex hull volume)
 
 Reconstruction parameters (AF):
-- `af_min_points` (int): 尝试 AF 的最小点数
-- `af_require_closed` (bool): 是否要求 AF 输出闭合
+- `af_min_points` (int): minimum number of points to attempt AF
+- `af_require_closed` (bool): require AF output to be closed
 
 The apps try several relative locations to find `data/configs/default.yaml`. If not found, built-in defaults are used.
 
@@ -190,7 +190,7 @@ For each processed room, under `output/<site>/<floor>/<room>/` you will find:
     - AF fallback: `<stem>_cluster_<k>_af.ply`
 
 Reconstruction policy summary:
-- Prefer Poisson when it passes all checks (normals fraction、闭合性、体积对比凸包)
+- Prefer Poisson when it passes all checks (normals fraction, closedness, volume vs convex hull)
 - Only run AF when Poisson is invalid or throws
 
 Notes on UOBB:
@@ -206,11 +206,11 @@ Notes on UOBB:
 - `max_neighbors` caps neighbor search results for performance
 
 Reconstruction tips:
-- 若 Poisson 通过率偏低，可尝试：
-  - 调高/调低 `poisson_normal_neighbors` 或 `poisson_spacing_neighbors`
-  - 略微降低 `poisson_min_oriented_fraction`
-  - 慎重提高 `poisson_invalid_ratio_vs_hull`（过大可能引入劣质网格）
-- AF 默认不强制闭合（`af_require_closed: false`），以提高回退可用性；如需闭合结果可设为 true（可能导致无结果）。
+- If Poisson acceptance is low, try:
+  - Adjust `poisson_normal_neighbors` or `poisson_spacing_neighbors` up or down
+  - Slightly lower `poisson_min_oriented_fraction`
+  - Carefully increase `poisson_invalid_ratio_vs_hull` (too large may accept poor meshes)
+- AF does not require closedness by default (`af_require_closed: false`) to improve fallback usability; set to true if you require closed outputs (may yield no result).
 
 
 ## Troubleshooting
@@ -222,10 +222,10 @@ Reconstruction tips:
 - Very large `.ply` files consume lots of memory/time:
   - Run room-by-room; consider downsampling externally if needed
   - Adjust `radius`, `min_cluster_size`, and `max_neighbors` for performance
-- PLY 解析器提示 camera 属性未处理：
-  - 这些与点坐标无关，已在重建程序中降低 PCL 日志级别，不影响结果
-- CGAL Poisson 报错或体积超阈值：
-  - 程序会自动回退到 AF；可按“Reconstruction tips”调整参数
+- PLY parser reports unhandled camera properties:
+  - These are unrelated to point coordinates; the reconstruction app lowers PCL log verbosity, and they do not affect results
+- CGAL Poisson error or volume exceeds threshold:
+  - The program automatically falls back to AF; adjust parameters per "Reconstruction tips"
 
 
 ## License
