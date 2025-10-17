@@ -34,12 +34,16 @@ static fs::path find_config_path() {
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        std::cerr << "Usage: pcg_reconstruct <input_root_or_room_dir> <output_root_dir>\n";
-        std::cerr << "  Input can be: site root (rooms/<site>), floor dir, or a single room dir containing diagnostics/filtered_clusters\n";
+        std::cerr << "Usage: pcg_reconstruct <input_root_or_room_dir_or_ply> <output_root_dir> [only_substring]\n";
+        std::cerr << "  Input can be: site root (rooms/<site>), floor dir, a single room dir containing diagnostics/filtered_clusters,\n";
+        std::cerr << "               or a single cluster .ply file under diagnostics/filtered_clusters/...\n";
+        std::cerr << "  If only_substring is provided, only cluster files whose names contain the substring will be processed.\n";
         return 1;
     }
     fs::path input_root = argv[1];
     fs::path output_root = argv[2];
+    std::string only_substr;
+    if (argc >= 4) only_substr = argv[3];
 
     // Reduce PCL console noise: hide non-critical PLYReader warnings (e.g., unhandled 'camera' properties)
     pcl::console::setVerbosityLevel(pcl::console::L_ERROR);
@@ -126,12 +130,22 @@ int main(int argc, char** argv) {
                 if (!is_ply(ply_entry.path())) continue;
                 const std::string name = ply_entry.path().filename().string();
                 if (has_suffix(name, "_uobb.ply")) continue;
+                if (!only_substr.empty() && name.find(only_substr) == std::string::npos) continue;
                 // Output next to diagnostics as diagnostics/recon/<stem>/
                 const fs::path out_dir = room_dir / "diagnostics" / "recon" / obj_dir.path().filename();
                 reconstruct_one(ply_entry.path(), out_dir);
             }
         }
     };
+
+    // Single-file (cluster .ply) mode
+    if (fs::is_regular_file(input_root) && is_ply(input_root)) {
+        // Derive output directory as: <output_root>/diagnostics/recon/<obj_stem>/
+        fs::path obj_stem = input_root.parent_path().filename(); // e.g., door_007
+        fs::path out_dir = output_root / "diagnostics" / "recon" / obj_stem;
+        reconstruct_one(input_root, out_dir);
+        return 0;
+    }
 
     // input_root can be site -> floors -> rooms, or directly a room
     if (fs::exists(input_root / "diagnostics" / "filtered_clusters")) {

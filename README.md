@@ -111,10 +111,15 @@ If CGAL is available, you can reconstruct meshes per cluster using the filtered 
 Usage:
 ```
 ./build/pcg_reconstruct <input_root_or_room_dir> <output_root_dir>
+./build/pcg_reconstruct <single_cluster_ply> <room_output_root>
+./build/pcg_reconstruct <room_dir> <room_output_root> <only_substring>
 ```
 
 Notes:
 - Input can be a site root (e.g., `output/client_room`), a floor, or a single room directory that contains `diagnostics/filtered_clusters`.
+- Single-cluster modes:
+  - Single PLY file: pass the path to one cluster PLY under `diagnostics/filtered_clusters/...`; output goes to `<room>/diagnostics/recon/<object>/`.
+  - Substring filter: pass a room directory and an `only_substring` to process only cluster files whose names contain that substring.
 - For each cluster, the app tries Poisson first:
   - Meets the oriented normals fraction threshold
   - Optionally requires the output mesh to be closed

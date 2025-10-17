@@ -15,4 +15,4 @@ poisson_invalid_ratio_vs_hull: 1.6   # if Poisson volume > ratio * convex hull v
 
 # AF (Advancing Front) parameters
 af_min_points: 3            # minimum number of points to attempt AF reconstruction
-af_require_closed: true    # require AF output to be closed; if false, accept open meshes
+af_require_closed: false    # require AF output to be closed; if false, accept open meshes
