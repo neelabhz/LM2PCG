@@ -1,28 +1,28 @@
   Detected *shell* -> treat as single cluster, skip clustering and filtering
-File: shell_007.ply, points: 867680, clusters(raw/filtered): 1/1
-  Avg cluster size: 867680, filter threshold (factor=0.7): 607376
-  - raw cluster 0: size=867680
-  - kept cluster 0: size=867680
-  ✓ saved UOBB: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/shell_007/shell_007_cluster_0_uobb.ply
-Saved 1/1 filtered clusters to: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/shell_007
-  Cluster size stats: min=161, max=161, ratio=1, no_filter_ratio=2 -> skip filtering
+File: shell_007.ply, points: 867680, shell -> skip clustering/filtering
+  ✓ saved UOBB: output/client_room/floor_1/room_007/diagnostics/shell/shell_007/shell_007_cluster_0_uobb.ply
+Saved 1/1 shell UOBB to: output/client_room/floor_1/room_007/diagnostics/shell/shell_007
+  Cluster size stats: min=166, max=166, ratio=1, no_filter_ratio=2 -> skip filtering
 File: window_007.ply, points: 166, clusters(raw/filtered): 1/1
-  Avg cluster size: 161, filter threshold (factor=0.7): 112.7
-  - raw cluster 0: size=161
-  - kept cluster 0: size=161
-  ✓ saved UOBB: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/window_007/window_007_cluster_0_uobb.ply
-Saved 1/1 filtered clusters to: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/window_007
-  Cluster size stats: min=356, max=9672, ratio=27.1685, no_filter_ratio=2 -> apply filtering
-File: door_007.ply, points: 20837, clusters(raw/filtered): 4/3
-  Avg cluster size: 5188, filter threshold (factor=0.7): 3631.6
+  Avg cluster size: 166, filter threshold (factor=0.7): 116.2
+  - raw cluster 0: size=166
+  - kept cluster 0: size=166
+  ✓ saved UOBB: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/window_007/window_007_cluster_0_uobb.ply
+  ✓ saved cluster PLY: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/window_007/window_007_cluster_0.ply
+Saved 1/1 filtered clusters to: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/window_007
+  Cluster size stats: min=4951, max=9680, ratio=1.95516, no_filter_ratio=2 -> skip filtering
+File: door_007.ply, points: 20837, clusters(raw/filtered): 3/3
+  Avg cluster size: 6931, filter threshold (factor=0.7): 4851.7
   - raw cluster 0: size=6162
-  - raw cluster 1: size=356
-  - raw cluster 2: size=9672
-  - raw cluster 3: size=4562
+  - raw cluster 1: size=4951
+  - raw cluster 2: size=9680
   - kept cluster 0: size=6162
-  - kept cluster 1: size=9672
-  - kept cluster 2: size=4562
-  ✓ saved UOBB: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_0_uobb.ply
-  ✓ saved UOBB: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_1_uobb.ply
-  ✓ saved UOBB: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_2_uobb.ply
-Saved 3/3 filtered clusters to: ../output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007
+  - kept cluster 1: size=4951
+  - kept cluster 2: size=9680
+  ✓ saved UOBB: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_0_uobb.ply
+  ✓ saved cluster PLY: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_0.ply
+  ✓ saved UOBB: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_1_uobb.ply
+  ✓ saved cluster PLY: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_1.ply
+  ✓ saved UOBB: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_2_uobb.ply
+  ✓ saved cluster PLY: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007/door_007_cluster_2.ply
+Saved 3/3 filtered clusters to: output/client_room/floor_1/room_007/diagnostics/filtered_clusters/door_007

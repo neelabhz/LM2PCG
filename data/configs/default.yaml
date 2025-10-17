@@ -1,6 +1,18 @@
 # Pipeline parameters
-radius: 0.02
-min_cluster_size: 50
-max_neighbors: 150
-filter_factor: 0.70
-no_filter_ratio: 2.0
+radius: 0.05   # radius: clustering neighborhood radius (in meters)
+min_cluster_size: 50   # min_cluster_size: discard clusters smaller than this many points
+max_neighbors: 150   # max_neighbors: kd-tree neighbor cap for clustering/featurization
+filter_factor: 0.70   # filter_factor: keep clusters whose average size >= filter_factor * global average
+no_filter_ratio: 2.0   # no_filter_ratio: if max_cluster_size / min_cluster_size <= this ratio, skip filtering
+
+# Reconstruction parameters
+# Poisson
+poisson_spacing_neighbors: 6   # neighbors for average spacing
+poisson_normal_neighbors: 18   # neighbors for jet normals & MST orientation
+poisson_min_oriented_fraction: 0.3   # MST-oriented normals fraction threshold; <0.3 -> skip Poisson
+poisson_require_closed: true         # require Poisson output to be a closed mesh
+poisson_invalid_ratio_vs_hull: 1.6   # if Poisson volume > ratio * convex hull volume -> invalid, use AF
+
+# AF (Advancing Front) parameters
+af_min_points: 3            # minimum number of points to attempt AF reconstruction
+af_require_closed: true    # require AF output to be closed; if false, accept open meshes

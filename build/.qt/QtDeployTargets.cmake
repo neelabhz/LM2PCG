@@ -2,3 +2,7 @@ set(__QT_DEPLOY_TARGET_pcg_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geop
 set(__QT_DEPLOY_TARGET_pcg_TYPE STATIC_LIBRARY)
 set(__QT_DEPLOY_TARGET_pcg_room_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_room)
 set(__QT_DEPLOY_TARGET_pcg_room_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_pcg_reconstruct_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_reconstruct)
+set(__QT_DEPLOY_TARGET_pcg_reconstruct_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_pcg_volume_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_volume)
+set(__QT_DEPLOY_TARGET_pcg_volume_TYPE EXECUTABLE)

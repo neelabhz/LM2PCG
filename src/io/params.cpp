@@ -58,6 +58,19 @@ bool load_params_from_file(const std::string& filepath, ParamsConfig& out, std::
             else if (key == "max_neighbors") out.max_neighbors = std::stoi(value);
             else if (key == "filter_factor") out.filter_factor = std::stod(value);
             else if (key == "no_filter_ratio") out.no_filter_ratio = std::stod(value);
+            else if (key == "poisson_spacing_neighbors") out.poisson_spacing_neighbors = std::stoi(value);
+            else if (key == "poisson_normal_neighbors")  out.poisson_normal_neighbors  = std::stoi(value);
+            else if (key == "poisson_min_oriented_fraction") out.poisson_min_oriented_fraction = std::stod(value);
+            else if (key == "poisson_require_closed") {
+                std::string v = value; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+                out.poisson_require_closed = (v == "1" || v == "true" || v == "yes");
+            }
+            else if (key == "poisson_invalid_ratio_vs_hull") out.poisson_invalid_ratio_vs_hull = std::stod(value);
+            else if (key == "af_min_points") out.af_min_points = std::stoi(value);
+            else if (key == "af_require_closed") {
+                std::string v = value; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+                out.af_require_closed = (v == "1" || v == "true" || v == "yes");
+            }
         } catch (...) {
             // ignore individual parse errors
         }

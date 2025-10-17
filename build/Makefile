@@ -187,6 +187,56 @@ pcg_room/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/build
 .PHONY : pcg_room/fast
 
+#=============================================================================
+# Target rules for targets named pcg_reconstruct
+
+# Build rule for target.
+pcg_reconstruct: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pcg_reconstruct
+.PHONY : pcg_reconstruct
+
+# fast build rule for target.
+pcg_reconstruct/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_reconstruct.dir/build.make CMakeFiles/pcg_reconstruct.dir/build
+.PHONY : pcg_reconstruct/fast
+
+#=============================================================================
+# Target rules for targets named pcg_volume
+
+# Build rule for target.
+pcg_volume: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pcg_volume
+.PHONY : pcg_volume
+
+# fast build rule for target.
+pcg_volume/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/build
+.PHONY : pcg_volume/fast
+
+src/apps/pcg_reconstruct.o: src/apps/pcg_reconstruct.cpp.o
+.PHONY : src/apps/pcg_reconstruct.o
+
+# target to build an object file
+src/apps/pcg_reconstruct.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_reconstruct.dir/build.make CMakeFiles/pcg_reconstruct.dir/src/apps/pcg_reconstruct.cpp.o
+.PHONY : src/apps/pcg_reconstruct.cpp.o
+
+src/apps/pcg_reconstruct.i: src/apps/pcg_reconstruct.cpp.i
+.PHONY : src/apps/pcg_reconstruct.i
+
+# target to preprocess a source file
+src/apps/pcg_reconstruct.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_reconstruct.dir/build.make CMakeFiles/pcg_reconstruct.dir/src/apps/pcg_reconstruct.cpp.i
+.PHONY : src/apps/pcg_reconstruct.cpp.i
+
+src/apps/pcg_reconstruct.s: src/apps/pcg_reconstruct.cpp.s
+.PHONY : src/apps/pcg_reconstruct.s
+
+# target to generate assembly for a file
+src/apps/pcg_reconstruct.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_reconstruct.dir/build.make CMakeFiles/pcg_reconstruct.dir/src/apps/pcg_reconstruct.cpp.s
+.PHONY : src/apps/pcg_reconstruct.cpp.s
+
 src/apps/pcg_room.o: src/apps/pcg_room.cpp.o
 .PHONY : src/apps/pcg_room.o
 
@@ -210,6 +260,30 @@ src/apps/pcg_room.s: src/apps/pcg_room.cpp.s
 src/apps/pcg_room.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_room.dir/build.make CMakeFiles/pcg_room.dir/src/apps/pcg_room.cpp.s
 .PHONY : src/apps/pcg_room.cpp.s
+
+src/apps/pcg_volume.o: src/apps/pcg_volume.cpp.o
+.PHONY : src/apps/pcg_volume.o
+
+# target to build an object file
+src/apps/pcg_volume.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.o
+.PHONY : src/apps/pcg_volume.cpp.o
+
+src/apps/pcg_volume.i: src/apps/pcg_volume.cpp.i
+.PHONY : src/apps/pcg_volume.i
+
+# target to preprocess a source file
+src/apps/pcg_volume.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.i
+.PHONY : src/apps/pcg_volume.cpp.i
+
+src/apps/pcg_volume.s: src/apps/pcg_volume.cpp.s
+.PHONY : src/apps/pcg_volume.s
+
+# target to generate assembly for a file
+src/apps/pcg_volume.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.s
+.PHONY : src/apps/pcg_volume.cpp.s
 
 src/geometry/bbox.o: src/geometry/bbox.cpp.o
 .PHONY : src/geometry/bbox.o
@@ -258,6 +332,30 @@ src/geometry/clustering.s: src/geometry/clustering.cpp.s
 src/geometry/clustering.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/clustering.cpp.s
 .PHONY : src/geometry/clustering.cpp.s
+
+src/geometry/volume.o: src/geometry/volume.cpp.o
+.PHONY : src/geometry/volume.o
+
+# target to build an object file
+src/geometry/volume.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/volume.cpp.o
+.PHONY : src/geometry/volume.cpp.o
+
+src/geometry/volume.i: src/geometry/volume.cpp.i
+.PHONY : src/geometry/volume.i
+
+# target to preprocess a source file
+src/geometry/volume.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/volume.cpp.i
+.PHONY : src/geometry/volume.cpp.i
+
+src/geometry/volume.s: src/geometry/volume.cpp.s
+.PHONY : src/geometry/volume.s
+
+# target to generate assembly for a file
+src/geometry/volume.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/volume.cpp.s
+.PHONY : src/geometry/volume.cpp.s
 
 src/io/csv_writer.o: src/io/csv_writer.cpp.o
 .PHONY : src/io/csv_writer.o
@@ -331,6 +429,54 @@ src/io/ply_io.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/io/ply_io.cpp.s
 .PHONY : src/io/ply_io.cpp.s
 
+src/recon/af.o: src/recon/af.cpp.o
+.PHONY : src/recon/af.o
+
+# target to build an object file
+src/recon/af.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/af.cpp.o
+.PHONY : src/recon/af.cpp.o
+
+src/recon/af.i: src/recon/af.cpp.i
+.PHONY : src/recon/af.i
+
+# target to preprocess a source file
+src/recon/af.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/af.cpp.i
+.PHONY : src/recon/af.cpp.i
+
+src/recon/af.s: src/recon/af.cpp.s
+.PHONY : src/recon/af.s
+
+# target to generate assembly for a file
+src/recon/af.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/af.cpp.s
+.PHONY : src/recon/af.cpp.s
+
+src/recon/poisson.o: src/recon/poisson.cpp.o
+.PHONY : src/recon/poisson.o
+
+# target to build an object file
+src/recon/poisson.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/poisson.cpp.o
+.PHONY : src/recon/poisson.cpp.o
+
+src/recon/poisson.i: src/recon/poisson.cpp.i
+.PHONY : src/recon/poisson.i
+
+# target to preprocess a source file
+src/recon/poisson.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/poisson.cpp.i
+.PHONY : src/recon/poisson.cpp.i
+
+src/recon/poisson.s: src/recon/poisson.cpp.s
+.PHONY : src/recon/poisson.s
+
+# target to generate assembly for a file
+src/recon/poisson.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/recon/poisson.cpp.s
+.PHONY : src/recon/poisson.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -344,16 +490,27 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... pcg"
+	@echo "... pcg_reconstruct"
 	@echo "... pcg_room"
+	@echo "... pcg_volume"
+	@echo "... src/apps/pcg_reconstruct.o"
+	@echo "... src/apps/pcg_reconstruct.i"
+	@echo "... src/apps/pcg_reconstruct.s"
 	@echo "... src/apps/pcg_room.o"
 	@echo "... src/apps/pcg_room.i"
 	@echo "... src/apps/pcg_room.s"
+	@echo "... src/apps/pcg_volume.o"
+	@echo "... src/apps/pcg_volume.i"
+	@echo "... src/apps/pcg_volume.s"
 	@echo "... src/geometry/bbox.o"
 	@echo "... src/geometry/bbox.i"
 	@echo "... src/geometry/bbox.s"
 	@echo "... src/geometry/clustering.o"
 	@echo "... src/geometry/clustering.i"
 	@echo "... src/geometry/clustering.s"
+	@echo "... src/geometry/volume.o"
+	@echo "... src/geometry/volume.i"
+	@echo "... src/geometry/volume.s"
 	@echo "... src/io/csv_writer.o"
 	@echo "... src/io/csv_writer.i"
 	@echo "... src/io/csv_writer.s"
@@ -363,6 +520,12 @@ help:
 	@echo "... src/io/ply_io.o"
 	@echo "... src/io/ply_io.i"
 	@echo "... src/io/ply_io.s"
+	@echo "... src/recon/af.o"
+	@echo "... src/recon/af.i"
+	@echo "... src/recon/af.s"
+	@echo "... src/recon/poisson.o"
+	@echo "... src/recon/poisson.i"
+	@echo "... src/recon/poisson.s"
 .PHONY : help
 
 

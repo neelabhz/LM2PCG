@@ -94,9 +94,10 @@ static void process_one_room(const fs::path& room_in,
         const std::string stem = entry.path().stem().string();
         std::vector<pcl::PointIndices> clusters;
         std::vector<pcl::PointIndices> filtered;
+        bool is_shell = name_contains_shell(stem);
 
         // New rule: filenames containing "shell" are treated as whole cloud (no clustering/filtering)
-        if (name_contains_shell(stem)) {
+        if (is_shell) {
             pcl::PointIndices one;
             one.indices.reserve(cloud->size());
             for (std::size_t i = 0; i < cloud->size(); ++i) one.indices.push_back(static_cast<int>(i));
@@ -140,28 +141,40 @@ static void process_one_room(const fs::path& room_in,
             }
         }
 
-        std::cout << "File: " << entry.path().filename().string()
-                  << ", points: " << cloud->size()
-                  << ", clusters(raw/filtered): " << clusters.size() << "/" << filtered.size() << "\n";
-        if (log) {
-            log << "File: " << entry.path().filename().string()
-                << ", points: " << cloud->size()
-                << ", clusters(raw/filtered): " << clusters.size() << "/" << filtered.size() << "\n";
-            std::size_t total_clustered_points = 0;
-            for (const auto& c : clusters) total_clustered_points += c.indices.size();
-            const double avg = clusters.empty() ? 0.0 : static_cast<double>(total_clustered_points) / clusters.size();
-            const double thr = avg * cfg.filter_factor;
-            log << "  Avg cluster size: " << avg << ", filter threshold (factor=" << cfg.filter_factor << "): " << thr << "\n";
-            for (size_t ci = 0; ci < clusters.size(); ++ci) {
-                log << "  - raw cluster " << ci << ": size=" << clusters[ci].indices.size() << "\n";
+        if (is_shell) {
+            std::cout << "File: " << entry.path().filename().string()
+                      << ", points: " << cloud->size()
+                      << ", shell -> skip clustering/filtering\n";
+            if (log) {
+                log << "File: " << entry.path().filename().string()
+                    << ", points: " << cloud->size()
+                    << ", shell -> skip clustering/filtering\n";
             }
-            for (size_t ci = 0; ci < filtered.size(); ++ci) {
-                log << "  - kept cluster " << ci << ": size=" << filtered[ci].indices.size() << "\n";
+        } else {
+            std::cout << "File: " << entry.path().filename().string()
+                      << ", points: " << cloud->size()
+                      << ", clusters(raw/filtered): " << clusters.size() << "/" << filtered.size() << "\n";
+            if (log) {
+                log << "File: " << entry.path().filename().string()
+                    << ", points: " << cloud->size()
+                    << ", clusters(raw/filtered): " << clusters.size() << "/" << filtered.size() << "\n";
+                std::size_t total_clustered_points = 0;
+                for (const auto& c : clusters) total_clustered_points += c.indices.size();
+                const double avg = clusters.empty() ? 0.0 : static_cast<double>(total_clustered_points) / clusters.size();
+                const double thr = avg * cfg.filter_factor;
+                log << "  Avg cluster size: " << avg << ", filter threshold (factor=" << cfg.filter_factor << "): " << thr << "\n";
+                for (size_t ci = 0; ci < clusters.size(); ++ci) {
+                    log << "  - raw cluster " << ci << ": size=" << clusters[ci].indices.size() << "\n";
+                }
+                for (size_t ci = 0; ci < filtered.size(); ++ci) {
+                    log << "  - kept cluster " << ci << ": size=" << filtered[ci].indices.size() << "\n";
+                }
             }
         }
 
         try {
-            fs::path clusters_dir = diag_dir / "filtered_clusters" / stem;
+            fs::path clusters_dir = is_shell ? (diag_dir / "shell" / stem)
+                                             : (diag_dir / "filtered_clusters" / stem);
             fs::create_directories(clusters_dir, ec);
             std::size_t saved = 0;
             for (std::size_t ci = 0; ci < filtered.size(); ++ci) {
@@ -184,6 +197,17 @@ static void process_one_room(const fs::path& room_in,
                     if (log) log << "  ✗ failed to save UOBB: " << uobb_name.string() << "\n";
                 }
 
+                // Also export each non-shell filtered cluster's point cloud as PLY for later surface reconstruction
+                if (!is_shell) {
+                    fs::path cply_name = clusters_dir / (stem + "_cluster_" + std::to_string(ci) + ".ply");
+                    pcl::PLYWriter writer;
+                    if (writer.write(cply_name.string(), *c, true) == 0) {
+                        if (log) log << "  ✓ saved cluster PLY: " << cply_name.string() << "\n";
+                    } else {
+                        if (log) log << "  ✗ failed to save cluster PLY: " << cply_name.string() << "\n";
+                    }
+                }
+
                 if (csv.good()) {
                     csv.writeRow({
                         entry.path().filename().string(), std::to_string(ci),
@@ -193,7 +217,13 @@ static void process_one_room(const fs::path& room_in,
                     });
                 }
             }
-            if (log) log << "Saved " << saved << "/" << filtered.size() << " filtered clusters to: " << (diag_dir / "filtered_clusters" / stem).string() << "\n";
+            if (log) {
+                if (is_shell) {
+                    log << "Saved " << saved << "/" << filtered.size() << " shell UOBB to: " << (diag_dir / "shell" / stem).string() << "\n";
+                } else {
+                    log << "Saved " << saved << "/" << filtered.size() << " filtered clusters to: " << (diag_dir / "filtered_clusters" / stem).string() << "\n";
+                }
+            }
         } catch (const std::exception& e) {
             if (log) log << "  Warning: failed exporting clusters: " << e.what() << "\n";
         }
