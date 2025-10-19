@@ -5,6 +5,15 @@ max_neighbors: 150   # max_neighbors: kd-tree neighbor cap for clustering/featur
 filter_factor: 0.70   # filter_factor: keep clusters whose average size >= filter_factor * global average
 no_filter_ratio: 2.0   # no_filter_ratio: if max_cluster_size / min_cluster_size <= this ratio, skip filtering
 
+# Color analysis parameters
+color_sample_n: 300       # number of RGB points to sample when analyzing cluster colors
+# Model selection penalty is not used in force-K=3 mode, but kept here for reference
+color_bic_k_penalty: 0    # set 0 to disable; not used when force K=3
+color_min_weight: 0.10    # discard components with weight < this
+color_max_stddev: 30.0    # discard components with any channel stddev > this (per-channel)
+# ΔE rule: single breakpoint: if ΔE < color_deltaE_keep then merge (drop lower-weight), else keep both
+color_deltaE_keep: 20.0   # ΔE*76 threshold
+
 # Reconstruction parameters
 # Poisson
 poisson_spacing_neighbors: 6   # neighbors for average spacing

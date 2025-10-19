@@ -1,3 +1,4 @@
+// Clean single copy of the implementation (removed duplicates and BOM)
 #include "pcg/ply_io.hpp"
 #include "pcg/clustering.hpp"
 #include "pcg/params.hpp"
@@ -36,6 +37,91 @@ static bool name_contains_shell(const std::string& name) {
     return s.find("shell") != std::string::npos;
 }
 
+// trim helpers for parsing CSV headers
+static inline void ltrim_inplace(std::string& s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+}
+static inline void rtrim_inplace(std::string& s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+}
+static inline void trim_inplace(std::string& s) { ltrim_inplace(s); rtrim_inplace(s); }
+
+// Attempt to read room_id and floor_id from object_manifest.csv under a room directory.
+// Returns true on success; otherwise false.
+static bool read_room_and_floor_from_manifest(const fs::path& room_dir, int& out_room_id, int& out_floor_id) {
+    const fs::path manifest = room_dir / "object_manifest.csv";
+    std::ifstream fin(manifest);
+    if (!fin) return false;
+    std::string header;
+    if (!std::getline(fin, header)) return false;
+    // tokenize header by ','
+    std::vector<std::string> cols;
+    std::string token;
+    for (char ch : header) {
+        if (ch == ',') {
+            trim_inplace(token);
+            cols.push_back(token);
+            token.clear();
+        } else {
+            token.push_back(ch);
+        }
+    }
+    trim_inplace(token);
+    if (!token.empty() || (!header.empty() && header.back() == ',')) cols.push_back(token);
+    int idx_room = -1, idx_floor = -1;
+    for (size_t i = 0; i < cols.size(); ++i) {
+        std::string c = cols[i];
+        // normalize to lower and remove spaces
+        c.erase(std::remove_if(c.begin(), c.end(), [](unsigned char ch){ return std::isspace(ch); }), c.end());
+        std::transform(c.begin(), c.end(), c.begin(), [](unsigned char ch){ return static_cast<char>(std::tolower(ch)); });
+        if (c == "room_id") idx_room = static_cast<int>(i);
+        if (c == "floor_id") idx_floor = static_cast<int>(i);
+    }
+    if (idx_room < 0 || idx_floor < 0) return false;
+    // read first data row (non-empty)
+    std::string line;
+    while (std::getline(fin, line)) {
+        if (line.empty()) continue;
+        // split
+        std::vector<std::string> vals;
+        std::string t;
+        for (char ch : line) {
+            if (ch == ',') {
+                trim_inplace(t);
+                vals.push_back(t);
+                t.clear();
+            } else {
+                t.push_back(ch);
+            }
+        }
+        trim_inplace(t);
+        if (!t.empty() || (!line.empty() && line.back() == ',')) vals.push_back(t);
+        if (static_cast<int>(vals.size()) <= std::max(idx_room, idx_floor)) continue;
+        try {
+            out_room_id = std::stoi(vals[static_cast<size_t>(idx_room)]);
+            out_floor_id = std::stoi(vals[static_cast<size_t>(idx_floor)]);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+    return false;
+}
+
+// Fallback: parse integers from folder names like floor_1 and room_001
+static void derive_room_and_floor_from_paths(const fs::path& room_dir, int& out_room_id, int& out_floor_id) {
+    out_room_id = -1; out_floor_id = -1;
+    const std::string room_name = room_dir.filename().string();
+    const std::string floor_name = room_dir.parent_path().filename().string();
+    auto extract_int = [](const std::string& s) -> int {
+        std::string digits;
+        for (char ch : s) if (std::isdigit(static_cast<unsigned char>(ch))) digits.push_back(ch);
+        if (digits.empty()) return -1; return std::stoi(digits);
+    };
+    out_room_id = extract_int(room_name);
+    out_floor_id = extract_int(floor_name);
+}
+
 static fs::path find_config_path_from_cwd_or_repo() {
     // Try common locations relative to current working dir
     fs::path candidates[] = {
@@ -58,7 +144,7 @@ static void process_one_room(const fs::path& room_in,
 {
     std::error_code ec;
     fs::create_directories(room_out, ec);
-    fs::path diag_dir = room_out / "diagnostics";
+    fs::path diag_dir = room_out / "results";
     fs::create_directories(diag_dir, ec);
 
     std::ofstream log(diag_dir / (room_in.filename().string() + std::string{".log"}));
@@ -66,6 +152,9 @@ static void process_one_room(const fs::path& room_in,
     pcg::CsvWriter csv(csv_path);
     if (csv.good()) {
         csv.writeHeader({
+            "object_code",
+            "object_id","room_id","floor_id",
+            "class",
             "file","cluster_id",
             "center_x","center_y","center_z",
             "size_x","size_y","size_z",
@@ -75,8 +164,15 @@ static void process_one_room(const fs::path& room_in,
         if (log) log << "WARNING: cannot open CSV: " << csv_path << "\n";
     }
     if (!log) {
-        std::cerr << "Failed to open diagnostics log for writing: " << diag_dir << "\n";
+        std::cerr << "Failed to open results log for writing: " << diag_dir << "\n";
     }
+
+    // Determine identifiers from manifest or fallback to folder names
+    int manifest_room_id = -1, manifest_floor_id = -1;
+    if (!read_room_and_floor_from_manifest(room_in, manifest_room_id, manifest_floor_id)) {
+        derive_room_and_floor_from_paths(room_in, manifest_room_id, manifest_floor_id);
+    }
+    std::size_t running_object_id = 0; // sequential object_id starting at 0 per room
 
     size_t files_processed = 0;
     for (auto& entry : fs::directory_iterator(room_in)) {
@@ -85,13 +181,23 @@ static void process_one_room(const fs::path& room_in,
 
         std::string err;
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-        if (!pcg::load_ply_xyz(entry.path().string(), cloud, &err)) {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb;
+        bool has_color = false;
+        if (!pcg::load_ply_xyz_or_rgb(entry.path().string(), cloud, cloud_rgb, has_color, &err)) {
             std::cerr << "[ERROR] Load PLY failed: " << entry.path() << " => " << err << "\n";
             if (log) log << "ERROR: " << entry.path().string() << " => " << err << "\n";
             continue;
         }
 
         const std::string stem = entry.path().stem().string();
+        // Derive class from filename stem: take prefix before first '_', lowercased
+        std::string klass;
+        {
+            std::string tmp = stem;
+            auto pos = tmp.find('_');
+            klass = (pos == std::string::npos) ? tmp : tmp.substr(0, pos);
+            std::transform(klass.begin(), klass.end(), klass.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
+        }
         std::vector<pcl::PointIndices> clusters;
         std::vector<pcl::PointIndices> filtered;
         bool is_shell = name_contains_shell(stem);
@@ -162,6 +268,7 @@ static void process_one_room(const fs::path& room_in,
                 for (const auto& c : clusters) total_clustered_points += c.indices.size();
                 const double avg = clusters.empty() ? 0.0 : static_cast<double>(total_clustered_points) / clusters.size();
                 const double thr = avg * cfg.filter_factor;
+                (void)thr;
                 log << "  Avg cluster size: " << avg << ", filter threshold (factor=" << cfg.filter_factor << "): " << thr << "\n";
                 for (size_t ci = 0; ci < clusters.size(); ++ci) {
                     log << "  - raw cluster " << ci << ": size=" << clusters[ci].indices.size() << "\n";
@@ -179,17 +286,34 @@ static void process_one_room(const fs::path& room_in,
             std::size_t saved = 0;
             for (std::size_t ci = 0; ci < filtered.size(); ++ci) {
                 const auto& inds = filtered[ci].indices;
-                pcl::PointCloud<pcl::PointXYZ>::Ptr c(new pcl::PointCloud<pcl::PointXYZ>);
-                c->points.reserve(inds.size());
-                for (int idx : inds) c->points.push_back(cloud->points[static_cast<std::size_t>(idx)]);
-                c->width = static_cast<uint32_t>(c->points.size());
-                c->height = 1; c->is_dense = true;
+                // Always build XYZ subcloud for geometry and UOBB
+                pcl::PointCloud<pcl::PointXYZ>::Ptr c_xyz(new pcl::PointCloud<pcl::PointXYZ>);
+                c_xyz->points.reserve(inds.size());
+                for (int idx : inds) c_xyz->points.push_back(cloud->points[static_cast<std::size_t>(idx)]);
+                c_xyz->width = static_cast<uint32_t>(c_xyz->points.size());
+                c_xyz->height = 1; c_xyz->is_dense = true;
 
-                std::vector<int> contig(c->size());
-                for (std::size_t k=0;k<c->size();++k) contig[k]=static_cast<int>(k);
-                pcg::UOBB box = pcg::compute_uobb(c, contig);
+                // Optional RGB subcloud for colored export
+                pcl::PointCloud<pcl::PointXYZRGB>::Ptr c_rgb;
+                if (!is_shell && has_color && cloud_rgb) {
+                    c_rgb.reset(new pcl::PointCloud<pcl::PointXYZRGB>());
+                    c_rgb->points.reserve(inds.size());
+                    for (int idx : inds) c_rgb->points.push_back(cloud_rgb->points[static_cast<std::size_t>(idx)]);
+                    c_rgb->width = static_cast<uint32_t>(c_rgb->points.size());
+                    c_rgb->height = 1; c_rgb->is_dense = true;
+                }
 
-                fs::path uobb_name = clusters_dir / (stem + "_cluster_" + std::to_string(ci) + "_uobb.ply");
+                std::vector<int> contig(c_xyz->size());
+                for (std::size_t k=0;k<c_xyz->size();++k) contig[k]=static_cast<int>(k);
+                pcg::UOBB box = pcg::compute_uobb(c_xyz, contig);
+
+                // Build object_code using current running_object_id (do not increment yet)
+                const std::size_t oid = running_object_id;
+                const std::string object_code = std::to_string(manifest_floor_id) + "-" +
+                                                std::to_string(manifest_room_id) + "-" +
+                                                std::to_string(oid);
+
+                fs::path uobb_name = clusters_dir / (object_code + "_" + klass + "_uobb.ply");
                 if (pcg::save_uobb_ply(uobb_name.string(), box)) {
                     ++saved;
                     if (log) log << "  ✓ saved UOBB: " << uobb_name.string() << "\n";
@@ -199,9 +323,12 @@ static void process_one_room(const fs::path& room_in,
 
                 // Also export each non-shell filtered cluster's point cloud as PLY for later surface reconstruction
                 if (!is_shell) {
-                    fs::path cply_name = clusters_dir / (stem + "_cluster_" + std::to_string(ci) + ".ply");
+                    fs::path cply_name = clusters_dir / (object_code + "_" + klass + "_cluster.ply");
                     pcl::PLYWriter writer;
-                    if (writer.write(cply_name.string(), *c, true) == 0) {
+                    int rc = -1;
+                    if (has_color && c_rgb) rc = writer.write(cply_name.string(), *c_rgb, true);
+                    else rc = writer.write(cply_name.string(), *c_xyz, true);
+                    if (rc == 0) {
                         if (log) log << "  ✓ saved cluster PLY: " << cply_name.string() << "\n";
                     } else {
                         if (log) log << "  ✗ failed to save cluster PLY: " << cply_name.string() << "\n";
@@ -210,12 +337,19 @@ static void process_one_room(const fs::path& room_in,
 
                 if (csv.good()) {
                     csv.writeRow({
+                        object_code,
+                        std::to_string(oid),
+                        std::to_string(manifest_room_id),
+                        std::to_string(manifest_floor_id),
+                        klass,
                         entry.path().filename().string(), std::to_string(ci),
                         std::to_string(box.center.x()), std::to_string(box.center.y()), std::to_string(box.center.z()),
                         std::to_string(box.size.x()), std::to_string(box.size.y()), std::to_string(box.size.z()),
                         std::to_string(box.yaw)
                     });
                 }
+                // Now increment object_id for next object
+                ++running_object_id;
             }
             if (log) {
                 if (is_shell) {

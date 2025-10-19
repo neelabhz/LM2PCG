@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o"
+  "CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o.d"
   "CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o"
   "CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o.d"
   "CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o"

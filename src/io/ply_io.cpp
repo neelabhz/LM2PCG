@@ -209,4 +209,112 @@ bool load_ply_xyz(const std::string& filepath, pcl::PointCloud<pcl::PointXYZ>::P
     return true;
 }
 
+bool load_ply_xyz_or_rgb(const std::string& filepath,
+                         pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud_xyz_out,
+                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud_rgb_out,
+                         bool& has_color,
+                         std::string* error) {
+    std::ifstream ifs(filepath, std::ios::binary);
+    if (!ifs) { if (error) *error = "Cannot open file: " + filepath; return false; }
+
+    PlyHeader hdr;
+    std::string err;
+    if (!parse_header(ifs, hdr, err)) {
+        if (error) *error = err; return false;
+    }
+
+    // determine presence of xyz and rgb
+    int x_idx=-1,y_idx=-1,z_idx=-1,r_idx=-1,g_idx=-1,b_idx=-1;
+    for (int i=0;i<static_cast<int>(hdr.vertex_props.size());++i) {
+        const auto& p = hdr.vertex_props[i];
+        if (p.is_list) continue;
+        if (p.name == "x") x_idx = i;
+        else if (p.name == "y") y_idx = i;
+        else if (p.name == "z") z_idx = i;
+        else if (p.name == "red") r_idx = i;
+        else if (p.name == "green") g_idx = i;
+        else if (p.name == "blue") b_idx = i;
+    }
+    if (x_idx<0 || y_idx<0 || z_idx<0) {
+        if (error) *error = "PLY vertex properties missing x/y/z";
+        return false;
+    }
+    has_color = (r_idx>=0 && g_idx>=0 && b_idx>=0);
+
+    // Prepare outputs
+    cloud_xyz_out.reset(new pcl::PointCloud<pcl::PointXYZ>());
+    cloud_xyz_out->points.resize(hdr.vertex_count);
+    if (has_color) {
+        cloud_rgb_out.reset(new pcl::PointCloud<pcl::PointXYZRGB>());
+        cloud_rgb_out->points.resize(hdr.vertex_count);
+    } else {
+        cloud_rgb_out.reset();
+    }
+
+    // Read interleaved by property order in header
+    for (uint32_t i = 0; i < hdr.vertex_count; ++i) {
+        double x=0,y=0,z=0; uint8_t R=0,G=0,B=0;
+        for (const auto& prop : hdr.vertex_props) {
+            if (prop.is_list) {
+                std::size_t count_size = scalar_type_size(prop.list_count_type);
+                if (count_size == 0) { if (error) *error = "Unknown list count type in vertex"; return false; }
+                uint64_t count = 0;
+                if (count_size == 1) { uint8_t v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading list count"; return false; } count = v; }
+                else if (count_size == 2) { uint16_t v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading list count"; return false; } count = v; }
+                else if (count_size == 4) { uint32_t v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading list count"; return false; } count = v; }
+                else if (count_size == 8) { uint64_t v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading list count"; return false; } count = v; }
+                std::size_t elem_size = scalar_type_size(prop.list_elem_type);
+                if (elem_size == 0) { if (error) *error = "Unknown list elem type in vertex"; return false; }
+                if (!skip_n<char>(ifs, elem_size * count)) { if (error) *error = "EOF skipping list elems"; return false; }
+                continue;
+            }
+
+            const std::string& name = prop.name;
+            const std::string& type = prop.type;
+            std::size_t sz = scalar_type_size(type);
+            if (sz == 0) { if (error) *error = "Unknown scalar type in vertex"; return false; }
+
+            if (name == "x" || name == "y" || name == "z") {
+                if (type == "float" || type == "float32") { float v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading xyz"; return false; } if (name=="x") x=v; else if (name=="y") y=v; else z=v; }
+                else if (type == "double" || type == "float64") { double v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading xyz"; return false; } if (name=="x") x=v; else if (name=="y") y=v; else z=v; }
+                else { float v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading xyz (non-float type)"; return false; } if (name=="x") x=v; else if (name=="y") y=v; else z=v; }
+            } else if (has_color && (name == "red" || name == "green" || name == "blue")) {
+                // accept uchar/uint8; for other sizes, read and cast
+                if (type == "uchar" || type == "uint8") {
+                    uint8_t v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading color"; return false; }
+                    if (name=="red") R=v; else if (name=="green") G=v; else B=v;
+                } else if (type == "float" || type == "float32") {
+                    float v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading color"; return false; }
+                    uint8_t u = static_cast<uint8_t>(std::clamp(v, 0.0f, 255.0f));
+                    if (name=="red") R=u; else if (name=="green") G=u; else B=u;
+                } else if (type == "double" || type == "float64") {
+                    double v; if (!read_le(ifs, v)) { if (error) *error = "EOF reading color"; return false; }
+                    uint8_t u = static_cast<uint8_t>(std::clamp(v, 0.0, 255.0));
+                    if (name=="red") R=u; else if (name=="green") G=u; else B=u;
+                } else {
+                    // generic skip with reading value then casting best-effort
+                    if (!skip_n<char>(ifs, sz)) { if (error) *error = "EOF skipping unsupported color type"; return false; }
+                }
+            } else {
+                if (!skip_n<char>(ifs, sz)) { if (error) *error = "EOF skipping property"; return false; }
+            }
+        }
+        // store
+        cloud_xyz_out->points[i].x = static_cast<float>(x);
+        cloud_xyz_out->points[i].y = static_cast<float>(y);
+        cloud_xyz_out->points[i].z = static_cast<float>(z);
+        if (has_color) {
+            auto& pt = cloud_rgb_out->points[i];
+            pt.x = static_cast<float>(x);
+            pt.y = static_cast<float>(y);
+            pt.z = static_cast<float>(z);
+            pt.r = R; pt.g = G; pt.b = B;
+        }
+    }
+
+    cloud_xyz_out->width = hdr.vertex_count; cloud_xyz_out->height = 1; cloud_xyz_out->is_dense = true;
+    if (has_color) { cloud_rgb_out->width = hdr.vertex_count; cloud_rgb_out->height = 1; cloud_rgb_out->is_dense = true; }
+    return true;
+}
+
 } // namespace pcg

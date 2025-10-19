@@ -188,6 +188,19 @@ pcg_room/fast:
 .PHONY : pcg_room/fast
 
 #=============================================================================
+# Target rules for targets named pcg_color
+
+# Build rule for target.
+pcg_color: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pcg_color
+.PHONY : pcg_color
+
+# fast build rule for target.
+pcg_color/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_color.dir/build.make CMakeFiles/pcg_color.dir/build
+.PHONY : pcg_color/fast
+
+#=============================================================================
 # Target rules for targets named pcg_reconstruct
 
 # Build rule for target.
@@ -212,6 +225,30 @@ pcg_volume: cmake_check_build_system
 pcg_volume/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/build
 .PHONY : pcg_volume/fast
+
+src/apps/pcg_color.o: src/apps/pcg_color.cpp.o
+.PHONY : src/apps/pcg_color.o
+
+# target to build an object file
+src/apps/pcg_color.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_color.dir/build.make CMakeFiles/pcg_color.dir/src/apps/pcg_color.cpp.o
+.PHONY : src/apps/pcg_color.cpp.o
+
+src/apps/pcg_color.i: src/apps/pcg_color.cpp.i
+.PHONY : src/apps/pcg_color.i
+
+# target to preprocess a source file
+src/apps/pcg_color.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_color.dir/build.make CMakeFiles/pcg_color.dir/src/apps/pcg_color.cpp.i
+.PHONY : src/apps/pcg_color.cpp.i
+
+src/apps/pcg_color.s: src/apps/pcg_color.cpp.s
+.PHONY : src/apps/pcg_color.s
+
+# target to generate assembly for a file
+src/apps/pcg_color.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_color.dir/build.make CMakeFiles/pcg_color.dir/src/apps/pcg_color.cpp.s
+.PHONY : src/apps/pcg_color.cpp.s
 
 src/apps/pcg_reconstruct.o: src/apps/pcg_reconstruct.cpp.o
 .PHONY : src/apps/pcg_reconstruct.o
@@ -284,6 +321,30 @@ src/apps/pcg_volume.s: src/apps/pcg_volume.cpp.s
 src/apps/pcg_volume.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.s
 .PHONY : src/apps/pcg_volume.cpp.s
+
+src/color/color_gmm.o: src/color/color_gmm.cpp.o
+.PHONY : src/color/color_gmm.o
+
+# target to build an object file
+src/color/color_gmm.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o
+.PHONY : src/color/color_gmm.cpp.o
+
+src/color/color_gmm.i: src/color/color_gmm.cpp.i
+.PHONY : src/color/color_gmm.i
+
+# target to preprocess a source file
+src/color/color_gmm.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/color/color_gmm.cpp.i
+.PHONY : src/color/color_gmm.cpp.i
+
+src/color/color_gmm.s: src/color/color_gmm.cpp.s
+.PHONY : src/color/color_gmm.s
+
+# target to generate assembly for a file
+src/color/color_gmm.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/color/color_gmm.cpp.s
+.PHONY : src/color/color_gmm.cpp.s
 
 src/geometry/bbox.o: src/geometry/bbox.cpp.o
 .PHONY : src/geometry/bbox.o
@@ -490,9 +551,13 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... pcg"
+	@echo "... pcg_color"
 	@echo "... pcg_reconstruct"
 	@echo "... pcg_room"
 	@echo "... pcg_volume"
+	@echo "... src/apps/pcg_color.o"
+	@echo "... src/apps/pcg_color.i"
+	@echo "... src/apps/pcg_color.s"
 	@echo "... src/apps/pcg_reconstruct.o"
 	@echo "... src/apps/pcg_reconstruct.i"
 	@echo "... src/apps/pcg_reconstruct.s"
@@ -502,6 +567,9 @@ help:
 	@echo "... src/apps/pcg_volume.o"
 	@echo "... src/apps/pcg_volume.i"
 	@echo "... src/apps/pcg_volume.s"
+	@echo "... src/color/color_gmm.o"
+	@echo "... src/color/color_gmm.i"
+	@echo "... src/color/color_gmm.s"
 	@echo "... src/geometry/bbox.o"
 	@echo "... src/geometry/bbox.i"
 	@echo "... src/geometry/bbox.s"

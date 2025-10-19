@@ -14,6 +14,7 @@ add_library(pcg
     src/io/ply_io.cpp
     src/io/csv_writer.cpp
     src/io/params.cpp
+    src/color/color_gmm.cpp
     src/recon/poisson.cpp
     src/recon/af.cpp
 )
@@ -38,6 +39,13 @@ add_executable(pcg_room src/apps/pcg_room.cpp)
 target_link_libraries(pcg_room PRIVATE pcg ${PCL_LIBRARIES})
 
 target_include_directories(pcg_room PRIVATE include ${PCL_INCLUDE_DIRS})
+
+## test utilities removed: pcg_synth
+
+# Color analysis app (standalone CLI)
+add_executable(pcg_color src/apps/pcg_color.cpp)
+target_include_directories(pcg_color PRIVATE include ${PCL_INCLUDE_DIRS})
+target_link_libraries(pcg_color PRIVATE pcg ${PCL_LIBRARIES})
 
 # Optional: CGAL for reconstruction app
 find_package(CGAL QUIET COMPONENTS Core)

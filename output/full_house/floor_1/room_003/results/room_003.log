@@ -1,0 +1,24 @@
+  Detected *shell* -> treat as single cluster, skip clustering and filtering
+File: shell_003.ply, points: 2215781, shell -> skip clustering/filtering
+  ✓ saved UOBB: ./output/full_house/floor_1/room_003/results/shell/shell_003/1-3-0_shell_uobb.ply
+Saved 1/1 shell UOBB to: ./output/full_house/floor_1/room_003/results/shell/shell_003
+  Cluster size stats: min=54, max=148512, ratio=2750.22, no_filter_ratio=2 -> apply filtering
+File: door_003.ply, points: 277527, clusters(raw/filtered): 7/3
+  Avg cluster size: 39634.4, filter threshold (factor=0.7): 27744.1
+  - raw cluster 0: size=90861
+  - raw cluster 1: size=36583
+  - raw cluster 2: size=54
+  - raw cluster 3: size=148512
+  - raw cluster 4: size=1024
+  - raw cluster 5: size=178
+  - raw cluster 6: size=229
+  - kept cluster 0: size=90861
+  - kept cluster 1: size=36583
+  - kept cluster 2: size=148512
+  ✓ saved UOBB: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-1_door_uobb.ply
+  ✓ saved cluster PLY: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-1_door_cluster.ply
+  ✓ saved UOBB: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-2_door_uobb.ply
+  ✓ saved cluster PLY: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-2_door_cluster.ply
+  ✓ saved UOBB: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-3_door_uobb.ply
+  ✓ saved cluster PLY: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003/1-3-3_door_cluster.ply
+Saved 3/3 filtered clusters to: ./output/full_house/floor_1/room_003/results/filtered_clusters/door_003

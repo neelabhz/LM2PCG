@@ -23,6 +23,38 @@ static bool has_suffix(const std::string& s, const std::string& suf) {
     return s.size() >= suf.size() && std::equal(suf.rbegin(), suf.rend(), s.rbegin());
 }
 
+// Derive object_code and class from cluster filename
+// Input stem should be of the form: <object_code>_<class>_cluster
+// Returns pair {object_code, class}. If parsing fails, falls back to whole stem and empty class.
+static std::pair<std::string, std::string> derive_object_code_and_class(const fs::path& ply_path) {
+    std::string stem = ply_path.stem().string();
+    constexpr const char* suffix = "_cluster";
+    if (stem.size() > strlen(suffix) && has_suffix(stem, suffix)) {
+        stem = stem.substr(0, stem.size() - strlen(suffix));
+    }
+    // split by '_'
+    std::vector<std::string> parts;
+    {
+        std::string cur;
+        for (char ch : stem) {
+            if (ch == '_') { parts.push_back(cur); cur.clear(); }
+            else cur.push_back(ch);
+        }
+        parts.push_back(cur);
+    }
+    if (parts.size() >= 2) {
+        // last token is class, the rest re-joined by '_' is object_code (though object_code itself shouldn't contain '_')
+        std::string obj_code;
+        for (size_t i = 0; i + 1 < parts.size(); ++i) {
+            if (!obj_code.empty()) obj_code.push_back('_');
+            obj_code += parts[i];
+        }
+        std::string klass = parts.back();
+        return {obj_code, klass};
+    }
+    return {stem, std::string{}};
+}
+
 static fs::path find_config_path() {
     const fs::path candidates[] = {
         fs::path("data/configs/default.yaml"),
@@ -35,8 +67,8 @@ static fs::path find_config_path() {
 int main(int argc, char** argv) {
     if (argc < 3) {
         std::cerr << "Usage: pcg_reconstruct <input_root_or_room_dir_or_ply> <output_root_dir> [only_substring]\n";
-        std::cerr << "  Input can be: site root (rooms/<site>), floor dir, a single room dir containing diagnostics/filtered_clusters,\n";
-        std::cerr << "               or a single cluster .ply file under diagnostics/filtered_clusters/...\n";
+    std::cerr << "  Input can be: site root (rooms/<site>), floor dir, a single room dir containing results/filtered_clusters,\n";
+    std::cerr << "               or a single cluster .ply file under results/filtered_clusters/...\n";
         std::cerr << "  If only_substring is provided, only cluster files whose names contain the substring will be processed.\n";
         return 1;
     }
@@ -69,8 +101,11 @@ int main(int argc, char** argv) {
 
         pcg::recon::Mesh mesh;
         // Always compute convex hull volume of input for validation
-    const double hull_vol = pcg::geom::convex_hull_volume(cloud);
-    const double invalid_ratio = cfg.poisson_invalid_ratio_vs_hull; // Poisson volume > ratio * hull => invalid
+        const double hull_vol = pcg::geom::convex_hull_volume(cloud);
+        const double invalid_ratio = cfg.poisson_invalid_ratio_vs_hull; // Poisson volume > ratio * hull => invalid
+    // Decide final output file name: object_code_class_mesh.ply
+    auto [object_code, klass] = derive_object_code_and_class(ply_path);
+    const fs::path final_out_ply = out_dir / (object_code + std::string{"_"} + klass + std::string{"_mesh.ply"});
         bool reconstructed = false;
         try {
             if (pcg::recon::poisson_reconstruct(cloud, mesh, pparams)) {
@@ -78,11 +113,10 @@ int main(int argc, char** argv) {
                 double mesh_vol = pcg::geom::mesh_signed_volume(mesh);
                 bool valid = mesh_vol > 0.0 && (hull_vol <= 0.0 || mesh_vol <= invalid_ratio * hull_vol);
                 if (valid) {
-                    const fs::path out_ply_poisson = out_dir / (ply_path.stem().string() + std::string{"_poisson.ply"});
-                    if (!CGAL::IO::write_polygon_mesh(out_ply_poisson.string(), mesh, CGAL::parameters::stream_precision(17)))
-                        std::cerr << "  ✗ Write failed: " << out_ply_poisson << "\n";
+                    if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17)))
+                        std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
                     else {
-                        std::cout << "  ✓ Poisson: " << out_ply_poisson << "\n";
+                        std::cout << "  ✓ Poisson -> " << final_out_ply << "\n";
                         reconstructed = true;
                     }
                 } else {
@@ -101,11 +135,10 @@ int main(int argc, char** argv) {
         // Fallback to AF (also guarded)
         try {
             if (pcg::recon::af_reconstruct(cloud, mesh, aparams)) {
-                const fs::path out_ply_af = out_dir / (ply_path.stem().string() + std::string{"_af.ply"});
-                if (!CGAL::IO::write_polygon_mesh(out_ply_af.string(), mesh, CGAL::parameters::stream_precision(17)))
-                    std::cerr << "  ✗ Write failed: " << out_ply_af << "\n";
+                if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17)))
+                    std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
                 else {
-                    std::cout << "  ✓ AF: " << out_ply_af << "\n";
+                    std::cout << "  ✓ AF -> " << final_out_ply << "\n";
                     reconstructed = true;
                 }
             }
@@ -120,7 +153,7 @@ int main(int argc, char** argv) {
     };
 
     auto process_room = [&](const fs::path& room_dir){
-        const fs::path diag = room_dir / "diagnostics" / "filtered_clusters";
+    const fs::path diag = room_dir / "results" / "filtered_clusters";
         if (!fs::exists(diag)) return;
         // For each object stem folder, traverse *.ply excluding *_uobb.ply
         for (auto& obj_dir : fs::directory_iterator(diag)) {
@@ -131,8 +164,8 @@ int main(int argc, char** argv) {
                 const std::string name = ply_entry.path().filename().string();
                 if (has_suffix(name, "_uobb.ply")) continue;
                 if (!only_substr.empty() && name.find(only_substr) == std::string::npos) continue;
-                // Output next to diagnostics as diagnostics/recon/<stem>/
-                const fs::path out_dir = room_dir / "diagnostics" / "recon" / obj_dir.path().filename();
+                // Output next to results as results/recon/<stem>/
+                const fs::path out_dir = room_dir / "results" / "recon" / obj_dir.path().filename();
                 reconstruct_one(ply_entry.path(), out_dir);
             }
         }
@@ -140,20 +173,20 @@ int main(int argc, char** argv) {
 
     // Single-file (cluster .ply) mode
     if (fs::is_regular_file(input_root) && is_ply(input_root)) {
-        // Derive output directory as: <output_root>/diagnostics/recon/<obj_stem>/
-        fs::path obj_stem = input_root.parent_path().filename(); // e.g., door_007
-        fs::path out_dir = output_root / "diagnostics" / "recon" / obj_stem;
+    // Derive output directory as: <output_root>/results/recon/<obj_stem>/
+    fs::path obj_stem = input_root.parent_path().filename(); // e.g., door_007
+    fs::path out_dir = output_root / "results" / "recon" / obj_stem;
         reconstruct_one(input_root, out_dir);
         return 0;
     }
 
     // input_root can be site -> floors -> rooms, or directly a room
-    if (fs::exists(input_root / "diagnostics" / "filtered_clusters")) {
+    if (fs::exists(input_root / "results" / "filtered_clusters")) {
         process_room(input_root);
         return 0;
     }
 
-    auto has_room_signature = [](const fs::path& p){ return fs::exists(p / "diagnostics" / "filtered_clusters"); };
+    auto has_room_signature = [](const fs::path& p){ return fs::exists(p / "results" / "filtered_clusters"); };
 
     // Iterate floors → rooms
     for (auto& floor_entry : fs::directory_iterator(input_root)) {

@@ -58,6 +58,11 @@ bool load_params_from_file(const std::string& filepath, ParamsConfig& out, std::
             else if (key == "max_neighbors") out.max_neighbors = std::stoi(value);
             else if (key == "filter_factor") out.filter_factor = std::stod(value);
             else if (key == "no_filter_ratio") out.no_filter_ratio = std::stod(value);
+            else if (key == "color_sample_n") out.color_sample_n = std::stoi(value);
+            else if (key == "color_bic_k_penalty") out.color_bic_k_penalty = std::stod(value);
+            else if (key == "color_min_weight") out.color_min_weight = std::stod(value);
+            else if (key == "color_max_stddev") out.color_max_stddev = std::stod(value);
+            else if (key == "color_deltaE_keep")  out.color_deltaE_keep  = std::stod(value);
             else if (key == "poisson_spacing_neighbors") out.poisson_spacing_neighbors = std::stoi(value);
             else if (key == "poisson_normal_neighbors")  out.poisson_normal_neighbors  = std::stoi(value);
             else if (key == "poisson_min_oriented_fraction") out.poisson_min_oriented_fraction = std::stod(value);

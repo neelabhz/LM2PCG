@@ -11,6 +11,15 @@ struct ParamsConfig {
     double filter_factor = 0.30; // 30% of average
     // If max_cluster_size / min_cluster_size <= no_filter_ratio, skip filtering entirely
     double no_filter_ratio = 2.0;
+    // Color sampling parameters
+    int color_sample_n = 300; // number of RGB points to sample per cluster (cap at size)
+    // Color GMM model selection bias (additional BIC penalty per extra component)
+    // Effective BIC: BIC(K) + color_bic_k_penalty * (K - 1)
+    double color_bic_k_penalty = 0.0;
+    // Color GMM post rules
+    double color_min_weight = 0.10;   // discard components with weight < this
+    double color_max_stddev = 60.0;   // discard components with any channel stddev > this
+    double color_deltaE_keep  = 20.0; // Single breakpoint: if ΔE*76 < this -> merge (drop lower-weight), else keep both
 
     // Reconstruction parameters
     // Poisson

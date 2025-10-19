@@ -25,4 +25,4 @@ for dir in "$INPUT_ROOT"/*/ ; do
   "$BIN" "$dir" "$out_dir" "$RADIUS" "$MIN_CLUSTER_SIZE"
 done
 
-echo "All rooms processed. Logs under each room's diagnostics/ directory."
+echo "All rooms processed. Logs under each room's results/ directory."
