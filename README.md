@@ -39,19 +39,29 @@ cmake --build . -j
 ```
 Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color.
 
-Run (site or single room)
-```
-# Process a whole site (auto floors → rooms)
-./build/pcg_room data/rooms/client_room output/client_room
 
-# Or process a single room directory containing .ply files
+## How to run (detailed)
+
+### 1) Clustering and per-room processing (pcg_room)
+Process a whole site (auto floors → rooms):
+```
+./build/pcg_room data/rooms/client_room output/client_room
+```
+Process a single room directory (the directory contains .ply files):
+```
 ./build/pcg_room data/rooms/client_room/floor_0/room_001 \
                  output/client_room/floor_0/room_001
 ```
-Optional overrides
+Optional overrides (radius in meters, min_cluster_size in points):
 ```
 ./build/pcg_room <input_dir> <output_dir> [radius] [min_cluster_size]
 ```
+Outputs (per room):
+- `<room>.csv` with geometry + semantic columns
+- `results/filtered_clusters/<stem>/` with colored per-cluster PLYs:
+  - `<object_code>_<class>_cluster.ply`
+  - `<object_code>_<class>_uobb.ply`
+- If reconstruction will be run later, these clusters are the inputs for `pcg_reconstruct`.
 
 
 ## Outputs and naming
@@ -66,20 +76,49 @@ Per room under `output/<site>/<floor>/<room>/`:
 Special case: any filename containing "shell" is treated as one cloud (no clustering/recon; UOBB only).
 
 
-## Reconstruction (optional, CGAL)
+### 2) Reconstruction (optional, CGAL) — pcg_reconstruct
 ```
 ./build/pcg_reconstruct <input_root_or_room_dir> <output_root_dir>
 ./build/pcg_reconstruct <single_cluster_ply> <room_output_root>
 ./build/pcg_reconstruct <room_dir> <room_output_root> <only_substring>
 ```
 Policy: Try Poisson first with acceptance checks (normals fraction, closedness, volume ≤ ratio × convex hull). If it fails, fall back to AF. Exactly one mesh is kept per cluster.
+Inputs:
+- A site/floor/room path under `output/...` containing `results/filtered_clusters`, or
+- A single cluster PLY (colored) produced by `pcg_room`.
+Outputs:
+- `results/recon/<object_stem>/` per cluster with exactly one mesh:
+  - `<object_code>_<class>_mesh.ply` (accepted Poisson), or
+  - `<object_code>_<class>_mesh.ply` (AF fallback) — same naming, only one kept.
+Examples:
+```
+# Reconstruct everything under a site output root
+./build/pcg_reconstruct output/client_room output/client_room
+
+# Reconstruct a single cluster file
+./build/pcg_reconstruct \
+  output/client_room/floor_0/room_001/results/filtered_clusters/door_001/door_001_cluster.ply \
+  output/client_room/floor_0/room_001
+
+# Reconstruct only clusters whose filename contains "chair"
+./build/pcg_reconstruct output/client_room/floor_0/room_001 \
+                        output/client_room/floor_0/room_001 chair
+```
 
 
-## Dominant color CLI
+### 3) Dominant color analysis (pcg_color)
 ```
 ./build/pcg_color <input_cluster_or_cloud.ply>
 ```
 Method: sample RGB, fit force-K=3 diagonal GMM, filter components by weight and per-channel stddev, convert surviving means to CIELab (D65), merge visually similar colors using ΔE*76 < `color_deltaE_keep` (default 20). If all components are filtered, reports M=0. Output prints M and, for each kept component, weight, mean RGB, and variance.
+Examples:
+```
+# Analyze a cluster produced by pcg_room
+./build/pcg_color output/client_room/floor_0/room_001/results/filtered_clusters/sofa_001/sofa_001_cluster.ply
+
+# Analyze an arbitrary colored PLY (XYZRGB)
+./build/pcg_color data/rooms/client_room/floor_0/room_001/sofa_001.ply
+```
 
 
 ## Configuration (essentials)
@@ -89,15 +128,17 @@ Default file: `data/configs/default.yaml`.
 - Color analysis: `color_sample_n`, `color_min_weight`, `color_max_stddev`, `color_deltaE_keep`
 
 
-## Troubleshooting (quick)
-- PCL not found: install via Homebrew/apt and ensure PCLConfig.cmake on CMAKE_PREFIX_PATH
-- Large .ply: process room-by-room; tune `radius`/`min_cluster_size`/`max_neighbors`
-- Poisson rejected often: tweak `poisson_normal_neighbors`/`poisson_spacing_neighbors`, thresholds, or rely on AF
+### 4) Mesh volume and closedness (pcg_volume)
+If CGAL is available:
+```
+./build/pcg_volume <mesh_file_1> [mesh_file_2 ...]
+```
+Outputs a line per file with: path, closed (true/false), and volume. Useful for validating reconstructed meshes and for downstream QC.
+Examples:
+```
+# Check a reconstructed mesh
+./build/pcg_volume output/client_room/floor_0/room_001/results/recon/door_001/door_001_mesh.ply
 
-
-## Changelog
-See docs/CHANGELOG.md for recent changes.
-
-
-## License
-Project code depends on PCL/Eigen/CGAL. See their licenses for those components.
+# Batch check multiple meshes
+./build/pcg_volume output/client_room/**/results/recon/**/**_mesh.ply
+```
