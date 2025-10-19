@@ -40,7 +40,7 @@ cmake --build . -j
 Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color.
 
 
-## How to run (detailed)
+## How to run
 
 ### 1) Clustering and per-room processing (pcg_room)
 Process a whole site (auto floors → rooms):
