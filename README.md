@@ -20,11 +20,11 @@ Prerequisites
 - PCL ≥ 1.10 (common, io, kdtree)
 - CGAL (optional; needed for reconstruction/volume)
 
-macOS (Homebrew)
+macOS with Homebrew
 ```
 brew install pcl cmake
 ```
-Linux (apt example)
+Linux with apt (example)
 ```
 sudo apt-get update
 sudo apt-get install -y cmake build-essential libpcl-dev
@@ -40,17 +40,17 @@ cmake --build . -j
 Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color.
 
 
-## How to run (detailed)
+## How to run
 
 ### 1) Clustering and per-room processing (pcg_room)
 Process a whole site (auto floors → rooms):
 ```
-./build/pcg_room data/rooms/client_room output/client_room
+./build/pcg_room "data/rooms/Full House" "output/Full House"
 ```
 Process a single room directory (the directory contains .ply files):
 ```
-./build/pcg_room data/rooms/client_room/floor_0/room_001 \
-                 output/client_room/floor_0/room_001
+./build/pcg_room "data/rooms/Full House/floor_0/room_001" \
+                 "output/Full House/floor_0/room_001"
 ```
 Optional overrides (radius in meters, min_cluster_size in points):
 ```
@@ -76,7 +76,7 @@ Per room under `output/<site>/<floor>/<room>/`:
 Special case: any filename containing "shell" is treated as one cloud (no clustering/recon; UOBB only).
 
 
-### 2) Reconstruction (optional, CGAL) — pcg_reconstruct
+### 2) Reconstruction with CGAL — pcg_reconstruct
 ```
 ./build/pcg_reconstruct <input_root_or_room_dir> <output_root_dir>
 ./build/pcg_reconstruct <single_cluster_ply> <room_output_root>
@@ -93,20 +93,20 @@ Outputs:
 Examples:
 ```
 # Reconstruct everything under a site output root
-./build/pcg_reconstruct output/client_room output/client_room
+./build/pcg_reconstruct "output/Full House" "output/Full House"
 
 # Reconstruct a single cluster file
 ./build/pcg_reconstruct \
-  output/client_room/floor_0/room_001/results/filtered_clusters/door_001/door_001_cluster.ply \
-  output/client_room/floor_0/room_001
+  "output/Full House/floor_0/room_001/results/filtered_clusters/door_001/door_001_cluster.ply" \
+  "output/Full House/floor_0/room_001"
 
 # Reconstruct only clusters whose filename contains "chair"
-./build/pcg_reconstruct output/client_room/floor_0/room_001 \
-                        output/client_room/floor_0/room_001 chair
+./build/pcg_reconstruct "output/Full House/floor_0/room_001" \
+                        "output/Full House/floor_0/room_001" chair
 ```
 
 
-### 3) Dominant color analysis (pcg_color)
+### 3) Dominant color analysis — pcg_color
 ```
 ./build/pcg_color <input_cluster_or_cloud.ply>
 ```
@@ -114,21 +114,43 @@ Method: sample RGB, fit force-K=3 diagonal GMM, filter components by weight and 
 Examples:
 ```
 # Analyze a cluster produced by pcg_room
-./build/pcg_color output/client_room/floor_0/room_001/results/filtered_clusters/sofa_001/sofa_001_cluster.ply
+./build/pcg_color "output/Full House/floor_0/room_001/results/filtered_clusters/sofa_001/sofa_001_cluster.ply"
 
 # Analyze an arbitrary colored PLY (XYZRGB)
-./build/pcg_color data/rooms/client_room/floor_0/room_001/sofa_001.ply
+./build/pcg_color "data/rooms/Full House/floor_0/room_001/sofa_001.ply"
 ```
 
 
-## Configuration (essentials)
-Default file: `data/configs/default.yaml`.
-- Clustering: `radius`, `min_cluster_size`, `max_neighbors`, `filter_factor`, `no_filter_ratio`
-- Reconstruction (Poisson): `poisson_*` thresholds; AF: `af_*`
-- Color analysis: `color_sample_n`, `color_min_weight`, `color_max_stddev`, `color_deltaE_keep`
+## Configuration
+Default file: `data/configs/default.yaml`. Key parameters with typical defaults:
+
+Clustering
+- radius (default 0.05): Neighbor radius for clustering in meters.
+- min_cluster_size (50): Discard clusters smaller than this many points.
+- max_neighbors (150): KD-tree neighbor cap during clustering/featurization.
+- filter_factor (0.70): Keep clusters whose average size ≥ filter_factor × global average.
+- no_filter_ratio (2.0): If max_cluster_size / min_cluster_size ≤ this ratio, skip size-based filtering entirely.
+
+Reconstruction — Poisson
+- poisson_spacing_neighbors (6): Neighbors for average spacing estimation.
+- poisson_normal_neighbors (18): Neighbors for jet normals and MST orientation.
+- poisson_min_oriented_fraction (0.3): If oriented normals fraction < threshold, skip Poisson.
+- poisson_require_closed (true): Require Poisson output to be a closed mesh.
+- poisson_invalid_ratio_vs_hull (1.6): Reject Poisson if mesh volume > ratio × convex hull volume.
+
+Reconstruction — AF (Advancing Front)
+- af_min_points (3): Minimum number of points to attempt AF.
+- af_require_closed (false): Require AF output to be closed.
+
+Color analysis — pcg_color
+- color_sample_n (300): Number of RGB points sampled per cluster for analysis.
+- color_bic_k_penalty (0): Unused in force-K=3 mode; kept for reference.
+- color_min_weight (0.10): Discard GMM components with weight below this threshold.
+- color_max_stddev (30.0): Discard components with any channel stddev above this (per channel).
+- color_deltaE_keep (20.0): ΔE*76 threshold; ΔE < threshold → merge (drop lower-weight), else keep both.
 
 
-### 4) Mesh volume and closedness (pcg_volume)
+### 4) Mesh volume and closedness — pcg_volume
 If CGAL is available:
 ```
 ./build/pcg_volume <mesh_file_1> [mesh_file_2 ...]
@@ -137,8 +159,8 @@ Outputs a line per file with: path, closed (true/false), and volume. Useful for 
 Examples:
 ```
 # Check a reconstructed mesh
-./build/pcg_volume output/client_room/floor_0/room_001/results/recon/door_001/door_001_mesh.ply
+./build/pcg_volume "output/Full House/floor_0/room_001/results/recon/door_001/door_001_mesh.ply"
 
 # Batch check multiple meshes
-./build/pcg_volume output/client_room/**/results/recon/**/**_mesh.ply
+./build/pcg_volume output/Full\ House/**/results/recon/**/**_mesh.ply
 ```
