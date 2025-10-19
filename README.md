@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline
+# Indoor Point Cloud Pipeline 0.9.0-alpha.1
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction and a dominant-color CLI.
 

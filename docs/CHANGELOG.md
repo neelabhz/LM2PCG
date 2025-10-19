@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. This log focuses on the recent work to preserve color in point clouds, standardize outputs, and introduce dominant-color analysis.
 
-## 2025-10-18
+## 2025-10-18   0.9.0-alpha.1
 
 ### Added
 - Color-preserving PLY IO (XYZRGB): Load and export point clouds with RGB attributes; backward compatible with XYZ-only PLYs.
