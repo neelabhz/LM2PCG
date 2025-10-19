@@ -120,36 +120,6 @@ Examples:
 ./build/pcg_color "data/rooms/Full House/floor_0/room_001/sofa_001.ply"
 ```
 
-
-## Configuration
-Default file: `data/configs/default.yaml`. Key parameters with typical defaults:
-
-Clustering
-- radius (default 0.05): Neighbor radius for clustering in meters.
-- min_cluster_size (50): Discard clusters smaller than this many points.
-- max_neighbors (150): KD-tree neighbor cap during clustering/featurization.
-- filter_factor (0.70): Keep clusters whose average size ≥ filter_factor × global average.
-- no_filter_ratio (2.0): If max_cluster_size / min_cluster_size ≤ this ratio, skip size-based filtering entirely.
-
-Reconstruction — Poisson
-- poisson_spacing_neighbors (6): Neighbors for average spacing estimation.
-- poisson_normal_neighbors (18): Neighbors for jet normals and MST orientation.
-- poisson_min_oriented_fraction (0.3): If oriented normals fraction < threshold, skip Poisson.
-- poisson_require_closed (true): Require Poisson output to be a closed mesh.
-- poisson_invalid_ratio_vs_hull (1.6): Reject Poisson if mesh volume > ratio × convex hull volume.
-
-Reconstruction — AF (Advancing Front)
-- af_min_points (3): Minimum number of points to attempt AF.
-- af_require_closed (false): Require AF output to be closed.
-
-Color analysis — pcg_color
-- color_sample_n (300): Number of RGB points sampled per cluster for analysis.
-- color_bic_k_penalty (0): Unused in force-K=3 mode; kept for reference.
-- color_min_weight (0.10): Discard GMM components with weight below this threshold.
-- color_max_stddev (30.0): Discard components with any channel stddev above this (per channel).
-- color_deltaE_keep (20.0): ΔE*76 threshold; ΔE < threshold → merge (drop lower-weight), else keep both.
-
-
 ### 4) Mesh volume and closedness — pcg_volume
 If CGAL is available:
 ```
@@ -164,3 +134,31 @@ Examples:
 # Batch check multiple meshes
 ./build/pcg_volume output/Full\ House/**/results/recon/**/**_mesh.ply
 ```
+
+## Configuration
+Default file: `data/configs/default.yaml`. Key parameters with typical defaults:
+
+### Clustering
+- radius (default 0.05): Neighbor radius for clustering in meters.
+- min_cluster_size (50): Discard clusters smaller than this many points.
+- max_neighbors (150): KD-tree neighbor cap during clustering/featurization.
+- filter_factor (0.70): Keep clusters whose average size ≥ filter_factor × global average.
+- no_filter_ratio (2.0): If max_cluster_size / min_cluster_size ≤ this ratio, skip size-based filtering entirely.
+
+### Reconstruction — Poisson
+- poisson_spacing_neighbors (6): Neighbors for average spacing estimation.
+- poisson_normal_neighbors (18): Neighbors for jet normals and MST orientation.
+- poisson_min_oriented_fraction (0.3): If oriented normals fraction < threshold, skip Poisson.
+- poisson_require_closed (true): Require Poisson output to be a closed mesh.
+- poisson_invalid_ratio_vs_hull (1.6): Reject Poisson if mesh volume > ratio × convex hull volume.
+
+### Reconstruction — AF (Advancing Front)
+- af_min_points (3): Minimum number of points to attempt AF.
+- af_require_closed (false): Require AF output to be closed.
+
+### Color analysis — pcg_color
+- color_sample_n (300): Number of RGB points sampled per cluster for analysis.
+- color_bic_k_penalty (0): Unused in force-K=3 mode; kept for reference.
+- color_min_weight (0.10): Discard GMM components with weight below this threshold.
+- color_max_stddev (30.0): Discard components with any channel stddev above this (per channel).
+- color_deltaE_keep (20.0): ΔE*76 threshold; ΔE < threshold → merge (drop lower-weight), else keep both.
