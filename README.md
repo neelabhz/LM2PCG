@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline / 0.9.0-alpha.3
+# Indoor Point Cloud Pipeline / 0.9.0-alpha.4
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction and a dominant-color CLI.
 
@@ -103,6 +103,7 @@ Per room under `output/<site>/<floor>/<room>/`:
   - Colored per-cluster exports under `results/filtered_clusters/<stem>/`
   - Standardized filenames: `<object_code>_<class>_{cluster|uobb|mesh}.ply`
   - Reconstruction (if enabled): `results/recon/<object_stem>/` with one mesh per cluster (accepted Poisson or AF fallback)
+    - Mesh filenames include method suffix when applicable: `<object_code>_<class>_mesh_possion.ply` (Poisson) or `<object_code>_<class>_mesh_af.ply` (AF). Legacy `<object_code>_<class>_mesh.ply` remains recognized by ai_api.
 
 Special case: any filename containing "shell" is treated as one cloud (no clustering/recon; UOBB only).
 
@@ -113,7 +114,7 @@ Special case: any filename containing "shell" is treated as one cloud (no cluste
 ./build/pcg_reconstruct <single_cluster_ply> <room_output_root>
 ./build/pcg_reconstruct <room_dir> <room_output_root> <only_substring>
 ```
-Policy: Try Poisson first with acceptance checks (normals fraction, closedness, volume ≤ ratio × convex hull). If it fails, fall back to AF. Exactly one mesh is kept per cluster.
+Policy: Try Poisson first with acceptance checks (normals fraction, closedness, volume ≤ ratio × convex hull). If it fails, fall back to AF. Exactly one mesh is kept per cluster; filenames encode the chosen method.
 Inputs:
 - A site/floor/room path under `output/...` containing `results/filtered_clusters`, or
 - A single cluster PLY (colored) produced by `pcg_room`.
@@ -156,7 +157,7 @@ If CGAL is available:
 ```
 ./build/pcg_volume <mesh_file_1> [mesh_file_2 ...]
 ```
-Outputs a line per file with: path, closed (true/false), and volume. Useful for validating reconstructed meshes and for downstream QC.
+Outputs a line per file with: path, closed (true/false), and volume. Volume is computed only for closed meshes (e.g., Poisson). For open meshes (e.g., AF), the tool skips volume; JSON shows `"volume": null` and ai_api maps it to `0.0` by default.
 Examples:
 ```
 # Check a reconstructed mesh

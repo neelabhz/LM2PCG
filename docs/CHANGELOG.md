@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 2025-10-20 / 0.9.0-alpha.4
+
+### Changed
+- Reconstruction output filenames now encode the method:
+  - Poisson: `<object_code>_<class>_mesh_possion.ply`
+  - AF:      `<object_code>_<class>_mesh_af.ply`
+  - Legacy `<object_code>_<class>_mesh.ply` remains recognized by the AI API.
+- Volume computation is now performed only for closed meshes. For open meshes, `pcg_volume` skips volume (JSON `volume: null`; text shows a skip note). The AI API maps `null` to `0.0` in its VOL JSON for downstream simplicity.
+
+### Fixed
+- AI API `RCN` JSON now includes the `method` field inferred from the mesh filename suffix and returns mesh paths under the correct `results/recon/<stem>/` directory.
+
 ## 2025-10-20 / 0.9.0-alpha.3
 
 ### Added

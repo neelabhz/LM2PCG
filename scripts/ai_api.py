@@ -8,12 +8,12 @@ Provides two main capabilities:
 
 Conventions assumed from the C++ pipeline:
 - Object code format: <floor_id>-<room_id>-<object_id> (e.g., 0-7-12)
-- Filenames: <object_code>_<class>_{cluster|uobb|mesh}.ply
+- Filenames: <object_code>_<class>_{cluster|uobb|mesh[,_possion|_af]}.ply
 - Room outputs: output/<site>/floor_<f>/room_<rrr>/
 - CSV path: output/.../floor_<f>/room_<rrr>/<room_dirname>.csv
 - Cluster PLYs: output/.../results/filtered_clusters/<stem>/<object_code>_<class>_cluster.ply
 - UOBB PLYs:    output/.../results/filtered_clusters/<stem>/<object_code>_<class>_uobb.ply
-- Recon meshes: output/.../results/recon/<stem>/<object_code>_<class>_mesh.ply
+- Recon meshes: output/.../results/recon/<stem>/<object_code>_<class>_mesh[_possion|_af].ply
 
 This script can be imported as a module or used as a small CLI.
 """
@@ -121,7 +121,15 @@ class PathIndex:
                     parts = stem.split("_")
                     if len(parts) >= 3:
                         object_code = parts[0]
-                        kind = parts[-1].lower()  # cluster|uobb|mesh
+                        # Allow mesh with method suffix: _mesh_possion or _mesh_af
+                        last = parts[-1].lower()
+                        second_last = parts[-2].lower()
+                        if last in ("cluster", "uobb", "mesh"):
+                            kind = last
+                        elif second_last == "mesh":
+                            kind = "mesh"
+                        else:
+                            kind = last
                         assets = self.assets_by_object.get(object_code)
                         if not assets:
                             assets = ObjectAssets(object_code, [], [], [], None)
@@ -229,12 +237,18 @@ class Dispatcher:
             raise FileNotFoundError(f"Missing executable: {exe}")
         self._run([str(exe), str(cluster_path), str(room_dir)])
 
-        # Expected mesh path after reconstruction
+        # Find the generated mesh path after reconstruction. New naming includes method suffix.
         oc, klass, kind = self._parse_asset_name(cluster_path)
-        mesh_name = f"{oc}_{klass}_mesh.ply"
-        stem_dir = cluster_path.parent.parent.name  # <stem> under filtered_clusters/<stem>
+        # <stem> is the immediate directory under filtered_clusters (e.g., couch_007)
+        stem_dir = cluster_path.parent.name
         mesh_dir = room_dir / "results" / "recon" / stem_dir
-        return mesh_dir / mesh_name
+        prefix = f"{oc}_{klass}_mesh"
+        candidates = sorted([p for p in mesh_dir.glob(prefix + "*.ply")])
+        if not candidates:
+            # Fallback to legacy name without suffix
+            legacy = mesh_dir / f"{prefix}.ply"
+            return legacy
+        return candidates[0]
 
     # --- Head code: VOL (mesh volume) ---
     def op_VOL(self, object_code: Optional[str] = None, filename: Optional[str] = None,
@@ -266,7 +280,7 @@ class Dispatcher:
                 if not matches:
                     raise FileNotFoundError(f"No file named '{filename}' under '{self.out_root}'.")
                 candidate = self._choose_one(matches)
-            if candidate.stem.endswith("_mesh"):
+            if self._is_mesh_stem(candidate.stem):
                 mesh_path = candidate
             elif auto_reconstruct and candidate.stem.endswith("_cluster"):
                 # it's a cluster, reconstruct first
@@ -284,8 +298,10 @@ class Dispatcher:
         out = self._run([str(exe), str(mesh_path)])
         # Try JSON first
         j = self._try_parse_json(out)
-        if j and "volume" in j and "closed" in j:
-            return mesh_path, float(j["volume"]), bool(j["closed"])
+        if j and "closed" in j:
+            vol_val = j.get("volume", None)
+            vol_f = float(vol_val) if isinstance(vol_val, (int, float)) else 0.0
+            return mesh_path, vol_f, bool(j["closed"])
         # Fallback to legacy text parsing
         is_closed = "closed: true" in out
         vol = None
@@ -437,7 +453,15 @@ class Dispatcher:
         parts = p.stem.split("_")
         if len(parts) < 3:
             raise ValueError(f"Unexpected asset name format: {p.name}")
-        return parts[0], parts[-2], parts[-1]
+        # If mesh has method suffix (_mesh_possion/_mesh_af), coerce kind to 'mesh'
+        kind = parts[-1]
+        if len(parts) >= 2 and parts[-2] == "mesh":
+            kind = "mesh"
+        return parts[0], parts[-2] if len(parts) >= 2 else "", kind
+
+    @staticmethod
+    def _is_mesh_stem(stem: str) -> bool:
+        return stem.endswith("_mesh") or stem.endswith("_mesh_possion") or stem.endswith("_mesh_af")
 
     @staticmethod
     def _run(cmd: List[str]) -> str:
@@ -578,7 +602,15 @@ def _cli() -> int:
     if args.cmd == "RCN":
         mesh = d.op_RCN(object_code=args.object_code, filename=args.filename, only_substring=args.only_substr)
         if args.json:
-            print(json.dumps({"mesh": str(mesh)}, ensure_ascii=False))
+            mstem = Path(mesh).stem
+            method = "unknown"
+            if mstem.endswith("_mesh_possion"):
+                method = "poisson"
+            elif mstem.endswith("_mesh_af"):
+                method = "af"
+            elif mstem.endswith("_mesh"):
+                method = "unknown"  # legacy
+            print(json.dumps({"mesh": str(mesh), "method": method}, ensure_ascii=False))
         else:
             print(mesh)
         return 0

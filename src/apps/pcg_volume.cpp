@@ -45,18 +45,31 @@ int main(int argc, char** argv) {
         }
 
         bool is_closed = CGAL::is_closed(mesh);
-        const double vol = pcg::geom::mesh_signed_volume(mesh);
+        double vol = 0.0;
+        bool computed = false;
+        if (is_closed) {
+            vol = pcg::geom::mesh_signed_volume(mesh);
+            computed = true;
+        }
 
         if (as_json) {
             std::cout << "{\n";
             std::cout << "  \"file\": \"" << path.string() << "\",\n";
             std::cout << "  \"closed\": " << (is_closed ? "true" : "false") << ",\n";
-            std::cout << "  \"volume\": " << vol << "\n";
+            if (computed) {
+                std::cout << "  \"volume\": " << vol << "\n";
+            } else {
+                std::cout << "  \"volume\": null,\n  \"note\": \"volume only computed for closed meshes (e.g., Poisson)\"\n";
+            }
             std::cout << "}\n";
         } else {
             std::cout << path << "\n"
-                      << "  closed: " << (is_closed ? "true" : "false") << "\n"
-                      << "  volume: " << vol << "\n";
+                      << "  closed: " << (is_closed ? "true" : "false") << "\n";
+            if (computed) {
+                std::cout << "  volume: " << vol << "\n";
+            } else {
+                std::cout << "  volume: (skipped; mesh not closed, likely AF)\n";
+            }
         }
     }
     return 0;

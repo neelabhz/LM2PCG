@@ -108,9 +108,9 @@ int main(int argc, char** argv) {
         // Always compute convex hull volume of input for validation
         const double hull_vol = pcg::geom::convex_hull_volume(cloud);
         const double invalid_ratio = cfg.poisson_invalid_ratio_vs_hull; // Poisson volume > ratio * hull => invalid
-    // Decide final output file name: object_code_class_mesh.ply
-    auto [object_code, klass] = derive_object_code_and_class(ply_path);
-    const fs::path final_out_ply = out_dir / (object_code + std::string{"_"} + klass + std::string{"_mesh.ply"});
+        // Decide base output file stem: object_code_class_mesh
+        auto [object_code, klass] = derive_object_code_and_class(ply_path);
+        const std::string base_stem = object_code + std::string{"_"} + klass + std::string{"_mesh"};
         bool reconstructed = false;
         try {
             if (pcg::recon::poisson_reconstruct(cloud, mesh, pparams)) {
@@ -118,13 +118,15 @@ int main(int argc, char** argv) {
                 double mesh_vol = pcg::geom::mesh_signed_volume(mesh);
                 bool valid = mesh_vol > 0.0 && (hull_vol <= 0.0 || mesh_vol <= invalid_ratio * hull_vol);
                 if (valid) {
-                    if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
-                        if (!json_flag) std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
+                    // Write with method suffix "_possion" per requirement
+                    const fs::path out_ply = out_dir / (base_stem + std::string{"_possion.ply"});
+                    if (!CGAL::IO::write_polygon_mesh(out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
+                        if (!json_flag) std::cerr << "  ✗ Write failed: " << out_ply << "\n";
                     } else {
                         if (json_flag) {
-                            std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"poisson\",\n  \"mesh\": \"" << final_out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
+                            std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"poisson\",\n  \"mesh\": \"" << out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
                         } else {
-                            std::cout << "  ✓ Poisson -> " << final_out_ply << "\n";
+                            std::cout << "  ✓ Poisson -> " << out_ply << "\n";
                         }
                         reconstructed = true;
                     }
@@ -144,13 +146,15 @@ int main(int argc, char** argv) {
         // Fallback to AF (also guarded)
         try {
             if (pcg::recon::af_reconstruct(cloud, mesh, aparams)) {
-                if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
-                    if (!json_flag) std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
+                // Write with method suffix "_af"
+                const fs::path out_ply = out_dir / (base_stem + std::string{"_af.ply"});
+                if (!CGAL::IO::write_polygon_mesh(out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
+                    if (!json_flag) std::cerr << "  ✗ Write failed: " << out_ply << "\n";
                 } else {
                     if (json_flag) {
-                        std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"af\",\n  \"mesh\": \"" << final_out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
+                        std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"af\",\n  \"mesh\": \"" << out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
                     } else {
-                        std::cout << "  ✓ AF -> " << final_out_ply << "\n";
+                        std::cout << "  ✓ AF -> " << out_ply << "\n";
                     }
                     reconstructed = true;
                 }
