@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/color/color_gmm.cpp" "CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o" "gcc" "CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o.d"
+  "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/area.cpp" "CMakeFiles/pcg.dir/src/geometry/area.cpp.o" "gcc" "CMakeFiles/pcg.dir/src/geometry/area.cpp.o.d"
   "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/bbox.cpp" "CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o" "gcc" "CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o.d"
   "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/clustering.cpp" "CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o" "gcc" "CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o.d"
   "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/volume.cpp" "CMakeFiles/pcg.dir/src/geometry/volume.cpp.o" "gcc" "CMakeFiles/pcg.dir/src/geometry/volume.cpp.o.d"

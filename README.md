@@ -1,6 +1,6 @@
-# Indoor Point Cloud Pipeline / 0.9.0-alpha.4
+# Indoor Point Cloud Pipeline / 0.9.0
 
-A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction and a dominant-color CLI.
+A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction, dominant-color analysis, volume and surface-area computation.
 
 
 ## Key features
@@ -10,14 +10,14 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL (and optiona
 - Standardized outputs under results with unified filenames
 - CSV schema extended with IDs and semantics (object_code/class/etc.)
 - Reconstruction per cluster (Poisson with acceptance checks, AF fallback)
- - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_color, pcg_bbox
+ - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_area, pcg_color, pcg_bbox
  - AI API for orchestration (scripts/ai_api.py) with structured JSON outputs
 
 ## AI API (scripts/ai_api.py) and JSON output
 
 An optional Python-based orchestration layer provides two capabilities:
 - Path resolution by object_code, filename, or floor-room
-- Operation dispatch via 3-letter head codes: RCN (reconstruct), VOL (volume), CLR (dominant color), BBD (bbox distance)
+- Operation dispatch via 3-letter head codes: RCN (reconstruct), VOL (volume), ARE (surface area), CLR (dominant color), BBD (bbox distance)
 
 JSON output mode
 - Controlled by `json_output` in `data/configs/default.yaml`. When `true`, C++ apps print structured JSON to stdout; `ai_api` consumes this directly.
@@ -33,6 +33,9 @@ python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/resu
 
 # Volume on a mesh file
 python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
+
+# Surface area on a mesh (auto-reconstruct if needed)
+python3 scripts/ai_api.py ARE --object 0-7-12 --json
 
 # Dominant color by object_code
 python3 scripts/ai_api.py CLR --object 0-7-12 --json
@@ -68,7 +71,7 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j
 ```
-Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color, pcg_bbox.
+Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_area (if CGAL), pcg_color, pcg_bbox.
 
 
 ## How to run
@@ -167,7 +170,22 @@ Examples:
 ./build/pcg_volume output/Full\ House/**/results/recon/**/**_mesh.ply
 ```
 
-### 5) BBox center, vector, distance — pcg_bbox
+### 5) Mesh surface area — pcg_area
+If CGAL is available:
+```
+./build/pcg_area <mesh_file_1> [mesh_file_2 ...]
+```
+Outputs a line per file with: path, closed (true/false), and area. Unlike volume, area is computed for both open and closed meshes. JSON mode returns `{ "file": "<path>", "closed": true|false, "area": <float> }`.
+Examples:
+```
+# Check a reconstructed mesh
+./build/pcg_area "output/Full House/floor_0/room_001/results/recon/door_001/door_001_mesh.ply"
+
+# Batch check multiple meshes
+./build/pcg_area output/Full\ House/**/results/recon/**/**_mesh*.ply
+```
+
+### 6) BBox center, vector, distance — pcg_bbox
 `pcg_bbox` offers three modes:
 
 - Compute mode (input two UOBB PLYs exported by `pcg_room`):
@@ -219,6 +237,7 @@ The Python layer `scripts/ai_api.py` provides:
 Head codes:
 - RCN: reconstruct a cluster to a mesh
 - VOL: compute mesh volume and closedness
+- ARE: compute mesh surface area and closedness
 - CLR: analyze dominant color(s) for a cluster/PLY
 - BBD: bbox center vector and distance between two objects
 
@@ -236,6 +255,9 @@ python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/resu
 # Volume on a mesh
 python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
 
+# Surface area by object_code (auto reconstruct if needed)
+python3 scripts/ai_api.py ARE --object 0-7-12 --json
+
 # Dominant color by object_code
 python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
@@ -249,6 +271,10 @@ Enable/disable globally via `data/configs/default.yaml`:
 json_output: true  # when true, tools print JSON to stdout
 ```
 When enabled, C++ apps emit machine-readable JSON. Multi-item operations stream one JSON object per item. The AI API consumes these JSONs and returns consolidated results for the CLI.
+
+Per-tool JSON (high level):
+- pcg_volume: `{ "file": "<path>", "closed": true|false, "volume": <float|null> }`
+- pcg_area:   `{ "file": "<path>", "closed": true|false, "area": <float> }`
 
 ## Configuration
 Default file: `data/configs/default.yaml`. Key parameters with typical defaults:

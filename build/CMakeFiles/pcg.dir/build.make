@@ -100,10 +100,24 @@ CMakeFiles/pcg.dir/src/geometry/bbox.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pcg.dir/src/geometry/bbox.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/bbox.cpp -o CMakeFiles/pcg.dir/src/geometry/bbox.cpp.s
 
+CMakeFiles/pcg.dir/src/geometry/area.cpp.o: CMakeFiles/pcg.dir/flags.make
+CMakeFiles/pcg.dir/src/geometry/area.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/area.cpp
+CMakeFiles/pcg.dir/src/geometry/area.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pcg.dir/src/geometry/area.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/geometry/area.cpp.o -MF CMakeFiles/pcg.dir/src/geometry/area.cpp.o.d -o CMakeFiles/pcg.dir/src/geometry/area.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/area.cpp
+
+CMakeFiles/pcg.dir/src/geometry/area.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/pcg.dir/src/geometry/area.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/area.cpp > CMakeFiles/pcg.dir/src/geometry/area.cpp.i
+
+CMakeFiles/pcg.dir/src/geometry/area.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pcg.dir/src/geometry/area.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/area.cpp -o CMakeFiles/pcg.dir/src/geometry/area.cpp.s
+
 CMakeFiles/pcg.dir/src/geometry/volume.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/geometry/volume.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/volume.cpp
 CMakeFiles/pcg.dir/src/geometry/volume.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pcg.dir/src/geometry/volume.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pcg.dir/src/geometry/volume.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/geometry/volume.cpp.o -MF CMakeFiles/pcg.dir/src/geometry/volume.cpp.o.d -o CMakeFiles/pcg.dir/src/geometry/volume.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/geometry/volume.cpp
 
 CMakeFiles/pcg.dir/src/geometry/volume.cpp.i: cmake_force
@@ -117,7 +131,7 @@ CMakeFiles/pcg.dir/src/geometry/volume.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/ply_io.cpp
 CMakeFiles/pcg.dir/src/io/ply_io.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pcg.dir/src/io/ply_io.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/pcg.dir/src/io/ply_io.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/io/ply_io.cpp.o -MF CMakeFiles/pcg.dir/src/io/ply_io.cpp.o.d -o CMakeFiles/pcg.dir/src/io/ply_io.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/ply_io.cpp
 
 CMakeFiles/pcg.dir/src/io/ply_io.cpp.i: cmake_force
@@ -131,7 +145,7 @@ CMakeFiles/pcg.dir/src/io/ply_io.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/csv_writer.cpp
 CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o -MF CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o.d -o CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/csv_writer.cpp
 
 CMakeFiles/pcg.dir/src/io/csv_writer.cpp.i: cmake_force
@@ -145,7 +159,7 @@ CMakeFiles/pcg.dir/src/io/csv_writer.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/io/params.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/io/params.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/params.cpp
 CMakeFiles/pcg.dir/src/io/params.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/pcg.dir/src/io/params.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/pcg.dir/src/io/params.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/io/params.cpp.o -MF CMakeFiles/pcg.dir/src/io/params.cpp.o.d -o CMakeFiles/pcg.dir/src/io/params.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/io/params.cpp
 
 CMakeFiles/pcg.dir/src/io/params.cpp.i: cmake_force
@@ -159,7 +173,7 @@ CMakeFiles/pcg.dir/src/io/params.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/color/color_gmm.cpp
 CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o -MF CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o.d -o CMakeFiles/pcg.dir/src/color/color_gmm.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/color/color_gmm.cpp
 
 CMakeFiles/pcg.dir/src/color/color_gmm.cpp.i: cmake_force
@@ -173,7 +187,7 @@ CMakeFiles/pcg.dir/src/color/color_gmm.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/recon/poisson.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/recon/poisson.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/recon/poisson.cpp
 CMakeFiles/pcg.dir/src/recon/poisson.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/pcg.dir/src/recon/poisson.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/pcg.dir/src/recon/poisson.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/recon/poisson.cpp.o -MF CMakeFiles/pcg.dir/src/recon/poisson.cpp.o.d -o CMakeFiles/pcg.dir/src/recon/poisson.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/recon/poisson.cpp
 
 CMakeFiles/pcg.dir/src/recon/poisson.cpp.i: cmake_force
@@ -187,7 +201,7 @@ CMakeFiles/pcg.dir/src/recon/poisson.cpp.s: cmake_force
 CMakeFiles/pcg.dir/src/recon/af.cpp.o: CMakeFiles/pcg.dir/flags.make
 CMakeFiles/pcg.dir/src/recon/af.cpp.o: /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/recon/af.cpp
 CMakeFiles/pcg.dir/src/recon/af.cpp.o: CMakeFiles/pcg.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/pcg.dir/src/recon/af.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/pcg.dir/src/recon/af.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/pcg.dir/src/recon/af.cpp.o -MF CMakeFiles/pcg.dir/src/recon/af.cpp.o.d -o CMakeFiles/pcg.dir/src/recon/af.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/src/recon/af.cpp
 
 CMakeFiles/pcg.dir/src/recon/af.cpp.i: cmake_force
@@ -202,6 +216,7 @@ CMakeFiles/pcg.dir/src/recon/af.cpp.s: cmake_force
 pcg_OBJECTS = \
 "CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o" \
 "CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o" \
+"CMakeFiles/pcg.dir/src/geometry/area.cpp.o" \
 "CMakeFiles/pcg.dir/src/geometry/volume.cpp.o" \
 "CMakeFiles/pcg.dir/src/io/ply_io.cpp.o" \
 "CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o" \
@@ -215,6 +230,7 @@ pcg_EXTERNAL_OBJECTS =
 
 libpcg.a: CMakeFiles/pcg.dir/src/geometry/clustering.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/src/geometry/bbox.cpp.o
+libpcg.a: CMakeFiles/pcg.dir/src/geometry/area.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/src/geometry/volume.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/src/io/ply_io.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/src/io/csv_writer.cpp.o
@@ -224,7 +240,7 @@ libpcg.a: CMakeFiles/pcg.dir/src/recon/poisson.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/src/recon/af.cpp.o
 libpcg.a: CMakeFiles/pcg.dir/build.make
 libpcg.a: CMakeFiles/pcg.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX static library libpcg.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX static library libpcg.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/pcg.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/pcg.dir/link.txt --verbose=$(VERBOSE)
 

@@ -471,4 +471,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/pcg_bbox.dir/DependInfo.cmake"
   "CMakeFiles/pcg_reconstruct.dir/DependInfo.cmake"
   "CMakeFiles/pcg_volume.dir/DependInfo.cmake"
+  "CMakeFiles/pcg_area.dir/DependInfo.cmake"
   )

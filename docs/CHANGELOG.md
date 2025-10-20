@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 2025-10-20 / 0.9.0
+
+### Added
+- `pcg_area` CLI (CGAL): computes mesh surface area and reports closedness. Works for open and closed meshes; emits JSON when `json_output: true`.
+- AI API head code `ARE`: resolves mesh by `object_code` or filename, auto-reconstructs if needed, and returns `{ mesh, closed, area }`.
+
+### Changed
+- README and AI_API docs updated to include `ARE` and `pcg_area` usage and JSON schemas.
+
+### Notes
+- This release finalizes feature additions for the 0.9 series; subsequent 0.9.x will focus on fixes and polish only.
+
 ## 2025-10-20 / 0.9.0-alpha.4
 
 ### Changed

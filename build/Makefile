@@ -239,6 +239,43 @@ pcg_volume/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/build
 .PHONY : pcg_volume/fast
 
+#=============================================================================
+# Target rules for targets named pcg_area
+
+# Build rule for target.
+pcg_area: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pcg_area
+.PHONY : pcg_area
+
+# fast build rule for target.
+pcg_area/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_area.dir/build.make CMakeFiles/pcg_area.dir/build
+.PHONY : pcg_area/fast
+
+src/apps/pcg_area.o: src/apps/pcg_area.cpp.o
+.PHONY : src/apps/pcg_area.o
+
+# target to build an object file
+src/apps/pcg_area.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_area.dir/build.make CMakeFiles/pcg_area.dir/src/apps/pcg_area.cpp.o
+.PHONY : src/apps/pcg_area.cpp.o
+
+src/apps/pcg_area.i: src/apps/pcg_area.cpp.i
+.PHONY : src/apps/pcg_area.i
+
+# target to preprocess a source file
+src/apps/pcg_area.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_area.dir/build.make CMakeFiles/pcg_area.dir/src/apps/pcg_area.cpp.i
+.PHONY : src/apps/pcg_area.cpp.i
+
+src/apps/pcg_area.s: src/apps/pcg_area.cpp.s
+.PHONY : src/apps/pcg_area.s
+
+# target to generate assembly for a file
+src/apps/pcg_area.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_area.dir/build.make CMakeFiles/pcg_area.dir/src/apps/pcg_area.cpp.s
+.PHONY : src/apps/pcg_area.cpp.s
+
 src/apps/pcg_bbox.o: src/apps/pcg_bbox.cpp.o
 .PHONY : src/apps/pcg_bbox.o
 
@@ -382,6 +419,30 @@ src/color/color_gmm.s: src/color/color_gmm.cpp.s
 src/color/color_gmm.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/color/color_gmm.cpp.s
 .PHONY : src/color/color_gmm.cpp.s
+
+src/geometry/area.o: src/geometry/area.cpp.o
+.PHONY : src/geometry/area.o
+
+# target to build an object file
+src/geometry/area.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/area.cpp.o
+.PHONY : src/geometry/area.cpp.o
+
+src/geometry/area.i: src/geometry/area.cpp.i
+.PHONY : src/geometry/area.i
+
+# target to preprocess a source file
+src/geometry/area.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/area.cpp.i
+.PHONY : src/geometry/area.cpp.i
+
+src/geometry/area.s: src/geometry/area.cpp.s
+.PHONY : src/geometry/area.s
+
+# target to generate assembly for a file
+src/geometry/area.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg.dir/build.make CMakeFiles/pcg.dir/src/geometry/area.cpp.s
+.PHONY : src/geometry/area.cpp.s
 
 src/geometry/bbox.o: src/geometry/bbox.cpp.o
 .PHONY : src/geometry/bbox.o
@@ -588,11 +649,15 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... pcg"
+	@echo "... pcg_area"
 	@echo "... pcg_bbox"
 	@echo "... pcg_color"
 	@echo "... pcg_reconstruct"
 	@echo "... pcg_room"
 	@echo "... pcg_volume"
+	@echo "... src/apps/pcg_area.o"
+	@echo "... src/apps/pcg_area.i"
+	@echo "... src/apps/pcg_area.s"
 	@echo "... src/apps/pcg_bbox.o"
 	@echo "... src/apps/pcg_bbox.i"
 	@echo "... src/apps/pcg_bbox.s"
@@ -611,6 +676,9 @@ help:
 	@echo "... src/color/color_gmm.o"
 	@echo "... src/color/color_gmm.i"
 	@echo "... src/color/color_gmm.s"
+	@echo "... src/geometry/area.o"
+	@echo "... src/geometry/area.i"
+	@echo "... src/geometry/area.s"
 	@echo "... src/geometry/bbox.o"
 	@echo "... src/geometry/bbox.i"
 	@echo "... src/geometry/bbox.s"

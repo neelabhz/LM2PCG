@@ -10,6 +10,7 @@ find_package(PCL 1.10 REQUIRED COMPONENTS common io kdtree)
 add_library(pcg
     src/geometry/clustering.cpp
     src/geometry/bbox.cpp
+    src/geometry/area.cpp
     src/geometry/volume.cpp
     src/io/ply_io.cpp
     src/io/csv_writer.cpp
@@ -67,6 +68,11 @@ if(CGAL_FOUND)
     add_executable(pcg_volume src/apps/pcg_volume.cpp)
     target_include_directories(pcg_volume PRIVATE include ${PCL_INCLUDE_DIRS})
     target_link_libraries(pcg_volume PRIVATE pcg ${PCL_LIBRARIES} CGAL::CGAL)
+
+    # Mesh surface area CLI
+    add_executable(pcg_area src/apps/pcg_area.cpp)
+    target_include_directories(pcg_area PRIVATE include ${PCL_INCLUDE_DIRS})
+    target_link_libraries(pcg_area PRIVATE pcg ${PCL_LIBRARIES} CGAL::CGAL)
 else()
     message(STATUS "CGAL not found: pcg_reconstruct will not be built")
 endif()

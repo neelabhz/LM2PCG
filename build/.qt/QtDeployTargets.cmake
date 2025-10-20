@@ -10,3 +10,5 @@ set(__QT_DEPLOY_TARGET_pcg_reconstruct_FILE /Users/jacksonye/Documents/GitHub/Sp
 set(__QT_DEPLOY_TARGET_pcg_reconstruct_TYPE EXECUTABLE)
 set(__QT_DEPLOY_TARGET_pcg_volume_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_volume)
 set(__QT_DEPLOY_TARGET_pcg_volume_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_pcg_area_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_area)
+set(__QT_DEPLOY_TARGET_pcg_area_TYPE EXECUTABLE)

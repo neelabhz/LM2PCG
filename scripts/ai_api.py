@@ -185,6 +185,7 @@ class Dispatcher:
         bins = {
             "pcg_reconstruct": (self.bin_dir / "pcg_reconstruct").exists(),
             "pcg_volume": (self.bin_dir / "pcg_volume").exists(),
+            "pcg_area": (self.bin_dir / "pcg_area").exists(),
             "pcg_bbox": (self.bin_dir / "pcg_bbox").exists(),
             "pcg_room": (self.bin_dir / "pcg_room").exists(),
             "pcg_color": (self.bin_dir / "pcg_color").exists(),
@@ -384,6 +385,63 @@ class Dispatcher:
             pass
         return result
 
+    # --- Head code: ARE (mesh surface area) ---
+    def op_ARE(self, object_code: Optional[str] = None, filename: Optional[str] = None,
+                auto_reconstruct: bool = True) -> Tuple[Path, float, bool]:
+        """Compute surface area (and closedness) for a reconstructed mesh (.ply with '_mesh').
+        Input: object_code or mesh filename. If mesh missing and auto_reconstruct, try RCN.
+        Returns: (mesh_path, area, is_closed)
+        """
+        if (object_code is None) == (filename is None):
+            raise ValueError("ARE requires exactly one of object_code or filename.")
+
+        mesh_path: Optional[Path] = None
+        if object_code:
+            assets = self.index.find_assets(object_code)
+            if assets and assets.meshes:
+                mesh_path = self._choose_one(assets.meshes)
+            elif auto_reconstruct:
+                mesh_path = self.op_RCN(object_code=object_code)
+            else:
+                raise FileNotFoundError(f"No mesh found for object_code '{object_code}'.")
+        else:
+            fp = Path(filename)  # type: ignore[arg-type]
+            if fp.exists():
+                candidate = fp
+            else:
+                matches = self.index.find_by_filename(filename)  # type: ignore[arg-type]
+                matches = [p for p in matches if p.suffix == ".ply"]
+                if not matches:
+                    raise FileNotFoundError(f"No file named '{filename}' under '{self.out_root}'.")
+                candidate = self._choose_one(matches)
+            if self._is_mesh_stem(candidate.stem):
+                mesh_path = candidate
+            elif auto_reconstruct and candidate.stem.endswith("_cluster"):
+                mesh_path = self.op_RCN(filename=candidate.name)
+            else:
+                raise ValueError("ARE expects a mesh PLY, or a cluster with auto_reconstruct=True.")
+
+        exe = self.bin_dir / "pcg_area"
+        if not exe.exists():
+            raise FileNotFoundError(f"Missing executable: {exe}")
+        out = self._run([str(exe), str(mesh_path)])
+        j = self._try_parse_json(out)
+        if j and "area" in j:
+            return mesh_path, float(j.get("area", 0.0)), bool(j.get("closed", False))
+        # Fallback text parsing
+        is_closed = "closed: true" in out
+        area_val = None
+        for line in out.splitlines():
+            s = line.strip()
+            if s.startswith("area:"):
+                try:
+                    area_val = float(s.split(":", 1)[1].strip())
+                except Exception:
+                    pass
+        if area_val is None:
+            raise RuntimeError("Failed to parse area from pcg_area output.")
+        return mesh_path, float(area_val), is_closed
+
     # --- Example two-object op: BBD (bbox distance) ---
     def op_BBD(self, object_code_1: str, object_code_2: str) -> Tuple[float, Tuple[float, float, float]]:
         """Compute distance and vector between two UOBB centers (example two-object op)."""
@@ -535,6 +593,13 @@ def _cli() -> int:
     p_vol.add_argument("--json", action="store_true")
 
     # CLR
+    # ARE
+    p_area = sub.add_parser("ARE", help="Compute mesh surface area from object_code or filename")
+    g4 = p_area.add_mutually_exclusive_group(required=True)
+    g4.add_argument("--object", dest="object_code")
+    g4.add_argument("--filename")
+    p_area.add_argument("--no-auto-recon", action="store_true")
+    p_area.add_argument("--json", action="store_true")
     p_clr = sub.add_parser("CLR", help="Dominant color analysis on a cluster or file")
     g3 = p_clr.add_mutually_exclusive_group(required=True)
     g3.add_argument("--object", dest="object_code")
@@ -622,6 +687,15 @@ def _cli() -> int:
             print(mesh)
             print(f"closed: {str(closed).lower()}")
             print(f"volume: {vol}")
+        return 0
+    if args.cmd == "ARE":
+        mesh, area, closed = d.op_ARE(object_code=args.object_code, filename=args.filename, auto_reconstruct=not args.no_auto_recon)
+        if args.json:
+            print(json.dumps({"mesh": str(mesh), "closed": closed, "area": area}, ensure_ascii=False))
+        else:
+            print(mesh)
+            print(f"closed: {str(closed).lower()}")
+            print(f"area: {area}")
         return 0
     if args.cmd == "CLR":
         res = d.op_CLR(object_code=args.object_code, filename=args.filename)

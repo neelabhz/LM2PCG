@@ -19,12 +19,21 @@ Ambiguity is handled with heuristics and optional substring hints:
 
 ## Head code mapping
 
+Short, 3-letter head codes are dispatched by `scripts/ai_api.py`:
+
+- `RCN` (Reconstruct): Given an `object_code` or a cluster filename, call `pcg_reconstruct`.
   - Input: `--object <object_code>` or `--filename <cluster_name.ply>`; optional `--only-substr`.
   - Internals: `pcg_reconstruct <cluster_ply> <room_dir>`.
 
+- `VOL` (Mesh volume): Given an `object_code` or mesh/cluster filename, call `pcg_volume`.
   - Input: `--object <object_code>` or `--filename <mesh_or_cluster_name.ply>`.
   - If a mesh is missing and the input is a cluster, auto-reconstruct by default (disable with `--no-auto-recon`).
   - Output: prints `mesh_path`, `closed: true|false`, `volume: <number|null>`; for open meshes (e.g., AF), volume is skipped/`null`.
+
+- `ARE` (Mesh surface area): Given an `object_code` or mesh/cluster filename, call `pcg_area`.
+  - Input: `--object <object_code>` or `--filename <mesh_or_cluster_name.ply>`.
+  - If a mesh is missing and the input is a cluster, auto-reconstruct by default (disable with `--no-auto-recon`).
+  - Output: prints `mesh_path`, `closed: true|false`, `area: <number>`; area is computed for both open and closed meshes.
 
 - `CLR` (Dominant color analysis): Given an `object_code` (prefers cluster) or a PLY filename, call `pcg_color` to analyze colors.
   - Input: `--object <object_code>` or `--filename <ply>`
@@ -60,6 +69,7 @@ CLI for agents:
 ```bash
 python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply
 python3 scripts/ai_api.py VOL --object 0-7-12
+python3 scripts/ai_api.py ARE --object 0-7-12 --json
 python3 scripts/ai_api.py BBD 0-7-12 0-7-14
 python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
@@ -77,6 +87,9 @@ python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
 - pcg_volume:
   - { "file": "<path>", "closed": true|false, "volume": <float> }
+
+- pcg_area:
+  - { "file": "<path>", "closed": true|false, "area": <float> }
 
 - pcg_bbox:
   - gen:  { "mode": "gen",  "status": "ok|failed", "file": "<out.ply>" }
