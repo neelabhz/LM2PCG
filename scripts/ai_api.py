@@ -197,6 +197,51 @@ class Dispatcher:
             "executables": bins,
         }
 
+    # ------------------------------
+    # Build helpers (optional): configure and build if executables missing
+    # ------------------------------
+    def _cmake_build(self, reconfigure: bool = False) -> None:
+        """Run cmake configure+build in build/ (Release). Safe to call multiple times."""
+        self.bin_dir.mkdir(parents=True, exist_ok=True)
+        cfg_cmd = [
+            "cmake",
+            "-DCMAKE_BUILD_TYPE=Release",
+            str(self.root),
+        ]
+        build_cmd = [
+            "cmake",
+            "--build",
+            str(self.bin_dir),
+            "-j",
+        ]
+        # If build dir not configured yet (no cache) or explicit reconfigure
+        need_cfg = reconfigure or not (self.bin_dir / "CMakeCache.txt").exists()
+        if need_cfg:
+            subprocess.run(cfg_cmd, cwd=self.bin_dir, check=True)
+        subprocess.run(build_cmd, check=True)
+
+    def _ensure_executables(self, tools: List[str]) -> None:
+        """Ensure the given executables exist; if not, attempt to build.
+        tools: e.g., ["pcg_reconstruct", "pcg_volume", "pcg_area", "pcg_color", "pcg_bbox", "pcg_room"]
+        """
+        missing = [t for t in tools if not (self.bin_dir / t).exists()]
+        if not missing:
+            return
+        # Try a configure+build; if still missing, raise with a hint
+        try:
+            self._cmake_build(reconfigure=not (self.bin_dir / "CMakeCache.txt").exists())
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                "Auto-build failed. Ensure dependencies (CMake, PCL, CGAL) are installed.\n"
+                f"Command returned {e.returncode}. Check logs above."
+            )
+        still_missing = [t for t in tools if not (self.bin_dir / t).exists()]
+        if still_missing:
+            raise FileNotFoundError(
+                "Missing executables after build: " + ", ".join(still_missing) +
+                " — ensure CGAL is installed for reconstruct/volume/area."
+            )
+
     # --- Head code: RCN (reconstruction) ---
     def op_RCN(self, object_code: Optional[str] = None, filename: Optional[str] = None,
                only_substring: Optional[str] = None) -> Path:
@@ -233,9 +278,9 @@ class Dispatcher:
             raise RuntimeError(f"Cannot infer room directory for '{cluster_path}'.")
 
         # Call pcg_reconstruct <cluster_ply> <room_dir>
+        # Ensure binary exists (auto-build if necessary)
+        self._ensure_executables(["pcg_reconstruct"])
         exe = self.bin_dir / "pcg_reconstruct"
-        if not exe.exists():
-            raise FileNotFoundError(f"Missing executable: {exe}")
         self._run([str(exe), str(cluster_path), str(room_dir)])
 
         # Find the generated mesh path after reconstruction. New naming includes method suffix.
@@ -292,9 +337,8 @@ class Dispatcher:
         if mesh_path is None:
             raise RuntimeError("Internal error: mesh_path is None after resolution.")
 
+        self._ensure_executables(["pcg_volume"])  # CGAL required
         exe = self.bin_dir / "pcg_volume"
-        if not exe.exists():
-            raise FileNotFoundError(f"Missing executable: {exe}")
         # Run and parse output
         out = self._run([str(exe), str(mesh_path)])
         # Try JSON first
@@ -421,9 +465,8 @@ class Dispatcher:
             else:
                 raise ValueError("ARE expects a mesh PLY, or a cluster with auto_reconstruct=True.")
 
+        self._ensure_executables(["pcg_area"])  # CGAL required
         exe = self.bin_dir / "pcg_area"
-        if not exe.exists():
-            raise FileNotFoundError(f"Missing executable: {exe}")
         out = self._run([str(exe), str(mesh_path)])
         j = self._try_parse_json(out)
         if j and "area" in j:
@@ -453,9 +496,8 @@ class Dispatcher:
             raise FileNotFoundError(f"No UOBB for object_code '{object_code_2}'.")
         u1 = self._choose_one(assets1.uobbs)
         u2 = self._choose_one(assets2.uobbs)
+        self._ensure_executables(["pcg_bbox"]) 
         exe = self.bin_dir / "pcg_bbox"
-        if not exe.exists():
-            raise FileNotFoundError(f"Missing executable: {exe}")
         out = self._run([str(exe), str(u1), str(u2)])
         # Try JSON
         j = self._try_parse_json(out)
@@ -616,6 +658,10 @@ def _cli() -> int:
     p_chk = sub.add_parser("check-env", help="Show availability of required executables")
     p_chk.add_argument("--json", action="store_true")
 
+    # build (optional): configure and build missing executables
+    p_build = sub.add_parser("BUILD", help="Configure and build C++ apps (auto-run when needed)")
+    p_build.add_argument("--reconfigure", action="store_true", help="Force cmake reconfigure before build")
+
     args = parser.parse_args()
     d = Dispatcher()
 
@@ -730,6 +776,14 @@ def _cli() -> int:
             print("executables:")
             for k, v in info["executables"].items():
                 print(f"  {k}: {'yes' if v else 'no'}")
+        return 0
+    if args.cmd == "BUILD":
+        try:
+            d._cmake_build(reconfigure=args.reconfigure)
+        except subprocess.CalledProcessError as e:
+            print(f"Build failed with exit code {e.returncode}")
+            return e.returncode
+        print("Build completed")
         return 0
     return 2
 

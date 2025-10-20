@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline / 0.9.0
+# Indoor Point Cloud Pipeline / 0.9.1
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction, dominant-color analysis, volume and surface-area computation.
 
@@ -23,6 +23,9 @@ JSON output mode
 - Controlled by `json_output` in `data/configs/default.yaml`. When `true`, C++ apps print structured JSON to stdout; `ai_api` consumes this directly.
 - Current default: `true`.
 
+First run (auto-build)
+When a command requires a missing executable, the API will configure and build targets automatically into `build/` (requires system deps installed: CMake, CGAL, PCL, Boost, Eigen).
+
 Examples
 ```bash
 # Check environment
@@ -42,6 +45,10 @@ python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
 # BBox distance between two objects
 python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
+
+# Manual build (optional)
+python3 scripts/ai_api.py BUILD               # configure (if needed) + build
+python3 scripts/ai_api.py BUILD --reconfigure # force reconfigure then build
 ```
 
 More details and schemas: see `docs/AI_API.md`.
@@ -56,15 +63,15 @@ Prerequisites
 
 macOS with Homebrew
 ```
-brew install pcl cmake
+brew install cmake cgal boost eigen pcl
 ```
 Linux with apt (example)
 ```
 sudo apt-get update
-sudo apt-get install -y cmake build-essential libpcl-dev
+sudo apt-get install -y cmake build-essential libpcl-dev libcgal-dev libeigen3-dev libboost-all-dev
 ```
 
-Build
+Build (manual option; auto-build is available via the AI API)
 ```
 mkdir -p build
 cd build

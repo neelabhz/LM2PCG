@@ -9,6 +9,60 @@ This document sketches a unified, AI-friendly control surface for the pipeline. 
 
 The implementation is a lightweight Python script at `scripts/ai_api.py` that scans the `output/` tree once to build indices, then resolves and dispatches operations.
 
+## Installation & build
+
+The Python API orchestrates a set of C++ apps (pcg_reconstruct, pcg_volume, pcg_area, pcg_bbox, pcg_color, pcg_room). These must be compiled locally. You have two options:
+
+- Easiest: let the API auto-build on first use (recommended)
+- Manual: trigger a build explicitly
+
+Prerequisites (system):
+- A C++17 compiler (clang++/AppleClang on macOS, gcc/clang on Linux)
+- CMake (Release builds are used)
+- CGAL, Boost, Eigen3
+- PCL (and dependencies such as VTK, libpng, libjpeg, libtiff, zlib, etc.)
+
+Tip (macOS): install dependencies with Homebrew, e.g., `brew install cmake cgal boost eigen pcl`. On Linux, use your distribution’s package manager for equivalent packages.
+
+### First run (auto-build)
+
+When a head code needs a missing executable, the dispatcher automatically configures and builds targets into `build/`. Nothing else is required beyond installed prerequisites.
+
+Example:
+
+```bash
+# Compute surface area; on first run this configures + builds, then runs
+python3 scripts/ai_api.py ARE --object 0-7-12 --json
+```
+
+Check availability anytime:
+
+```bash
+python3 scripts/ai_api.py check-env --json
+```
+
+### Manual build options
+
+If you prefer to build explicitly:
+
+- Use the API’s build subcommand (same result as auto-build):
+
+```bash
+python3 scripts/ai_api.py BUILD                 # configure (if needed) + build
+python3 scripts/ai_api.py BUILD --reconfigure   # force reconfigure then build
+```
+
+- Or use the provided VS Code Tasks (Terminal → Run Task…):
+  - “Configure and build (Release)”
+  - “Build CMake project (Release)”
+
+- Or run CMake by hand (optional):
+  - Create `build/` and run a Release configure, then build the targets.
+
+Troubleshooting build:
+- If the build reports missing libraries (CGAL/PCL/Boost/Eigen/VTK), install them and rebuild.
+- If you switch compilers or upgrade dependencies, use `BUILD --reconfigure` or delete `build/` and re-run a head code; the API will regenerate.
+
 ## Design overview
 
 Identifiers and naming conventions (already used by C++ tools):
@@ -65,6 +119,16 @@ print(d.index.find_assets("0-7-12"))
 
 # Feature 2 examples
 mesh_path = d.op_RCN(object_code="0-7-12")
+```
+
+CLI for agents:
+```bash
+python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply
+python3 scripts/ai_api.py VOL --object 0-7-12
+python3 scripts/ai_api.py ARE --object 0-7-12 --json
+python3 scripts/ai_api.py BBD 0-7-12 0-7-14
+python3 scripts/ai_api.py CLR --object 0-7-12 --json
+```
 CLI for agents:
 ```bash
 python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply
@@ -75,12 +139,13 @@ python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
 ## Notes and edge cases
 - Filename-only resolution can yield multiple paths (e.g., mirrored outputs); the API chooses the most likely one but also supports narrowing via a substring filter.
-- If `pcg_reconstruct` or `pcg_volume` are not built, ensure CGAL is enabled and rebuild (`cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j`).
+- Auto-build: if required executables are missing, the dispatcher will configure and build them automatically. You can also call `python3 scripts/ai_api.py BUILD` to build on demand.
+- Manual CMake builds are fine too—ensure CGAL/PCL and friends are available and build a Release configuration in `build/`.
 - Object codes and filenames are trusted to conform to the pipeline’s naming; if external files deviate, results may be unpredictable.
 - Future two-object ops can mirror the `BBD` pattern and accept two `object_code`s.
 
 ## JSON output (global)
-- The global flag `json_output` in `data/configs/default.yaml` controls whether C++ tools emit structured JSON instead of human-readable text. Default is `false`.
+- The global flag `json_output` in `data/configs/default.yaml` controls whether C++ tools emit structured JSON instead of human-readable text. Default is `true` in this repository.
 - When `json_output: true`, each tool writes JSON to stdout (one JSON object per processed input). All messages are in English.
 - ai_api.py also supports `--json` for its own CLI to return structured results regardless of the C++ tools' mode; internally it prefers consuming JSON from tools and falls back to text parsing if needed.
 ### Per-tool JSON shapes

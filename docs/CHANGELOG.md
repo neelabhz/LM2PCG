@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 2025-10-20 / 0.9.1
+
+### Fixed / Improved
+- AI API: Added automatic CMake build on first use. When a head code (e.g., ARE/VOL/RCN/BBD/CLR) needs a missing executable, the dispatcher configures and builds targets into `build/` automatically.
+- New CLI: `python3 scripts/ai_api.py BUILD [--reconfigure]` to build explicitly or force a reconfigure.
+- New CLI: `python3 scripts/ai_api.py check-env --json` shows availability of executables and key paths.
+
+### Docs
+- Updated `docs/AI_API.md` with installation, first-run (auto-build), manual build options, and troubleshooting.
+- Updated README with quick examples for `check-env`, `BUILD`, and first-run behavior.
+
 ## 2025-10-20 / 0.9.0
 
 ### Added
