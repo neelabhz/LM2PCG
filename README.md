@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline / 0.9.0-alpha.1
+# Indoor Point Cloud Pipeline / 0.9.0-alpha.2
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction and a dominant-color CLI.
 
@@ -10,7 +10,7 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL (and optiona
 - Standardized outputs under results with unified filenames
 - CSV schema extended with IDs and semantics (object_code/class/etc.)
 - Reconstruction per cluster (Poisson with acceptance checks, AF fallback)
-- Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_color
+ - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_color, pcg_bbox
 
 
 ## Quick start
@@ -37,7 +37,7 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j
 ```
-Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color.
+Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_color, pcg_bbox.
 
 
 ## How to run
@@ -133,6 +133,50 @@ Examples:
 
 # Batch check multiple meshes
 ./build/pcg_volume output/Full\ House/**/results/recon/**/**_mesh.ply
+```
+
+### 5) BBox center, vector, distance — pcg_bbox
+`pcg_bbox` offers three modes:
+
+- Compute mode (input two UOBB PLYs exported by `pcg_room`):
+```
+./build/pcg_bbox <bbox1_uobb.ply> <bbox2_uobb.ply>
+```
+Output (four lines):
+```
+center1: cx1, cy1, cz1
+center2: cx2, cy2, cz2
+vector_1_to_2: dx, dy, dz
+distance: d
+```
+
+- Generate mode (quickly create a test UOBB):
+```
+./build/pcg_bbox gen <out.ply> cx cy cz lx ly lz yaw_deg
+```
+Notes: Z-axis is up; `yaw_deg` is rotation around Z in degrees. Example:
+```
+./build/pcg_bbox gen output/test/box1.ply 0 0 0 2 1 1 0
+./build/pcg_bbox gen output/test/box2.ply 3 4 0 1 1 1 0
+./build/pcg_bbox output/test/box1.ply output/test/box2.ply
+```
+
+- Point-to-bbox mode (vector from a given point to a bbox center):
+```
+./build/pcg_bbox point x y z <bbox_uobb.ply>
+```
+Output (four lines):
+```
+point: x, y, z
+bbox_center: cx, cy, cz
+vector_point_to_center: dx, dy, dz
+distance: d
+```
+Example:
+```
+# Generate a box centered at the origin, then measure from point (1, 2, 0)
+./build/pcg_bbox gen output/test/box.ply 0 0 0 2 1 1 0
+./build/pcg_bbox point 1 2 0 output/test/box.ply
 ```
 
 ## Configuration

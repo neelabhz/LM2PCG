@@ -4,6 +4,8 @@ set(__QT_DEPLOY_TARGET_pcg_room_FILE /Users/jacksonye/Documents/GitHub/Spariallm
 set(__QT_DEPLOY_TARGET_pcg_room_TYPE EXECUTABLE)
 set(__QT_DEPLOY_TARGET_pcg_color_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_color)
 set(__QT_DEPLOY_TARGET_pcg_color_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_pcg_bbox_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_bbox)
+set(__QT_DEPLOY_TARGET_pcg_bbox_TYPE EXECUTABLE)
 set(__QT_DEPLOY_TARGET_pcg_reconstruct_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_reconstruct)
 set(__QT_DEPLOY_TARGET_pcg_reconstruct_TYPE EXECUTABLE)
 set(__QT_DEPLOY_TARGET_pcg_volume_FILE /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/pcg_volume)

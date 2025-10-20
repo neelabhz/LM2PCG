@@ -258,6 +258,115 @@
 				"set -euo pipefail; rm -rf output/client_room/floor_0/room_007/diagnostics/recon || true"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Build bbox app (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; build_dir=\"build\"; mkdir -p \"$build_dir\"; cd \"$build_dir\"; cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build bbox tools (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; build_dir=\"build\"; mkdir -p \"$build_dir\"; cd \"$build_dir\"; cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild bbox_gen (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild after merge (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild after include fix (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild after cleanup (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build pcg_bbox with point mode (Release)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild after docs update",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake --build . -j"
+			],
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

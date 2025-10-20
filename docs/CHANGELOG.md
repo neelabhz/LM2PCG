@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. This log focuses on the recent work to preserve color in point clouds, standardize outputs, and introduce dominant-color analysis.
 
+## 2025-10-20 / 0.9.0-alpha.2
+
+### Added
+- `pcg_bbox` standalone CLI: compute the centers of two UOBB PLYs, the vector from the first to the second, and the Euclidean distance between the centers.
+- `gen` subcommand for `pcg_bbox`: `pcg_bbox gen <out.ply> cx cy cz lx ly lz yaw_deg` for quickly generating a test UOBB PLY (Z-up; yaw in degrees).
+- `point` subcommand for `pcg_bbox`: `pcg_bbox point x y z <bbox_uobb.ply>` to compute the vector and distance from a user-provided point to the bbox center.
+
+### Changed
+- Merged the former test generator `pcg_bbox_gen` into `pcg_bbox` as the `gen` subcommand to reduce maintenance and simplify usage.
+- Docs: README updated with `pcg_bbox` usage and examples.
+
+### Removed
+- Deprecated and removed the standalone `pcg_bbox_gen` executable and source.
+
+### Notes
+- `pcg_bbox` compute mode remains simple: provide two `*_uobb.ply` files exported by `pcg_room`; the center is computed by averaging the box vertices (equals the geometric center). Output format is four lines: `center1`, `center2`, `vector_1_to_2`, `distance`.
+
 ## 2025-10-18 / 0.9.0-alpha.1
 
 ### Added

@@ -201,6 +201,19 @@ pcg_color/fast:
 .PHONY : pcg_color/fast
 
 #=============================================================================
+# Target rules for targets named pcg_bbox
+
+# Build rule for target.
+pcg_bbox: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pcg_bbox
+.PHONY : pcg_bbox
+
+# fast build rule for target.
+pcg_bbox/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_bbox.dir/build.make CMakeFiles/pcg_bbox.dir/build
+.PHONY : pcg_bbox/fast
+
+#=============================================================================
 # Target rules for targets named pcg_reconstruct
 
 # Build rule for target.
@@ -225,6 +238,30 @@ pcg_volume: cmake_check_build_system
 pcg_volume/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_volume.dir/build.make CMakeFiles/pcg_volume.dir/build
 .PHONY : pcg_volume/fast
+
+src/apps/pcg_bbox.o: src/apps/pcg_bbox.cpp.o
+.PHONY : src/apps/pcg_bbox.o
+
+# target to build an object file
+src/apps/pcg_bbox.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_bbox.dir/build.make CMakeFiles/pcg_bbox.dir/src/apps/pcg_bbox.cpp.o
+.PHONY : src/apps/pcg_bbox.cpp.o
+
+src/apps/pcg_bbox.i: src/apps/pcg_bbox.cpp.i
+.PHONY : src/apps/pcg_bbox.i
+
+# target to preprocess a source file
+src/apps/pcg_bbox.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_bbox.dir/build.make CMakeFiles/pcg_bbox.dir/src/apps/pcg_bbox.cpp.i
+.PHONY : src/apps/pcg_bbox.cpp.i
+
+src/apps/pcg_bbox.s: src/apps/pcg_bbox.cpp.s
+.PHONY : src/apps/pcg_bbox.s
+
+# target to generate assembly for a file
+src/apps/pcg_bbox.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/pcg_bbox.dir/build.make CMakeFiles/pcg_bbox.dir/src/apps/pcg_bbox.cpp.s
+.PHONY : src/apps/pcg_bbox.cpp.s
 
 src/apps/pcg_color.o: src/apps/pcg_color.cpp.o
 .PHONY : src/apps/pcg_color.o
@@ -551,10 +588,14 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... pcg"
+	@echo "... pcg_bbox"
 	@echo "... pcg_color"
 	@echo "... pcg_reconstruct"
 	@echo "... pcg_room"
 	@echo "... pcg_volume"
+	@echo "... src/apps/pcg_bbox.o"
+	@echo "... src/apps/pcg_bbox.i"
+	@echo "... src/apps/pcg_bbox.s"
 	@echo "... src/apps/pcg_color.o"
 	@echo "... src/apps/pcg_color.i"
 	@echo "... src/apps/pcg_color.s"

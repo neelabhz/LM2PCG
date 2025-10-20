@@ -2320,3 +2320,255 @@ events:
         
       exitCode: 2
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-2vw6ha"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-2vw6ha"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-2vw6ha'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_ce6e3/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_ce6e3.dir/build.make CMakeFiles/cmTC_ce6e3.dir/build
+        Building CXX object CMakeFiles/cmTC_ce6e3.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_ce6e3.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_ce6e3.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_ce6e3.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-2vw6ha/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-2vw6ha/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_ce6e3.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_ce6e3/fast] Error 2
+        
+      exitCode: 2
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-6vII17"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-6vII17"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-6vII17'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_77b1e/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_77b1e.dir/build.make CMakeFiles/cmTC_77b1e.dir/build
+        Building CXX object CMakeFiles/cmTC_77b1e.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_77b1e.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_77b1e.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_77b1e.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-6vII17/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-6vII17/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_77b1e.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_77b1e/fast] Error 2
+        
+      exitCode: 2
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-XvUe1W"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-XvUe1W"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-XvUe1W'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_d72ba/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_d72ba.dir/build.make CMakeFiles/cmTC_d72ba.dir/build
+        Building CXX object CMakeFiles/cmTC_d72ba.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_d72ba.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_d72ba.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_d72ba.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-XvUe1W/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-XvUe1W/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_d72ba.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_d72ba/fast] Error 2
+        
+      exitCode: 2
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-N3mHAs"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-N3mHAs"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-N3mHAs'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_f4e53/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_f4e53.dir/build.make CMakeFiles/cmTC_f4e53.dir/build
+        Building CXX object CMakeFiles/cmTC_f4e53.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_f4e53.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_f4e53.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_f4e53.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-N3mHAs/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-N3mHAs/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_f4e53.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_f4e53/fast] Error 2
+        
+      exitCode: 2
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-eKAWkr"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-eKAWkr"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-eKAWkr'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_0d6fb/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_0d6fb.dir/build.make CMakeFiles/cmTC_0d6fb.dir/build
+        Building CXX object CMakeFiles/cmTC_0d6fb.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_0d6fb.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_0d6fb.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_0d6fb.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-eKAWkr/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-eKAWkr/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_0d6fb.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_0d6fb/fast] Error 2
+        
+      exitCode: 2
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-0d6CvN"
+      binary: "/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-0d6CvN"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-0d6CvN'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_4a8c7/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_4a8c7.dir/build.make CMakeFiles/cmTC_4a8c7.dir/build
+        Building CXX object CMakeFiles/cmTC_4a8c7.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_4a8c7.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_4a8c7.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_4a8c7.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-0d6CvN/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/CMakeScratch/TryCompile-0d6CvN/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_4a8c7.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_4a8c7/fast] Error 2
+        
+      exitCode: 2
+...

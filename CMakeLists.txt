@@ -47,6 +47,14 @@ add_executable(pcg_color src/apps/pcg_color.cpp)
 target_include_directories(pcg_color PRIVATE include ${PCL_INCLUDE_DIRS})
 target_link_libraries(pcg_color PRIVATE pcg ${PCL_LIBRARIES})
 
+# BBox distance app (standalone CLI)
+add_executable(pcg_bbox src/apps/pcg_bbox.cpp)
+target_include_directories(pcg_bbox PRIVATE include ${PCL_INCLUDE_DIRS})
+target_link_libraries(pcg_bbox PRIVATE pcg ${PCL_LIBRARIES})
+
+# BBox generator app (for testing)
+
+
 # Optional: CGAL for reconstruction app
 find_package(CGAL QUIET COMPONENTS Core)
 if(CGAL_FOUND)

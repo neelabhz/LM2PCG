@@ -468,6 +468,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/pcg.dir/DependInfo.cmake"
   "CMakeFiles/pcg_room.dir/DependInfo.cmake"
   "CMakeFiles/pcg_color.dir/DependInfo.cmake"
+  "CMakeFiles/pcg_bbox.dir/DependInfo.cmake"
   "CMakeFiles/pcg_reconstruct.dir/DependInfo.cmake"
   "CMakeFiles/pcg_volume.dir/DependInfo.cmake"
   )
