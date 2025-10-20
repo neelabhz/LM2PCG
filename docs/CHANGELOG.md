@@ -1,5 +1,34 @@
 # Changelog
 
+All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
+
+## 2025-10-20 / 0.9.0-alpha.3
+
+### Added
+- Python AI API layer `scripts/ai_api.py` for chatbot/automation workflows:
+  - Path resolution by filename, `object_code` (e.g., `0-7-12`), and floor-room CSV.
+  - Head-code dispatcher: `RCN` (reconstruct), `VOL` (mesh volume/closedness), `CLR` (dominant color), `BBD` (bbox distance between two objects).
+  - `check-env` command to verify executables; `--json` option for CLI responses.
+  - `--filename` accepts absolute/relative paths in addition to names under `output/`.
+- Global structured JSON output mode:
+  - New config toggle `json_output: true` in `data/configs/default.yaml`.
+  - C++ apps emit JSON to stdout when enabled: `pcg_reconstruct`, `pcg_volume`, `pcg_color`, `pcg_bbox`.
+- Documentation updates:
+  - `docs/AI_API.md` explains head codes, usage examples, and JSON schemas.
+  - README now includes AI API quick-start and JSON output instructions.
+
+### Changed
+- Standardized console outputs to English-only for machine readability.
+- `pcg_bbox` exposes three modes (compute/gen/point) and supports JSON output when `json_output` is true.
+
+### Fixed
+- Addressed a duplicate variable declaration and lambda regression in `src/apps/pcg_bbox.cpp`.
+
+### Notes
+- Multi-item operations (e.g., reconstruction across many clusters) stream one JSON object per item to stdout.
+- `ai_api.py` prefers parsing tool JSON and falls back to legacy text where necessary.
+# Changelog
+
 All notable changes to this project are documented here. This log focuses on the recent work to preserve color in point clouds, standardize outputs, and introduce dominant-color analysis.
 
 ## 2025-10-20 / 0.9.0-alpha.2

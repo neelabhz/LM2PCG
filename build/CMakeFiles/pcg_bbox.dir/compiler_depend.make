@@ -916,6 +916,7 @@ CMakeFiles/pcg_bbox.dir/src/apps/pcg_bbox.cpp.o: /Users/jacksonye/Documents/GitH
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp \
+  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp \
   /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/ply_io.hpp \
   /opt/homebrew/include/boost/config.hpp \
   /opt/homebrew/include/boost/config/compiler/clang.hpp \
@@ -1942,6 +1943,8 @@ CMakeFiles/pcg_bbox.dir/src/apps/pcg_bbox.cpp.o: /Users/jacksonye/Documents/GitH
 /opt/homebrew/include/boost/config.hpp:
 
 /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/ply_io.hpp:
+
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp:
 
 /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/bbox.hpp:
 

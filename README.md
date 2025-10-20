@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline / 0.9.0-alpha.2
+# Indoor Point Cloud Pipeline / 0.9.0-alpha.3
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction and a dominant-color CLI.
 
@@ -11,6 +11,37 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL (and optiona
 - CSV schema extended with IDs and semantics (object_code/class/etc.)
 - Reconstruction per cluster (Poisson with acceptance checks, AF fallback)
  - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_color, pcg_bbox
+ - AI API for orchestration (scripts/ai_api.py) with structured JSON outputs
+
+## AI API (scripts/ai_api.py) and JSON output
+
+An optional Python-based orchestration layer provides two capabilities:
+- Path resolution by object_code, filename, or floor-room
+- Operation dispatch via 3-letter head codes: RCN (reconstruct), VOL (volume), CLR (dominant color), BBD (bbox distance)
+
+JSON output mode
+- Controlled by `json_output` in `data/configs/default.yaml`. When `true`, C++ apps print structured JSON to stdout; `ai_api` consumes this directly.
+- Current default: `true`.
+
+Examples
+```bash
+# Check environment
+python3 scripts/ai_api.py check-env --json
+
+# Reconstruction on a cluster file (absolute or relative path)
+python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/results/filtered_clusters/window_007/1-7-1_window_cluster.ply --json
+
+# Volume on a mesh file
+python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
+
+# Dominant color by object_code
+python3 scripts/ai_api.py CLR --object 0-7-12 --json
+
+# BBox distance between two objects
+python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
+```
+
+More details and schemas: see `docs/AI_API.md`.
 
 
 ## Quick start
@@ -178,6 +209,45 @@ Example:
 ./build/pcg_bbox gen output/test/box.ply 0 0 0 2 1 1 0
 ./build/pcg_bbox point 1 2 0 output/test/box.ply
 ```
+
+## AI API (chatbot/automation)
+The Python layer `scripts/ai_api.py` provides:
+- Path resolution by filename/object_code/room
+- Head-code dispatcher for core operations
+
+Head codes:
+- RCN: reconstruct a cluster to a mesh
+- VOL: compute mesh volume and closedness
+- CLR: analyze dominant color(s) for a cluster/PLY
+- BBD: bbox center vector and distance between two objects
+
+Examples (JSON output recommended):
+```
+# Environment readiness
+python3 scripts/ai_api.py check-env --json
+
+# Reconstruct a specific cluster by object_code
+python3 scripts/ai_api.py RCN --object 0-7-12 --json
+
+# Or by direct file path to a cluster
+python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/results/filtered_clusters/window_007/1-7-1_window_cluster.ply --json
+
+# Volume on a mesh
+python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
+
+# Dominant color by object_code
+python3 scripts/ai_api.py CLR --object 0-7-12 --json
+
+# BBox distance between two objects
+python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
+```
+
+## Structured JSON output
+Enable/disable globally via `data/configs/default.yaml`:
+```
+json_output: true  # when true, tools print JSON to stdout
+```
+When enabled, C++ apps emit machine-readable JSON. Multi-item operations stream one JSON object per item. The AI API consumes these JSONs and returns consolidated results for the CLI.
 
 ## Configuration
 Default file: `data/configs/default.yaml`. Key parameters with typical defaults:

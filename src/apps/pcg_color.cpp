@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
 
     pcg::ParamsConfig cfg; std::string err;
     pcg::load_params_from_file(find_config_path().string(), cfg, &err);
+    const bool as_json = cfg.json_output;
 
     int sample_n = (argc >= 3) ? std::stoi(argv[2]) : cfg.color_sample_n;
 
@@ -105,16 +106,26 @@ int main(int argc, char** argv) {
     }
 
     if (comps.empty()) {
-        std::cout << "Final M=0" << std::endl;
+        if (as_json) {
+            std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"M\": 0\n}\n";
+        } else {
+            std::cout << "Final M=0" << std::endl;
+        }
         return 0;
     }
 
     if (comps.size() == 1) {
         const auto& c = comps[0];
-        std::cout << "Final M=1\n"
-                  << "component 0: weight=" << c.w
-                  << ", mean=[" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2] << "]"
-                  << ", var=[" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "]\n";
+        if (as_json) {
+            std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"M\": 1,\n  \"components\": [ { \"weight\": " << c.w
+                      << ", \"mean\": [" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2]
+                      << "], \"var\": [" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "] } ]\n}\n";
+        } else {
+            std::cout << "Final M=1\n"
+                      << "component 0: weight=" << c.w
+                      << ", mean=[" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2] << "]"
+                      << ", var=[" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "]\n";
+        }
         return 0;
     }
 
@@ -138,13 +149,26 @@ int main(int argc, char** argv) {
     std::vector<Comp> final;
     for (int i = 0; i < M0; ++i) if (alive[i]) final.push_back(comps[i]);
 
-    std::cout << "Final M=" << final.size() << "\n";
-    for (size_t t = 0; t < final.size(); ++t) {
-        const auto& c = final[t];
-        std::cout << "component " << t
-                  << ": weight=" << c.w
-                  << ", mean=[" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2] << "]"
-                  << ", var=[" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "]\n";
+    if (as_json) {
+        std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"M\": " << final.size() << ",\n  \"components\": [\n";
+        for (size_t t = 0; t < final.size(); ++t) {
+            const auto& c = final[t];
+            std::cout << "    { \"weight\": " << c.w
+                      << ", \"mean\": [" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2]
+                      << "], \"var\": [" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "] }";
+            if (t + 1 < final.size()) std::cout << ",";
+            std::cout << "\n";
+        }
+        std::cout << "  ]\n}\n";
+    } else {
+        std::cout << "Final M=" << final.size() << "\n";
+        for (size_t t = 0; t < final.size(); ++t) {
+            const auto& c = final[t];
+            std::cout << "component " << t
+                      << ": weight=" << c.w
+                      << ", mean=[" << c.mean[0] << ", " << c.mean[1] << ", " << c.mean[2] << "]"
+                      << ", var=[" << c.var[0] << ", " << c.var[1] << ", " << c.var[2] << "]\n";
+        }
     }
 
     return 0;

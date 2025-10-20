@@ -1,4 +1,5 @@
 #include "pcg/ply_io.hpp"
+#include "pcg/params.hpp"
 
 #include <Eigen/Core>
 #include <filesystem>
@@ -59,6 +60,17 @@ static bool generate_uobb(const std::string& out_path,
 }
 
 int main(int argc, char** argv) {
+    auto find_config_path = [](){
+        const fs::path candidates[] = {
+            fs::path("data/configs/default.yaml"),
+            fs::path("../data/configs/default.yaml"),
+            fs::path("../../data/configs/default.yaml")
+        };
+        for (const auto& p : candidates) if (fs::exists(p)) return p; return fs::path();
+    };
+    pcg::ParamsConfig cfg; std::string err;
+    pcg::load_params_from_file(find_config_path().string(), cfg, &err);
+    const bool as_json = cfg.json_output;
     if (argc >= 2 && std::string(argv[1]) == "gen") {
         // gen mode: pcg_bbox gen out.ply cx cy cz lx ly lz yaw_deg
         if (argc != 10) { // prog, gen, out, cx,cy,cz,lx,ly,lz,yaw => 10
@@ -73,9 +85,18 @@ int main(int argc, char** argv) {
         const float lz = std::stof(argv[8]);
         const float yaw_deg = std::stof(argv[9]);
         if (!generate_uobb(out, cx, cy, cz, lx, ly, lz, yaw_deg)) {
-            std::cerr << "写入失败: " << out << "\n"; return 2;
+            if (as_json) {
+                std::cout << "{\n  \"mode\": \"gen\", \"status\": \"failed\", \"file\": \"" << out << "\"\n}\n";
+            } else {
+                std::cerr << "Write failed: " << out << "\n";
+            }
+            return 2;
         }
-        std::cout << "已生成: " << out << "\n";
+        if (as_json) {
+            std::cout << "{\n  \"mode\": \"gen\", \"status\": \"ok\", \"file\": \"" << out << "\"\n}\n";
+        } else {
+            std::cout << "Generated: " << out << "\n";
+        }
         return 0;
     }
 
@@ -86,12 +107,19 @@ int main(int argc, char** argv) {
         const float py = std::stof(argv[3]);
         const float pz = std::stof(argv[4]);
         const fs::path box_path = argv[5];
-        if (!fs::exists(box_path)) { std::cerr << "Error: file not found: " << box_path << "\n"; return 2; }
+        if (!fs::exists(box_path)) { if (as_json) {
+                std::cout << "{\n  \"mode\": \"point\", \"status\": \"not_found\", \"file\": \"" << box_path.string() << "\"\n}\n";
+            } else {
+                std::cerr << "Error: file not found: " << box_path << "\n"; }
+            return 2; }
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr verts;
-        std::string err;
         if (!pcg::load_ply_xyz(box_path.string(), verts, &err)) {
-            std::cerr << "Error reading PLY: " << err << "\n"; return 3;
+            if (as_json) {
+                std::cout << "{\n  \"mode\": \"point\", \"status\": \"read_failed\", \"error\": \"" << err << "\"\n}\n";
+            } else {
+                std::cerr << "Error reading PLY: " << err << "\n"; }
+            return 3;
         }
         if (!verts || verts->empty()) { std::cerr << "Error: PLY has no vertices\n"; return 3; }
 
@@ -102,30 +130,45 @@ int main(int argc, char** argv) {
 
         std::cout.setf(std::ios::fixed, std::ios::floatfield);
         std::cout << std::setprecision(6);
-        std::cout << "point: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
-        std::cout << "bbox_center: " << c.x() << ", " << c.y() << ", " << c.z() << "\n";
-        std::cout << "vector_point_to_center: " << v.x() << ", " << v.y() << ", " << v.z() << "\n";
-        std::cout << "distance: " << d << "\n";
+        if (as_json) {
+            std::cout << "{\n  \"mode\": \"point\",\n  \"point\": {\"x\": " << p.x() << ", \"y\": " << p.y() << ", \"z\": " << p.z() << "},\n  \"bbox_center\": {\"x\": " << c.x() << ", \"y\": " << c.y() << ", \"z\": " << c.z() << "},\n  \"vector_point_to_center\": {\"x\": " << v.x() << ", \"y\": " << v.y() << ", \"z\": " << v.z() << "},\n  \"distance\": " << d << "\n}\n";
+        } else {
+            std::cout << "point: " << p.x() << ", " << p.y() << ", " << p.z() << "\n";
+            std::cout << "bbox_center: " << c.x() << ", " << c.y() << ", " << c.z() << "\n";
+            std::cout << "vector_point_to_center: " << v.x() << ", " << v.y() << ", " << v.z() << "\n";
+            std::cout << "distance: " << d << "\n";
+        }
         return 0;
     }
 
     if (argc != 3) { print_usage(); return 1; }
     const fs::path box1_path = argv[1];
     const fs::path box2_path = argv[2];
-    if (!fs::exists(box1_path)) { std::cerr << "Error: file not found: " << box1_path << "\n"; return 2; }
-    if (!fs::exists(box2_path)) { std::cerr << "Error: file not found: " << box2_path << "\n"; return 2; }
+    if (!fs::exists(box1_path)) { if (as_json) {
+            std::cout << "{\n  \"mode\": \"pair\", \"status\": \"not_found\", \"file\": \"" << box1_path.string() << "\"\n}\n";
+        } else {
+            std::cerr << "Error: file not found: " << box1_path << "\n"; }
+        return 2; }
+    if (!fs::exists(box2_path)) { if (as_json) {
+            std::cout << "{\n  \"mode\": \"pair\", \"status\": \"not_found\", \"file\": \"" << box2_path.string() << "\"\n}\n";
+        } else {
+            std::cerr << "Error: file not found: " << box2_path << "\n"; }
+        return 2; }
 
     // Load vertices from the UOBB PLYs. Our minimal loader reads vertex positions (x,y,z).
     pcl::PointCloud<pcl::PointXYZ>::Ptr verts1, verts2;
-    std::string err;
     if (!pcg::load_ply_xyz(box1_path.string(), verts1, &err)) {
-        std::cerr << "Error reading PLY #1: " << err << "\n"; return 3;
+        if (as_json) { std::cout << "{\n  \"mode\": \"pair\", \"status\": \"read_failed\", \"which\": 1, \"error\": \"" << err << "\"\n}\n"; }
+        else { std::cerr << "Error reading PLY #1: " << err << "\n"; }
+        return 3;
     }
     if (!pcg::load_ply_xyz(box2_path.string(), verts2, &err)) {
-        std::cerr << "Error reading PLY #2: " << err << "\n"; return 3;
+        if (as_json) { std::cout << "{\n  \"mode\": \"pair\", \"status\": \"read_failed\", \"which\": 2, \"error\": \"" << err << "\"\n}\n"; }
+        else { std::cerr << "Error reading PLY #2: " << err << "\n"; }
+        return 3;
     }
-    if (!verts1 || verts1->empty()) { std::cerr << "Error: PLY #1 has no vertices\n"; return 3; }
-    if (!verts2 || verts2->empty()) { std::cerr << "Error: PLY #2 has no vertices\n"; return 3; }
+    if (!verts1 || verts1->empty()) { if (as_json) { std::cout << "{\n  \"mode\": \"pair\", \"status\": \"empty\", \"which\": 1\n}\n"; } else { std::cerr << "Error: PLY #1 has no vertices\n"; } return 3; }
+    if (!verts2 || verts2->empty()) { if (as_json) { std::cout << "{\n  \"mode\": \"pair\", \"status\": \"empty\", \"which\": 2\n}\n"; } else { std::cerr << "Error: PLY #2 has no vertices\n"; } return 3; }
 
     const Eigen::Vector3f c1 = compute_center_from_vertices(verts1);
     const Eigen::Vector3f c2 = compute_center_from_vertices(verts2);
@@ -135,10 +178,14 @@ int main(int argc, char** argv) {
     std::cout.setf(std::ios::fixed, std::ios::floatfield);
     std::cout << std::setprecision(6);
 
-    std::cout << "center1: " << c1.x() << ", " << c1.y() << ", " << c1.z() << "\n";
-    std::cout << "center2: " << c2.x() << ", " << c2.y() << ", " << c2.z() << "\n";
-    std::cout << "vector_1_to_2: " << v12.x() << ", " << v12.y() << ", " << v12.z() << "\n";
-    std::cout << "distance: " << dist << "\n";
+    if (as_json) {
+        std::cout << "{\n  \"mode\": \"pair\",\n  \"center1\": {\"x\": " << c1.x() << ", \"y\": " << c1.y() << ", \"z\": " << c1.z() << "},\n  \"center2\": {\"x\": " << c2.x() << ", \"y\": " << c2.y() << ", \"z\": " << c2.z() << "},\n  \"vector_1_to_2\": {\"x\": " << v12.x() << ", \"y\": " << v12.y() << ", \"z\": " << v12.z() << "},\n  \"distance\": " << dist << "\n}\n";
+    } else {
+        std::cout << "center1: " << c1.x() << ", " << c1.y() << ", " << c1.z() << "\n";
+        std::cout << "center2: " << c2.x() << ", " << c2.y() << ", " << c2.z() << "\n";
+        std::cout << "vector_1_to_2: " << v12.x() << ", " << v12.y() << ", " << v12.z() << "\n";
+        std::cout << "distance: " << dist << "\n";
+    }
 
     return 0;
 }

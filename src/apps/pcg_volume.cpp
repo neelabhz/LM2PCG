@@ -1,4 +1,5 @@
 #include "pcg/geometry/volume.hpp"
+#include "pcg/params.hpp"
 
 #include <CGAL/IO/polygon_mesh_io.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
@@ -7,6 +8,15 @@
 #include <iomanip>
 
 namespace fs = std::filesystem;
+
+static std::filesystem::path find_config_path() {
+    const std::filesystem::path candidates[] = {
+        std::filesystem::path("data/configs/default.yaml"),
+        std::filesystem::path("../data/configs/default.yaml"),
+        std::filesystem::path("../../data/configs/default.yaml")
+    };
+    for (const auto& p : candidates) if (std::filesystem::exists(p)) return p; return {};
+}
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -17,6 +27,10 @@ int main(int argc, char** argv) {
 
     std::cout.setf(std::ios::fixed); std::cout << std::setprecision(10);
     std::cerr.setf(std::ios::fixed); std::cerr << std::setprecision(10);
+
+    pcg::ParamsConfig cfg; std::string err;
+    pcg::load_params_from_file(find_config_path().string(), cfg, &err);
+    const bool as_json = cfg.json_output;
 
     for (int i = 1; i < argc; ++i) {
         const fs::path path = argv[i];
@@ -33,9 +47,17 @@ int main(int argc, char** argv) {
         bool is_closed = CGAL::is_closed(mesh);
         const double vol = pcg::geom::mesh_signed_volume(mesh);
 
-        std::cout << path << "\n"
-                  << "  closed: " << (is_closed ? "true" : "false") << "\n"
-                  << "  volume: " << vol << "\n";
+        if (as_json) {
+            std::cout << "{\n";
+            std::cout << "  \"file\": \"" << path.string() << "\",\n";
+            std::cout << "  \"closed\": " << (is_closed ? "true" : "false") << ",\n";
+            std::cout << "  \"volume\": " << vol << "\n";
+            std::cout << "}\n";
+        } else {
+            std::cout << path << "\n"
+                      << "  closed: " << (is_closed ? "true" : "false") << "\n"
+                      << "  volume: " << vol << "\n";
+        }
     }
     return 0;
 }

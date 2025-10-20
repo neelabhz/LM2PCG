@@ -367,6 +367,68 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Run ai_api basic checks",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; python3 -c \"import sys; from pathlib import Path; sys.path.append(str(Path('.').resolve())); import scripts.ai_api as a; d=a.Dispatcher(); print('OK index sizes', len(d.index.by_filename), len(d.index.assets_by_object))\""
+			],
+			"group": "test"
+		},
+		{
+			"label": "Rebuild with JSON output true",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; build_dir=\"build\"; mkdir -p \"$build_dir\"; cd \"$build_dir\"; cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build after bbox fix",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake --build . -j"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild after cleanup",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake --build . -j"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Final rebuild after bbox lambda fix",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-lc",
+				"set -euo pipefail; cd build && cmake --build . -j"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
 		}
 	]
 }

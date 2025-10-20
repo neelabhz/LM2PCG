@@ -20,8 +20,11 @@ poisson_spacing_neighbors: 6   # neighbors for average spacing
 poisson_normal_neighbors: 18   # neighbors for jet normals & MST orientation
 poisson_min_oriented_fraction: 0.3   # MST-oriented normals fraction threshold; <0.3 -> skip Poisson
 poisson_require_closed: true         # require Poisson output to be a closed mesh
-poisson_invalid_ratio_vs_hull: 1.6   # if Poisson volume > ratio * convex hull volume -> invalid, use AF
+poisson_invalid_ratio_vs_hull: 1.4   # if Poisson volume > ratio * convex hull volume -> invalid, use AF
 
 # AF (Advancing Front) parameters
 af_min_points: 3            # minimum number of points to attempt AF reconstruction
 af_require_closed: false    # require AF output to be closed; if false, accept open meshes
+
+# Global output formatting
+json_output: true           # if true, apps emit structured JSON (suitable for chatbots)

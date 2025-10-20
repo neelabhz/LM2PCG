@@ -93,11 +93,16 @@ int main(int argc, char** argv) {
     aparams.min_points = cfg.af_min_points;
     aparams.require_closed_output = cfg.af_require_closed;
 
-    auto reconstruct_one = [&](const fs::path& ply_path, const fs::path& out_dir){
+    auto reconstruct_one = [&](const fs::path& ply_path, const fs::path& out_dir, bool json_flag){
         if (!fs::exists(out_dir)) { std::error_code ec; fs::create_directories(out_dir, ec); }
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         if (pcl::io::loadPLYFile<pcl::PointXYZ>(ply_path.string(), *cloud) != 0) {
-            std::cerr << "  ✗ Read failed: " << ply_path << "\n"; return; }
+            if (json_flag) {
+                std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"status\": \"read_failed\"\n}\n";
+            } else {
+                std::cerr << "  ✗ Read failed: " << ply_path << "\n";
+            }
+            return; }
 
         pcg::recon::Mesh mesh;
         // Always compute convex hull volume of input for validation
@@ -113,10 +118,14 @@ int main(int argc, char** argv) {
                 double mesh_vol = pcg::geom::mesh_signed_volume(mesh);
                 bool valid = mesh_vol > 0.0 && (hull_vol <= 0.0 || mesh_vol <= invalid_ratio * hull_vol);
                 if (valid) {
-                    if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17)))
-                        std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
-                    else {
-                        std::cout << "  ✓ Poisson -> " << final_out_ply << "\n";
+                    if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
+                        if (!json_flag) std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
+                    } else {
+                        if (json_flag) {
+                            std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"poisson\",\n  \"mesh\": \"" << final_out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
+                        } else {
+                            std::cout << "  ✓ Poisson -> " << final_out_ply << "\n";
+                        }
                         reconstructed = true;
                     }
                 } else {
@@ -126,29 +135,37 @@ int main(int argc, char** argv) {
                 }
             }
         } catch (const std::exception& e) {
-            std::cerr << "  ! Poisson threw exception, will fallback to AF: " << e.what() << "\n";
+            if (!json_flag) std::cerr << "  ! Poisson threw exception, will fallback to AF: " << e.what() << "\n";
         } catch (...) {
-            std::cerr << "  ! Poisson threw unknown exception, will fallback to AF\n";
+            if (!json_flag) std::cerr << "  ! Poisson threw unknown exception, will fallback to AF\n";
         }
         if (reconstructed) return; // Poisson accepted; do not run AF
 
         // Fallback to AF (also guarded)
         try {
             if (pcg::recon::af_reconstruct(cloud, mesh, aparams)) {
-                if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17)))
-                    std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
-                else {
-                    std::cout << "  ✓ AF -> " << final_out_ply << "\n";
+                if (!CGAL::IO::write_polygon_mesh(final_out_ply.string(), mesh, CGAL::parameters::stream_precision(17))) {
+                    if (!json_flag) std::cerr << "  ✗ Write failed: " << final_out_ply << "\n";
+                } else {
+                    if (json_flag) {
+                        std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"method\": \"af\",\n  \"mesh\": \"" << final_out_ply.string() << "\",\n  \"status\": \"ok\"\n}\n";
+                    } else {
+                        std::cout << "  ✓ AF -> " << final_out_ply << "\n";
+                    }
                     reconstructed = true;
                 }
             }
         } catch (const std::exception& e) {
-            std::cerr << "  ! AF threw exception: " << e.what() << "\n";
+            if (!json_flag) std::cerr << "  ! AF threw exception: " << e.what() << "\n";
         } catch (...) {
-            std::cerr << "  ! AF threw unknown exception\n";
+            if (!json_flag) std::cerr << "  ! AF threw unknown exception\n";
         }
         if (!reconstructed) {
-            std::cout << "  ✗ Reconstruction failed: " << ply_path << "\n";
+            if (json_flag) {
+                std::cout << "{\n  \"file\": \"" << ply_path.string() << "\",\n  \"status\": \"failed\"\n}\n";
+            } else {
+                std::cout << "  ✗ Reconstruction failed: " << ply_path << "\n";
+            }
         }
     };
 
@@ -166,17 +183,18 @@ int main(int argc, char** argv) {
                 if (!only_substr.empty() && name.find(only_substr) == std::string::npos) continue;
                 // Output next to results as results/recon/<stem>/
                 const fs::path out_dir = room_dir / "results" / "recon" / obj_dir.path().filename();
-                reconstruct_one(ply_entry.path(), out_dir);
+                reconstruct_one(ply_entry.path(), out_dir, cfg.json_output);
             }
         }
     };
 
+
     // Single-file (cluster .ply) mode
     if (fs::is_regular_file(input_root) && is_ply(input_root)) {
-    // Derive output directory as: <output_root>/results/recon/<obj_stem>/
-    fs::path obj_stem = input_root.parent_path().filename(); // e.g., door_007
-    fs::path out_dir = output_root / "results" / "recon" / obj_stem;
-        reconstruct_one(input_root, out_dir);
+        // Derive output directory as: <output_root>/results/recon/<obj_stem>/
+        fs::path obj_stem = input_root.parent_path().filename(); // e.g., door_007
+        fs::path out_dir = output_root / "results" / "recon" / obj_stem;
+        reconstruct_one(input_root, out_dir, cfg.json_output);
         return 0;
     }
 

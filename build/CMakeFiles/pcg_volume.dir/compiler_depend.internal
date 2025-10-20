@@ -974,6 +974,7 @@ CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.o
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stddef.h
  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h
  /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/geometry/volume.hpp
+ /Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/include/pcg/params.hpp
  /opt/homebrew/include/CGAL/AABB_primitive.h
  /opt/homebrew/include/CGAL/AABB_traits_3.h
  /opt/homebrew/include/CGAL/AABB_tree.h

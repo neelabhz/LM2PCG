@@ -32,6 +32,9 @@ struct ParamsConfig {
     // Advancing Front (AF)
     int  af_min_points = 3;          // minimum points required to attempt AF
     bool af_require_closed = false;  // if true, reject AF result when not closed
+
+    // Global output formatting
+    bool json_output = false;  // if true, apps emit structured JSON output instead of human-readable text
 };
 
 // Loads a very small subset of YAML/INI: lines like `key: value` or `key=value`

@@ -76,6 +76,10 @@ bool load_params_from_file(const std::string& filepath, ParamsConfig& out, std::
                 std::string v = value; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
                 out.af_require_closed = (v == "1" || v == "true" || v == "yes");
             }
+            else if (key == "json_output") {
+                std::string v = value; std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+                out.json_output = (v == "1" || v == "true" || v == "yes");
+            }
         } catch (...) {
             // ignore individual parse errors
         }
