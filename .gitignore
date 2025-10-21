@@ -1,0 +1,18 @@
+# Build artifacts
+build/
+output/
+output2/
+
+# IDE and OS files
+.idea/
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Database files
+*.db
+
+# Environment variables (contains secrets!)
+.env
