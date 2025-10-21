@@ -62,9 +62,6 @@ All notable changes to this project are documented here. This log mirrors the st
 ### Notes
 - Multi-item operations (e.g., reconstruction across many clusters) stream one JSON object per item to stdout.
 - `ai_api.py` prefers parsing tool JSON and falls back to legacy text where necessary.
-# Changelog
-
-All notable changes to this project are documented here. This log focuses on the recent work to preserve color in point clouds, standardize outputs, and introduce dominant-color analysis.
 
 ## 2025-10-20 / 0.9.0-alpha.2
 
