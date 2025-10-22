@@ -1,4 +1,4 @@
-# LLM to Point Cloud Geometry Pipeline / 0.9.1
+# Indoor Point Cloud Pipeline / 1.0.0
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction, dominant-color analysis, volume and surface-area computation.
 
@@ -36,6 +36,9 @@ python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/resu
 
 # Volume on a mesh file
 python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
+
+# Volume by object_code (auto-reconstruct if needed)
+python3 scripts/ai_api.py VOL --object 0-7-12 --json
 
 # Surface area on a mesh (auto-reconstruct if needed)
 python3 scripts/ai_api.py ARE --object 0-7-12 --json
@@ -261,6 +264,9 @@ python3 scripts/ai_api.py RCN --filename output/full_house/floor_1/room_007/resu
 
 # Volume on a mesh
 python3 scripts/ai_api.py VOL --filename output/full_house/floor_0/room_001/results/recon/window_001/0-1-3_window_mesh.ply --json
+
+# Volume by object_code (auto-reconstruct if needed)
+python3 scripts/ai_api.py VOL --object 0-7-12 --json
 
 # Surface area by object_code (auto reconstruct if needed)
 python3 scripts/ai_api.py ARE --object 0-7-12 --json

@@ -396,10 +396,9 @@ class Dispatcher:
                 if not matches:
                     raise FileNotFoundError(f"No file named '{filename}' under '{self.out_root}'.")
                 target = self._choose_one(matches)
-
+        # Ensure the executable exists; auto-build if missing (consistent with other ops)
+        self._ensure_executables(["pcg_color"])
         exe = self.bin_dir / "pcg_color"
-        if not exe.exists():
-            raise FileNotFoundError(f"Missing executable: {exe}")
         out = self._run([str(exe), str(target)])
 
         # Prefer JSON

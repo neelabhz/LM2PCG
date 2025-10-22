@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.0.0 / 2025-10-22
+
+### Fixed
+- AI API: `CLR` head code now auto-builds `pcg_color` on first use (parity with `RCN`/`VOL`/`ARE`/`BBD`). Previously, `CLR` failed with “Missing executable” instead of triggering the first-run build.
+
+### Clarified
+- AI API: `VOL` supports auto-reconstruction by default when a mesh is missing. If invoked with an `object_code` that only has a cluster, `VOL` calls `RCN` first and then computes volume. Use `--no-auto-recon` to disable.
+
+### Notes
+- Release readiness: verified head codes end-to-end with JSON outputs enabled and CMake Release build. No changes required in `VOL` implementation; behavior verified via `python3 scripts/ai_api.py VOL --object <object_code> --json`.
+
 ## 2025-10-20 / 0.9.1
 
 ### Fixed / Improved
