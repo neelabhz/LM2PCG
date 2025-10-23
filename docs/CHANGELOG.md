@@ -4,13 +4,21 @@ All notable changes to this project are documented here. This log mirrors the st
 
 ## 1.0.1 / 2025-10-23
 
+### Added
+- AI API: Room-level path resolution by room code (e.g., `0-7`). In a single query it returns:
+  - The room CSV path
+  - The room shell copy (e.g., `0-7-0_shell.ply`)
+  - The room shell UOBB (e.g., `0-7-0_shell_uobb.ply`)
+- CLI: New `resolve-room <floor-room>` subcommand (e.g., `resolve-room 0-7 --json`). The existing `resolve-room-csv <floor> <room>` now also returns `shell` and `shell_uobb` paths.
+
 ### Changed
 - pcg_room: For files detected as shell clouds (filename contains "shell"), copy the original input `shell*.ply` to the output directory next to the corresponding `_shell_uobb.ply`. Naming and location example:
   - Input: `data/rooms/Full House/floor_0/room_007/shell_007.ply`
   - Output: `output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply` and `0-7-0_shell_uobb.ply`
 
 ### Notes
-- This change improves traceability by ensuring the raw shell cloud is preserved alongside its computed UOBB.
+- Copying the raw shell cloud alongside its computed UOBB improves traceability.
+- Documentation: `docs/AI_API.md` updated to describe room-level resolution and the new/extended CLI commands.
 
 ## 1.0.0 / 2025-10-22
 
