@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.1.0 / 2025-10-23
+
+### Added
+- Web Viewer (deck.gl): New UI toggle "No color (gray)" for the shell layer. When enabled, the viewer renders the shell with a constant gray and does not upload per-vertex color to the GPU (reduces memory/bandwidth).
+- Loader: `loadPly(url, { dropColor: boolean })` option to omit COLOR attributes during load.
+- Data prep script: `--shellNoColor` flag to write the shell PLY without RGB columns. This reduces file size and speeds up parsing; `label` and `point_id` are still preserved.
+
+### Changed
+- Viewer: The shell layer can be rendered colorless to improve interactivity on large rooms (e.g., room_007). The clusters remain colored.
+- Docs: `web/pointcloud-viewer/README.md` updated with performance tips and new flags.
+
+### Fixed
+- Data prep: Ensured `label` (and `point_id` when present) are preserved in downsampled ASCII PLYs, enabling the "Hide labels 1,3" toggle to work on shell clouds.
+
+### Notes
+- For best performance, combine `--shellNoColor` at data generation time with the viewer’s "No color (gray)" toggle. You can also increase shell downsampling (e.g., `--ratioShell 0.05` or add `--voxelShell`) for further gains.
+
 ## 1.0.1 / 2025-10-23
 
 ### Added

@@ -1,4 +1,7 @@
-# Indoor Point Cloud Pipeline / 1.0.1
+# Indoor Point Cloud Pipeline / 1.1.0
+
+[![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
+
 
 A compact C++17 pipeline for indoor point-cloud processing with PCL (and optional CGAL for reconstruction). It clusters object point clouds, computes upright OBBs, preserves vertex colors end-to-end, and exports standardized results. Utilities include per-cluster reconstruction, dominant-color analysis, volume and surface-area computation.
 
@@ -12,6 +15,7 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL (and optiona
 - Reconstruction per cluster (Poisson with acceptance checks, AF fallback)
  - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_area, pcg_color, pcg_bbox
  - AI API for orchestration (scripts/ai_api.py) with structured JSON outputs
+ - Optional Web viewer (deck.gl + loaders.gl) with picking, manifest-driven loading, label-based shell filtering, and a performance toggle to render shell without per-vertex colors
 
 ## AI API (scripts/ai_api.py) and JSON output
 
@@ -82,6 +86,48 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j
 ```
 Executables are in build/: pcg_room, pcg_reconstruct (if CGAL), pcg_volume (if CGAL), pcg_area (if CGAL), pcg_color, pcg_bbox.
+
+
+## Web point-cloud viewer (optional)
+
+An optional web UI to inspect rooms interactively. It supports picking, per-cluster visibility, hiding shell labels {1,3}, and a performance toggle to render the shell without per-vertex color (constant gray).
+
+Dev quickstart:
+
+```
+cd web/pointcloud-viewer
+npm install
+npm run dev
+```
+
+Prepare a room (downsample and generate manifest):
+
+```
+# example: downsample shell to 5%, clusters to 20%
+node scripts/downsample_and_prepare_room.mjs \
+  --room room_007 \
+  --shell "../../output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply" \
+  --clustersDir "../../output/Full House/floor_0/room_007/results/filtered_clusters" \
+  --ratio 0.2 \
+  --ratioShell 0.05 \
+  --outDir public/data
+
+# optional: write shell without RGB columns for smaller files/faster parsing
+node scripts/downsample_and_prepare_room.mjs \
+  --room room_007 \
+  --shell "../../output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply" \
+  --clustersDir "../../output/Full House/floor_0/room_007/results/filtered_clusters" \
+  --ratio 0.2 \
+  --ratioShell 0.05 \
+  --outDir public/data \
+  --shellNoColor
+```
+
+Open http://localhost:5173/?manifest=/manifests/room_007.json
+
+Tips for performance:
+- Combine `--shellNoColor` at generation time with the viewer’s “No color (gray)” toggle to reduce GPU uploads and parsing time.
+- Downsample the shell more aggressively than clusters (e.g., `--ratioShell 0.02`, `--ratio 0.2`). Prefer voxel-first sampling if spatial uniformity is desired.
 
 
 ## How to run
