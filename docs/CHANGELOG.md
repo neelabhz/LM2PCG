@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.0.1 / 2025-10-23
+
+### Changed
+- pcg_room: For files detected as shell clouds (filename contains "shell"), copy the original input `shell*.ply` to the output directory next to the corresponding `_shell_uobb.ply`. Naming and location example:
+  - Input: `data/rooms/Full House/floor_0/room_007/shell_007.ply`
+  - Output: `output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply` and `0-7-0_shell_uobb.ply`
+
+### Notes
+- This change improves traceability by ensuring the raw shell cloud is preserved alongside its computed UOBB.
+
 ## 1.0.0 / 2025-10-22
 
 ### Fixed
@@ -73,6 +83,9 @@ All notable changes to this project are documented here. This log mirrors the st
 ### Notes
 - Multi-item operations (e.g., reconstruction across many clusters) stream one JSON object per item to stdout.
 - `ai_api.py` prefers parsing tool JSON and falls back to legacy text where necessary.
+# Changelog
+
+All notable changes to this project are documented here. This log focuses on the recent work to preserve color in point clouds, standardize outputs, and introduce dominant-color analysis.
 
 ## 2025-10-20 / 0.9.0-alpha.2
 
