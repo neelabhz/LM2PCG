@@ -4,7 +4,7 @@ This document sketches a unified, AI-friendly control surface for the pipeline. 
 
   - By `object_code` (e.g., `0-7-12`) → find cluster/uobb/mesh files and the room directory
   - By filename only (e.g., `0-7-12_couch_cluster.ply`) → resolve absolute path under `output/`
-  - By floor-room (e.g., `0-7`) → find the room `.csv`
+  - By floor-room (e.g., `0-7`) → find the room `.csv`, the room's shell copy, and shell UOBB (bbox)
   - Short 3-letter head codes that call into existing binaries with the correct inputs
 
 The implementation is a lightweight Python script at `scripts/ai_api.py` that scans the `output/` tree once to build indices, then resolves and dispatches operations.
@@ -124,6 +124,8 @@ mesh_path = d.op_RCN(object_code="0-7-12")
 CLI for agents:
 ```bash
 python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply
+python3 scripts/ai_api.py resolve-room 0-7 --json            # CSV + shell + shell_uobb for a room
+python3 scripts/ai_api.py resolve-room-csv 0 7 --json         # same info when called with floor & room ints
 python3 scripts/ai_api.py VOL --object 0-7-12
 python3 scripts/ai_api.py ARE --object 0-7-12 --json
 python3 scripts/ai_api.py BBD 0-7-12 0-7-14
@@ -139,6 +141,7 @@ python3 scripts/ai_api.py CLR --object 0-7-12 --json
 
 ## Notes and edge cases
 - Filename-only resolution can yield multiple paths (e.g., mirrored outputs); the API chooses the most likely one but also supports narrowing via a substring filter.
+- Room-level resolution: `resolve-room 0-7` returns keys `csv`, `shell`, and `shell_uobb`. The shell copy is the raw room shell cloud placed alongside its UOBB by `pcg_room` (e.g., `.../results/shell/shell_007/0-7-0_shell.ply` and `0-7-0_shell_uobb.ply`).
 - Auto-build: if required executables are missing, the dispatcher will configure and build them automatically. You can also call `python3 scripts/ai_api.py BUILD` to build on demand.
 - Manual CMake builds are fine too—ensure CGAL/PCL and friends are available and build a Release configuration in `build/`.
 - Object codes and filenames are trusted to conform to the pipeline’s naming; if external files deviate, results may be unpredictable.

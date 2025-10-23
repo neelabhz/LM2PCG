@@ -35,6 +35,7 @@ from typing import Dict, List, Optional, Tuple
 # ------------------------------
 
 OBJ_RE = re.compile(r"^(?P<floor>\d+)-(?:\s*)?(?P<room>\d+)-(?:\s*)?(?P<object>\d+)$")
+ROOM_RE = re.compile(r"^(?P<floor>\d+)[-_](?P<room>\d+)$")
 
 
 def parse_object_code(s: str) -> Tuple[int, int, int]:
@@ -100,6 +101,8 @@ class PathIndex:
         self.by_filename: Dict[str, List[Path]] = {}
         self.csv_by_room: Dict[Tuple[int, int], List[Path]] = {}
         self.assets_by_object: Dict[str, ObjectAssets] = {}
+        # Room-level shell exports
+        self.shell_by_room: Dict[Tuple[int, int], Dict[str, List[Path]]] = {}
 
     def build(self) -> None:
         if not self.out_root.exists():
@@ -117,33 +120,51 @@ class PathIndex:
 
                 # PLY asset mapping by object_code
                 if p.suffix.lower() == ".ply":
-                    stem = p.stem  # <object_code>_<class>_<kind>
+                    stem = p.stem  # usually <object_code>_<class>_<kind>, but shell copy is <object_code>_shell
                     parts = stem.split("_")
-                    if len(parts) >= 3:
+                    if len(parts) >= 2:
                         object_code = parts[0]
                         # Allow mesh with method suffix: _mesh_possion or _mesh_af
                         last = parts[-1].lower()
-                        second_last = parts[-2].lower()
-                        if last in ("cluster", "uobb", "mesh"):
-                            kind = last
-                        elif second_last == "mesh":
-                            kind = "mesh"
-                        else:
-                            kind = last
-                        assets = self.assets_by_object.get(object_code)
-                        if not assets:
-                            assets = ObjectAssets(object_code, [], [], [], None)
-                            self.assets_by_object[object_code] = assets
-                        if kind == "cluster":
-                            assets.clusters.append(p)
-                        elif kind == "uobb":
-                            assets.uobbs.append(p)
-                        elif kind == "mesh":
-                            assets.meshes.append(p)
-                        # infer room_dir for this asset
-                        rd = self._infer_room_dir_from_asset(p)
-                        if rd is not None:
-                            assets.room_dir = rd
+                        second_last = parts[-2].lower() if len(parts) >= 2 else ""
+
+                        # Map assets_by_object for standard 3+ part names
+                        if len(parts) >= 3:
+                            if last in ("cluster", "uobb", "mesh"):
+                                kind = last
+                            elif second_last == "mesh":
+                                kind = "mesh"
+                            else:
+                                kind = last
+                            assets = self.assets_by_object.get(object_code)
+                            if not assets:
+                                assets = ObjectAssets(object_code, [], [], [], None)
+                                self.assets_by_object[object_code] = assets
+                            if kind == "cluster":
+                                assets.clusters.append(p)
+                            elif kind == "uobb":
+                                assets.uobbs.append(p)
+                            elif kind == "mesh":
+                                assets.meshes.append(p)
+                            # infer room_dir for this asset
+                            rd = self._infer_room_dir_from_asset(p)
+                            if rd is not None:
+                                assets.room_dir = rd
+
+                        # Room-level shell and shell_uobb indexing (handle 2-part shell copy and 3-part shell uobb)
+                        try:
+                            f_id, r_id, _ = parse_object_code(object_code)
+                        except Exception:
+                            f_id = r_id = None  # type: ignore[assignment]
+                        if f_id is not None and r_id is not None:
+                            key = (f_id, r_id)
+                            entry = self.shell_by_room.setdefault(key, {"shell": [], "uobb": []})
+                            is_shell_copy = (len(parts) == 2 and last == "shell")
+                            is_shell_uobb = (stem.endswith("_shell_uobb") or (len(parts) >= 3 and parts[-2].lower() == "shell" and last == "uobb"))
+                            if is_shell_copy:
+                                entry["shell"].append(p)
+                            if is_shell_uobb:
+                                entry["uobb"].append(p)
 
     @staticmethod
     def _infer_room_dir_from_asset(p: Path) -> Optional[Path]:
@@ -166,6 +187,12 @@ class PathIndex:
 
     def find_assets(self, object_code: str) -> Optional[ObjectAssets]:
         return self.assets_by_object.get(object_code)
+
+    def find_room_shells(self, floor_id: int, room_id: int) -> Tuple[List[Path], List[Path]]:
+        ent = self.shell_by_room.get((floor_id, room_id))
+        if not ent:
+            return [], []
+        return ent.get("shell", []), ent.get("uobb", [])
 
 
 # ------------------------------
@@ -612,6 +639,11 @@ def _cli() -> int:
     p_res_room.add_argument("room", type=int)
     p_res_room.add_argument("--json", action="store_true")
 
+    # Resolve by room code (e.g., 0-7)
+    p_res_room2 = sub.add_parser("resolve-room", help="Find CSV and shell/bbox for room code like 0-7")
+    p_res_room2.add_argument("room_code")
+    p_res_room2.add_argument("--json", action="store_true")
+
     # Resolve by object_code
     p_res_obj = sub.add_parser("resolve-object", help="Find assets for object_code")
     p_res_obj.add_argument("object_code")
@@ -673,13 +705,60 @@ def _cli() -> int:
                 print(p)
         return 0 if paths else 1
     if args.cmd == "resolve-room-csv":
-        paths = [str(p) for p in d.index.find_csv(args.floor, args.room)]
+        csvs = [str(p) for p in d.index.find_csv(args.floor, args.room)]
+        shells, uobbs = d.index.find_room_shells(args.floor, args.room)
+        out = {
+            "floor": args.floor,
+            "room": args.room,
+            "csv": csvs,
+            "shell": [str(p) for p in shells],
+            "shell_uobb": [str(p) for p in uobbs],
+        }
         if args.json:
-            print(json.dumps({"floor": args.floor, "room": args.room, "csv": paths}, ensure_ascii=False))
+            print(json.dumps(out, ensure_ascii=False))
         else:
-            for p in paths:
+            for p in out["csv"]:
                 print(p)
-        return 0 if paths else 1
+            if out["shell"]:
+                print("# shell:")
+                for p in out["shell"]:
+                    print(p)
+            if out["shell_uobb"]:
+                print("# shell_uobb:")
+                for p in out["shell_uobb"]:
+                    print(p)
+        return 0 if (csvs or shells or uobbs) else 1
+    if args.cmd == "resolve-room":
+        code = args.room_code.strip()
+        m = ROOM_RE.match(code)
+        if not m:
+            print("Invalid room code. Expected '<floor>-<room>' like '0-7'.")
+            return 2
+        f_id = int(m.group("floor"))
+        r_id = int(m.group("room"))
+        csvs = [str(p) for p in d.index.find_csv(f_id, r_id)]
+        shells, uobbs = d.index.find_room_shells(f_id, r_id)
+        out = {
+            "floor": f_id,
+            "room": r_id,
+            "csv": csvs,
+            "shell": [str(p) for p in shells],
+            "shell_uobb": [str(p) for p in uobbs],
+        }
+        if args.json:
+            print(json.dumps(out, ensure_ascii=False))
+        else:
+            for p in out["csv"]:
+                print(p)
+            if out["shell"]:
+                print("# shell:")
+                for p in out["shell"]:
+                    print(p)
+            if out["shell_uobb"]:
+                print("# shell_uobb:")
+                for p in out["shell_uobb"]:
+                    print(p)
+        return 0 if (csvs or shells or uobbs) else 1
     if args.cmd == "resolve-object":
         assets = d.index.find_assets(args.object_code)
         if not assets:
