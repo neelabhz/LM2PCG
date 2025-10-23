@@ -321,6 +321,20 @@ static void process_one_room(const fs::path& room_in,
                     if (log) log << "  ✗ failed to save UOBB: " << uobb_name.string() << "\n";
                 }
 
+                // For shell files, also place the original input shell PLY next to the UOBB
+                if (is_shell) {
+                    const fs::path shell_copy_name = clusters_dir / (object_code + std::string{"_shell.ply"});
+                    std::error_code copy_ec;
+                    fs::create_directories(clusters_dir, copy_ec);
+                    copy_ec.clear();
+                    fs::copy_file(entry.path(), shell_copy_name, fs::copy_options::overwrite_existing, copy_ec);
+                    if (copy_ec) {
+                        if (log) log << "  ✗ failed to copy shell PLY to: " << shell_copy_name.string() << ", error: " << copy_ec.message() << "\n";
+                    } else {
+                        if (log) log << "  ✓ copied shell PLY: " << shell_copy_name.string() << "\n";
+                    }
+                }
+
                 // Also export each non-shell filtered cluster's point cloud as PLY for later surface reconstruction
                 if (!is_shell) {
                     fs::path cply_name = clusters_dir / (object_code + "_" + klass + "_cluster.ply");
