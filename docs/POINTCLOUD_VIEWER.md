@@ -1,0 +1,536 @@
+# Point Cloud Viewer Documentation
+
+A high-performance web-based point cloud visualization system built with deck.gl, React, and loaders.gl. Designed for interactive exploration of large-scale architectural point clouds with semantic segmentation.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Automated Workflow](#automated-workflow)
+- [Architecture](#architecture)
+- [API Reference](#api-reference)
+- [Performance Optimization](#performance-optimization)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+The Point Cloud Viewer is a complete visualization solution for the LM2PCG pipeline. It provides:
+
+- **Interactive 3D visualization** of room shells and object clusters
+- **Semantic inspection** with per-object visibility and styling controls
+- **UOBB (Unoriented Bounding Box) rendering** for spatial understanding
+- **Automated data preparation** with downsampling and manifest generation
+- **Integration with ai_api.py** for semantic path resolution
+
+### Key Components
+
+```
+web/pointcloud-viewer/
+├── src/                          # React application
+│   ├── App.tsx                   # Main viewer component
+│   ├── components/
+│   │   ├── Inspector.tsx         # UI controls and object list
+│   │   ├── PointCloudLayer.tsx   # deck.gl point cloud rendering
+│   │   └── UobbMeshLayer.tsx     # UOBB wireframe rendering
+│   └── types/
+│       └── manifest.ts           # TypeScript manifest schema
+├── scripts/
+│   ├── prepare_visualization.mjs       # Main automation script
+│   └── downsample_and_prepare_room.mjs # Downsampling + manifest gen
+└── public/
+    ├── data/                     # Downsampled PLY files
+    └── manifests/                # JSON visualization configs
+```
+
+---
+
+## Features
+
+### 1. Multi-Mode Visualization
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **room** | Complete room with shell + all clusters | Full room inspection |
+| **clusters** | Selected object clusters only | Object-focused analysis |
+| **multi-rooms** | Multiple room shells without clusters | Floor layout overview |
+| **room-with-objects** | Room shell + selected objects | Contextual object analysis |
+
+### 2. Advanced Rendering
+
+- **Point Cloud Rendering** 
+  - Up to 10M+ points with 60 FPS performance
+  - RGB color preservation from PLY files
+  - Configurable point sizes (1-10 pixels)
+  - Label-based semantic filtering
+
+- **UOBB Visualization**
+  - Wireframe mesh rendering
+  - Automatic detection from `*_uobb.ply` files
+  - Toggle visibility per object
+  - Customizable wireframe color
+
+- **Interactive Controls**
+  - Orbit camera with smooth transitions
+  - Auto-calculated zoom based on scene bounds
+  - Per-object visibility toggles
+  - Smart title generation from filename patterns
+
+### 3. Inspector UI
+
+```
+Inspector Panel Features:
+├── Scene Stats (total points, items)
+├── Global Controls
+│   ├── Point size slider (1-10)
+│   ├── Show/hide all toggle
+│   └── UOBB visibility toggle
+└── Per-Object Controls
+    ├── Visibility checkbox
+    ├── Smart title (e.g., "Couch 12" from "0-7-12_couch_cluster")
+    ├── Point count display
+    └── UOBB toggle (if available)
+```
+
+### 4. Performance Optimization
+
+- **Spatial Downsampling** - Voxel-based uniform sampling
+- **Ratio Downsampling** - Deterministic random sampling
+- **Attribute Preservation** - Maintains label and point_id fields
+- **ASCII PLY Output** - Better compression and compatibility
+- **Lazy Loading** - On-demand file loading via manifest
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+```bash
+# Required
+Node.js >= 18
+npm >= 9
+
+# For ai_api.py integration
+Python 3.7+
+```
+
+### Installation
+
+```bash
+cd web/pointcloud-viewer
+npm install
+```
+
+### Development Server
+
+```bash
+npm run dev
+# Opens http://localhost:5173
+```
+
+### Basic Usage
+
+```bash
+# Visualize a single room
+npm run visualize -- \
+  --mode room \
+  --room 0-7 \
+  --name my_room
+
+# Then open browser to:
+# http://localhost:5173/?manifest=/manifests/my_room.json
+```
+
+---
+
+## Automated Workflow
+
+### Command Structure
+
+```bash
+npm run visualize -- \
+  --mode <mode> \
+  --name <output_name> \
+  [mode-specific options] \
+  [common options]
+```
+
+### Mode Examples
+
+#### 1. Room Mode (Complete Room)
+
+```bash
+npm run visualize -- \
+  --mode room \
+  --room 0-7 \
+  --name room_007 \
+  --ratio 0.2 \
+  --ratioShell 0.05 \
+  --clean-all \
+  --serve
+```
+
+**What it does:**
+1. Resolves room `0-7` using `ai_api.py resolve-room`
+2. Finds shell: `output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply`
+3. Finds clusters: `output/Full House/floor_0/room_007/results/filtered_clusters/**/*_cluster.ply`
+4. Downsamples shell to 5%, clusters to 20%
+5. Copies shell UOBB if available
+6. Generates manifest with 1 shell + N clusters
+7. Starts dev server on port 5173
+
+**Output:**
+- `public/data/room_007/shell.ply` - Downsampled shell
+- `public/data/room_007/shell_uobb.ply` - Shell bounding box
+- `public/data/room_007/clusters/*.ply` - Downsampled clusters
+- `public/manifests/room_007.json` - Unified manifest
+
+#### 2. Clusters Mode (Selected Objects)
+
+```bash
+npm run visualize -- \
+  --mode clusters \
+  --objects "0-7-12,0-7-13,0-7-14" \
+  --name sofas_room_007 \
+  --ratio 0.25
+```
+
+**What it does:**
+1. Resolves each object code via `ai_api.py resolve-object`
+2. Extracts first cluster from each result
+3. Downsamples to 25%
+4. Generates manifest with 3 items
+
+**Use case:** Focus on specific furniture pieces (e.g., all sofas in a room)
+
+#### 3. Multi-Rooms Mode (Floor Overview)
+
+```bash
+npm run visualize -- \
+  --mode multi-rooms \
+  --rooms "0-1,0-2,0-3,0-4,0-5,0-6,0-7" \
+  --name floor_0_layout \
+  --ratio 0.1
+```
+
+**What it does:**
+1. Resolves 7 room shells
+2. Treats shells as "clusters" (no internal objects)
+3. Downsamples each shell to 10%
+4. Updates manifest roles to 'shell'
+
+**Use case:** See overall floor plan without cluster details
+
+#### 4. Room-with-Objects Mode (Contextual Analysis)
+
+```bash
+npm run visualize -- \
+  --mode room-with-objects \
+  --room 0-7 \
+  --objects "0-7-12,0-7-15,0-7-6" \
+  --name room_007_selected \
+  --ratio 0.2 \
+  --ratioShell 0.03
+```
+
+**What it does:**
+1. Gets room shell (3% sampling)
+2. Gets 3 object clusters (20% sampling)
+3. Combines into single visualization
+
+**Use case:** Highlight specific objects within room context
+
+### Common Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--name` | string | **required** | Output directory and manifest name |
+| `--ratio` | float | 0.2 | Cluster downsample ratio (1.0 = no sampling) |
+| `--ratioShell` | float | 0.05 | Shell downsample ratio |
+| `--voxel` | float | - | Voxel size for spatial sampling (overrides ratio) |
+| `--shellNoColor` | flag | false | Strip color from shell (render as gray) |
+| `--outDir` | path | public/data | Output directory for PLY files |
+| `--no-clean` | flag | false | Skip cleaning previous outputs |
+| `--clean-all` | flag | false | Remove ALL previous outputs before running |
+| `--serve` | flag | false | Auto-start dev server after preparation |
+| `--port` | number | 5173 | Dev server port (only with --serve) |
+
+### Integration with ai_api.py
+
+The automation scripts seamlessly integrate with the AI API:
+
+```python
+# Room resolution
+python3 scripts/ai_api.py resolve-room 0-7 --json
+# Returns: { "floor": 0, "room": 7, "csv": "...", "shell": ["..."], "shell_uobb": ["..."] }
+
+# Object resolution
+python3 scripts/ai_api.py resolve-object 0-7-12 --json
+# Returns: { "clusters": ["..."], "uobbs": ["..."], "meshes": ["..."], "room_dir": "..." }
+```
+
+**Object/Room Code Format:**
+- Room: `<floor>-<room>` (e.g., `0-7`)
+- Object: `<floor>-<room>-<object>` (e.g., `0-7-12`)
+
+---
+
+## Architecture
+
+### Data Flow
+
+```
+Pipeline Output                   Automation Scripts              Web Viewer
+───────────────                   ──────────────────              ──────────
+output/
+└── Full House/
+    └── floor_0/
+        └── room_007/
+            └── results/
+                ├── shell/
+                │   └── 0-7-0_shell.ply        ──┐
+                │                                 │
+                └── filtered_clusters/            │
+                    ├── couch_007/                │
+                    │   └── 0-7-12_*.ply      ────┤──> prepare_visualization.mjs
+                    └── door_007/                 │         │
+                        └── 0-7-15_*.ply      ────┘         │
+                                                            │
+                                                            ▼
+                                              downsample_and_prepare_room.mjs
+                                                            │
+                                                            │
+                              ┌─────────────────────────────┴──────────────┐
+                              │                                            │
+                              ▼                                            ▼
+                        public/data/                              public/manifests/
+                        room_007/                                 room_007.json
+                        ├── shell.ply (5%)                        {
+                        ├── shell_uobb.ply                          "version": 1,
+                        └── clusters/                               "items": [
+                            ├── 0-7-12_*.ply (20%)                    { "kind": "shell", ... },
+                            └── 0-7-15_*.ply (20%)                    { "kind": "cluster", ... }
+                                                                    ]
+                              │                                     }
+                              └─────────────────┬───────────────────┘
+                                                │
+                                                ▼
+                                        http://localhost:5173/
+                                        ?manifest=/manifests/room_007.json
+                                                │
+                                                ▼
+                                          React App (App.tsx)
+                                                │
+                            ┌───────────────────┼───────────────────┐
+                            │                   │                   │
+                            ▼                   ▼                   ▼
+                    Inspector.tsx      PointCloudLayer.tsx    UobbMeshLayer.tsx
+```
+
+### Manifest Schema (v1)
+
+```typescript
+interface UnifiedManifest {
+  version: 1;
+  title?: string;
+  defaults?: {
+    pointSize?: number;
+    visible?: boolean;
+  };
+  items: ManifestItem[];
+}
+
+interface ManifestItem {
+  id: string;              // Unique identifier
+  name: string;            // Display name (e.g., "Shell", "Couch 12")
+  kind: 'shell' | 'cluster';
+  role?: 'shell' | 'cluster';
+  source: string;          // Relative path to PLY file
+  group?: string;          // Grouping category (e.g., "couch")
+  visible?: boolean;       // Initial visibility
+  style?: {
+    pointSize?: number;
+    color?: [number, number, number, number];
+  };
+  filters?: {
+    labelIn?: number[];
+    labelNotIn?: number[];
+  };
+  uobbSource?: string;     // Path to UOBB PLY (optional)
+}
+```
+
+### Component Architecture
+
+```typescript
+// App.tsx - Main Controller
+const App: FC = () => {
+  const [manifest, setManifest] = useState<UnifiedManifest | null>(null);
+  const [visibility, setVisibility] = useState<Record<string, boolean>>({});
+  const [pointSize, setPointSize] = useState(3);
+  
+  // Load manifest from URL param
+  useEffect(() => { /* fetch manifest */ }, []);
+  
+  // Render layers
+  return (
+    <DeckGL
+      initialViewState={viewState}
+      controller={{ type: OrbitView }}
+      layers={[
+        ...pointCloudLayers,  // One layer per item
+        ...uobbLayers         // One layer per UOBB
+      ]}
+    >
+      <Inspector
+        items={manifest.items}
+        visibility={visibility}
+        onToggle={handleToggle}
+        pointSize={pointSize}
+        onPointSizeChange={setPointSize}
+      />
+    </DeckGL>
+  );
+};
+
+// Inspector.tsx - UI Controls
+const Inspector: FC<Props> = ({ items, visibility, onToggle }) => {
+  // Render control panel
+  return (
+    <div className="inspector">
+      <GlobalControls />
+      {items.map(item => (
+        <ItemControl
+          key={item.id}
+          item={item}
+          visible={visibility[item.id]}
+          onToggle={() => onToggle(item.id)}
+        />
+      ))}
+    </div>
+  );
+};
+
+// PointCloudLayer.tsx - Rendering
+const PointCloudLayer: FC<Props> = ({ item, pointSize, visible }) => {
+  const [data, setData] = useState<PLYData | null>(null);
+  
+  useEffect(() => {
+    if (visible) {
+      load(item.source, PLYLoader).then(setData);
+    }
+  }, [item.source, visible]);
+  
+  return new PointCloudLayerDeckGL({
+    id: item.id,
+    data: data?.attributes.POSITION.value,
+    getColor: data?.attributes.COLOR_0.value,
+    pointSize,
+    visible
+  });
+};
+```
+
+---
+
+## API Reference
+
+### prepare_visualization.mjs
+
+**Purpose:** Main automation script for end-to-end visualization preparation.
+
+**Usage:**
+```bash
+node scripts/prepare_visualization.mjs [options]
+```
+
+**Key Functions:**
+
+- `callAiApi(args: string[]): any` - Execute ai_api.py with JSON output
+- `resolveObjectAssets(code: string): ObjectAssets` - Get clusters/UOBBs for object
+- `resolveRoomAssets(code: string): RoomAssets` - Get shell/CSV for room
+- `downsampleAndPrepare(options: DownsampleOptions): Promise<void>` - Spawn downsampler
+- `cleanAllOutputs(outRoot: string): Promise<void>` - Remove all previous data
+- `startDevServer(port: number, manifestName: string): Promise<void>` - Launch Vite
+
+**Mode Handlers:**
+- `handleRoomMode()` - Process complete room
+- `handleClustersMode()` - Process selected clusters
+- `handleMultiRoomsMode()` - Process multiple room shells
+- `handleRoomWithObjectsMode()` - Process room + selected objects
+
+### downsample_and_prepare_room.mjs
+
+**Purpose:** Downsample PLY files and generate unified manifest.
+
+**Usage:**
+```bash
+node scripts/downsample_and_prepare_room.mjs \
+  --room <name> \
+  [--shell <path>] \
+  [--clustersDir <path>] \
+  [--cluster <path>]... \
+  [--ratio <float>] \
+  [--voxel <float>]
+```
+
+**Key Functions:**
+
+- `voxelSampleIndices(positions, voxelSize)` - Spatial uniform sampling
+- `randomSampleIndices(n, ratio, seed)` - Deterministic random sampling
+- `normalizeAttributes(data)` - Extract positions, colors, label, point_id
+- `gatherByIndices(positions, colors, indices, extra)` - Preserve attributes
+- `writeAsciiPLY(filePath, positions, colors, extra)` - Write ASCII PLY
+- `downsamplePly(inputPath, outputPath, options)` - Main downsampling
+
+**Sampling Strategies:**
+- **Voxel:** Spatial binning with Map-based deduplication (key: `"x,y,z"`)
+- **Ratio:** Fisher-Yates shuffle with LCG random generator (seed: 12345)
+
+---
+
+## Performance Optimization
+
+### Downsampling Guidelines
+
+| Scene Type | Shell Ratio | Cluster Ratio | Voxel Size | Expected Points |
+|------------|-------------|---------------|------------|-----------------|
+| Small room (<1M) | 0.1 (10%) | 0.3 (30%) | - | ~100-300K |
+| Medium room (1-3M) | 0.05 (5%) | 0.2 (20%) | - | ~200-600K |
+| Large room (>3M) | 0.03 (3%) | 0.15 (15%) | - | ~300-900K |
+| Floor overview | 0.1 (10%) | N/A | - | ~500K-1M |
+| Object focus | N/A | 0.25 (25%) | - | ~50-200K |
+
+### Voxel vs Ratio Sampling
+
+**Voxel Sampling** - Use when spatial uniformity is critical
+```bash
+--voxel 0.05  # 5cm voxel grid
+```
+- Pros: Perfect spatial distribution, no clustering artifacts
+- Cons: Slower, variable output size
+
+**Ratio Sampling** - Use for consistent point counts
+```bash
+--ratio 0.2  # Keep 20% of points
+```
+- Pros: Fast, predictable output size
+- Cons: May oversample dense regions
+
+### Browser Performance Tips
+
+1. **Limit total points to <2M** for smooth 60 FPS
+2. **Use `--shellNoColor`** for shells if color not needed (saves bandwidth)
+3. **Enable `--clean-all`** periodically to prevent disk bloat
+4. **Close unused manifests** in browser to free GPU memory
+5. **Adjust point size** (1-3) for distant views, (3-5) for close-ups
+
+---
+
+For more documentation, see:
+- [AI API Documentation](./AI_API.md)
+- [Project Changelog](./CHANGELOG.md)
+- [Root README](../README.md)

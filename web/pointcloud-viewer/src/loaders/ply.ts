@@ -4,6 +4,7 @@ import type { LoadedPointCloud } from '../types';
 
 type LoadOptions = {
   filterLabelNotIn?: Set<number>;
+  filterLabelIn?: Set<number>;
   dropColor?: boolean; // if true, do not expose COLOR attribute (reduces GPU upload/memory)
 };
 
@@ -60,13 +61,15 @@ export async function loadPly(url: string, options?: LoadOptions): Promise<Loade
     .map((k) => (attr[k]?.value ? k : k))
     .filter((k) => typeof attr[k] !== 'function');
 
-  // Optional filtering by label exclusion (for shell)
-  if (options?.filterLabelNotIn && attributes.label) {
+  // Optional filtering by label include/exclude
+  if ((options?.filterLabelNotIn || options?.filterLabelIn) && attributes.label) {
     const keep = new Uint8Array(length);
     let kept = 0;
     for (let i = 0; i < length; i++) {
       const lb = (attributes.label as any)[i] as number;
-      if (!options.filterLabelNotIn.has(lb)) {
+      const inInclude = options.filterLabelIn ? options.filterLabelIn.has(lb) : true;
+      const notInExclude = options.filterLabelNotIn ? !options.filterLabelNotIn.has(lb) : true;
+      if (inInclude && notInExclude) {
         keep[i] = 1;
         kept++;
       }

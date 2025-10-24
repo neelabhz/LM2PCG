@@ -7,7 +7,7 @@
 //     --clustersDir ../../output/full_house/floor_0/room_007/results/filtered_clusters \
 //     --ratio 0.2 \
 //     --outDir public/data \
-//     [--shellNoColor]
+//     [--shellNoColor] [--clean]
 // This will downsample all clusters to ratio 0.2, copy the shell as-is, and write manifest to public/manifests/room_007.json
 
 import fs from 'fs';
@@ -22,12 +22,20 @@ const __dirname = path.dirname(__filename);
 
 function parseArgs(argv) {
   const args = {};
+  const arrayKeys = ['cluster']; // Keys that should accumulate multiple values
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a.startsWith('--')) {
       const key = a.slice(2);
       const val = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
-      args[key] = val;
+      // Handle array arguments
+      if (arrayKeys.includes(key)) {
+        if (!args[key]) args[key] = [];
+        if (Array.isArray(args[key])) args[key].push(val);
+        else args[key] = [args[key], val];
+      } else {
+        args[key] = val;
+      }
     }
   }
   return args;
@@ -257,25 +265,37 @@ async function main() {
     --shell <path/to/shell.ply> \
     --clustersDir <path/to/filtered_clusters> \
     [--ratio 0.2] [--voxel 0.01] \
-    [--outDir public/data] [--shellNoColor]
+    [--outDir public/data] [--shellNoColor] [--clean]
 Notes:
   - If --ratio not provided, clusters will be voxel-only (or copied if no voxel).
   - Shell will be copied as-is unless you point --ratioShell.
+  - --clean removes previous outputs for this room under outDir before generating.
     `);
     process.exit(0);
   }
   const room = String(args.room);
   const outRoot = args.outDir ? String(args.outDir) : 'public/data';
-  const outDir = path.resolve(path.join(__dirname, '..', outRoot, room));
+  // Handle both absolute and relative paths for outDir
+  const outDir = path.isAbsolute(outRoot) 
+    ? path.join(outRoot, room)
+    : path.resolve(path.join(__dirname, '..', outRoot, room));
   const outClustersDir = path.join(outDir, 'clusters');
+  // optional clean of previous outputs to avoid stale files
+  if (args.clean) {
+    try {
+      await fsp.rm(outDir, { recursive: true, force: true });
+    } catch {}
+    const manifestDir = path.resolve(path.join(__dirname, '..', 'public', 'manifests'));
+    const manifestPath = path.join(manifestDir, `${room}.json`);
+    try { await fsp.rm(manifestPath, { force: true }); } catch {}
+  }
   ensureDirSync(outClustersDir);
 
   const manifest = {
-    project: 'Full House',
-    floor: 'floor_0',
-    room,
-    shell: `/data/${room}/shell.ply`,
-    clusters: []
+    version: 1,
+    title: `Room ${room}`,
+    defaults: { pointSize: 3 },
+    items: []
   };
 
   // Handle shell
@@ -294,24 +314,61 @@ Notes:
       console.log(`[shell] copying ${shellSrc} -> ${shellDst}`);
       await fsp.copyFile(shellSrc, shellDst);
     }
+    manifest.items.push({
+      id: `shell-${room}`,
+      name: `${room} shell`,
+      kind: 'pointcloud',
+      role: 'shell',
+      source: { url: `/data/${room}/shell.ply` },
+      group: room,
+      visible: true,
+      style: stripShellColor ? { colorMode: 'constant', color: [180, 180, 180], pointSize: 3 } : { colorMode: 'file', pointSize: 3 },
+      filters: args.shellHide ? { labelExclude: String(args.shellHide).split(',').map((s) => Number(s.trim())).filter((n) => !Number.isNaN(n)) } : undefined
+    });
+
+    // Try to find and copy room UOBB alongside shell
+    const shellDir = path.dirname(shellSrc);
+    const shellBase = path.basename(shellSrc, '.ply');
+    const uobbCandidate = path.join(shellDir, `${shellBase}_uobb.ply`);
+    try {
+      await fsp.access(uobbCandidate, fs.constants.R_OK);
+      const uobbDst = path.join(outDir, 'shell_uobb.ply');
+      console.log(`[uobb] copying ${uobbCandidate} -> ${uobbDst}`);
+      await fsp.copyFile(uobbCandidate, uobbDst);
+      manifest.items.push({
+        id: `uobb-${room}`,
+        name: `${room} uobb`,
+        kind: 'mesh',
+        role: 'uobb',
+        source: { url: `/data/${room}/shell_uobb.ply` },
+        group: room,
+        visible: true,
+        style: { color: [30, 144, 255], opacity: 0.3 }
+      });
+    } catch {}
   }
 
   // Handle clusters
   const ratio = args.ratio ? Number(args.ratio) : undefined;
   const voxel = args.voxel ? Number(args.voxel) : undefined;
+  const acceptAnyPly = Boolean(args.acceptAnyPly);
   const clusters = [];
   if (args.clustersDir) {
     const dir = path.resolve(String(args.clustersDir));
     for await (const file of walkDir(dir)) {
       const lower = file.toLowerCase();
-      if (/_cluster\.ply$/i.test(lower)) clusters.push(file);
+      if (acceptAnyPly ? lower.endsWith('.ply') : /_cluster\.ply$/i.test(lower)) {
+        clusters.push(file);
+      }
     }
   }
   if (args.cluster) {
     const files = Array.isArray(args.cluster) ? args.cluster : [args.cluster];
     for (const f of files) {
       const full = path.resolve(String(f));
-      if (/_cluster\.ply$/i.test(full.toLowerCase())) clusters.push(full);
+      if (acceptAnyPly ? full.toLowerCase().endsWith('.ply') : /_cluster\.ply$/i.test(full.toLowerCase())) {
+        clusters.push(full);
+      }
     }
   }
   clusters.sort();
@@ -323,7 +380,16 @@ Notes:
     console.log(`[cluster] downsampling ${c} -> ${dst} (ratio=${ratio ?? '-'}, voxel=${voxel ?? '-'})`);
   const stats = await downsamplePly(c, dst, { ratio, voxel, debug: Boolean(args.debug) });
     console.log(`[cluster] ${name}: ${stats.in} -> ${stats.out}`);
-    manifest.clusters.push({ name, url: `/data/${room}/clusters/${name}.ply` });
+    manifest.items.push({
+      id: `cluster-${name}`,
+      name,
+      kind: 'pointcloud',
+      role: 'object',
+      source: { url: `/data/${room}/clusters/${name}.ply` },
+      group: room,
+      visible: true,
+      style: { colorMode: 'file', pointSize: 3 }
+    });
   }
 
   // Write manifest

@@ -2,6 +2,81 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.2.0 / 2025-10-24
+
+### Added
+- **Point Cloud Viewer: Complete Automation System**
+  - New `prepare_visualization.mjs` orchestration script with 4 visualization modes:
+    - `room`: Complete room with shell + all clusters
+    - `clusters`: Selected object clusters by code
+    - `multi-rooms`: Multiple room shells for floor layout overview
+    - `room-with-objects`: Room shell with selected objects
+  - Full integration with `ai_api.py` for semantic path resolution
+  - Automatic cleanup with `--clean-all` flag
+  - Auto-serve with `--serve` flag for one-command workflow
+  - Custom port support via `--port` option
+
+- **Downsampling Enhancements**
+  - `--acceptAnyPly` flag for processing non-cluster PLY files (shells, etc.)
+  - Multiple `--cluster` arguments properly accumulated into array
+  - Absolute path handling fixed for flexible output directories
+
+- **Inspector UI Improvements**
+  - Smart title generation from filename patterns (e.g., "Couch 12" from "0-7-12_couch_cluster")
+  - Per-object UOBB visibility toggles
+  - Global UOBB show/hide control
+  - Scene statistics (total points, item count)
+
+- **Documentation**
+  - Comprehensive Point Cloud Viewer documentation: `docs/POINTCLOUD_VIEWER.md`
+  - Architecture diagrams and data flow visualization
+  - Performance optimization guidelines
+  - Troubleshooting guide with common issues and solutions
+
+### Changed
+- **Viewer Coordinate System**: Switched from GLOBE to CARTESIAN without recentering
+  - Preserves original coordinate values for spatial accuracy
+  - Auto-calculates zoom based on scene bounds
+  - Fixed camera positioning for better initial view
+
+- **Multi-rooms Mode**: Now uses user-specified `--ratio` instead of hardcoded `ratioShell`
+  - Allows flexible downsampling for floor overview (e.g., 10% instead of 5%)
+  - Fixed path inference bug (removed extra `/results/` layer)
+
+- **NPM Scripts**: Added convenience commands
+  - `npm run visualize`: Run automation workflow
+  - `npm run visualize:help`: Show usage information
+
+### Removed
+- **Deprecated Scripts** (replaced by new automation):
+  - `scripts/generate_random_clusters_manifest.py`
+  - `scripts/process_remaining_clusters.py`
+  - `web/pointcloud-viewer/scripts/process_5_clusters.py`
+  - Random mode from visualization (not practical for real use)
+
+### Fixed
+- Path handling for `--cluster` arguments in downsample script
+- Clusters directory inference from shell path (removed double `/results/` nesting)
+- Absolute vs relative path resolution in output directory creation
+- Multi-rooms mode now properly accepts shells instead of clusters
+
+### Documentation
+- Updated `web/pointcloud-viewer/README.md` with new automation workflow
+- Added comprehensive `docs/POINTCLOUD_VIEWER.md` with:
+  - Complete API reference
+  - Architecture and data flow diagrams
+  - Performance optimization guidelines
+  - Troubleshooting guide
+  - Best practices and workflow patterns
+
+### Notes
+- Complete end-to-end workflow now achievable with single command:
+  ```bash
+  npm run visualize -- --mode room --room 0-7 --name my_room --clean-all --serve
+  ```
+- All modes tested and verified working with Full House dataset
+- Integration with `ai_api.py` provides semantic object/room code resolution
+
 ## 1.1.0 / 2025-10-23
 
 ### Added

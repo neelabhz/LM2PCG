@@ -1,14 +1,43 @@
-export type ClusterEntry = {
-  name: string;
-  url: string;
+// Unified manifest types (v1)
+export type ManifestItemStyle = {
+  pointSize?: number;
+  colorMode?: 'file' | 'constant';
+  color?: [number, number, number];
+  opacity?: number; // for mesh or overlay transparency (0..1)
 };
 
-export type RoomManifest = {
-  project: string;
-  floor: string;
-  room: string;
-  shell: string; // URL to shell ply
-  clusters: ClusterEntry[]; // URLs to cluster plys
+export type ManifestItemFilters = {
+  labelInclude?: number[];
+  labelExclude?: number[];
+  pointIdInclude?: number[];
+};
+
+export type ManifestItemTransform = {
+  translate?: [number, number, number];
+  scale?: [number, number, number];
+  rotateEulerDeg?: [number, number, number];
+};
+
+export type ManifestItem = {
+  id: string;
+  name: string;
+  kind: 'pointcloud' | 'mesh';
+  role?: 'shell' | 'cluster' | 'object' | 'room' | string;
+  source: { url: string };
+  group?: string;
+  visible?: boolean;
+  style?: ManifestItemStyle;
+  filters?: ManifestItemFilters;
+  transform?: ManifestItemTransform;
+  meta?: Record<string, any>;
+};
+
+export type UnifiedManifest = {
+  version: 1;
+  title?: string;
+  description?: string;
+  defaults?: ManifestItemStyle & { shellHideLabels?: number[] };
+  items: ManifestItem[];
 };
 
 export type LoadedPointCloud = {

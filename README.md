@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline / 1.1.0
+# Indoor Point Cloud Pipeline / 1.2.0
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 
@@ -13,9 +13,62 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL (and optiona
 - Standardized outputs under results with unified filenames
 - CSV schema extended with IDs and semantics (object_code/class/etc.)
 - Reconstruction per cluster (Poisson with acceptance checks, AF fallback)
- - Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_area, pcg_color, pcg_bbox
- - AI API for orchestration (scripts/ai_api.py) with structured JSON outputs
- - Optional Web viewer (deck.gl + loaders.gl) with picking, manifest-driven loading, label-based shell filtering, and a performance toggle to render shell without per-vertex colors
+- Standalone tools: pcg_room, pcg_reconstruct, pcg_volume, pcg_area, pcg_color, pcg_bbox
+- AI API for orchestration (scripts/ai_api.py) with structured JSON outputs
+- **Complete web-based visualization system** with automated workflow and semantic integration
+
+## Point Cloud Viewer (Web UI)
+
+A high-performance interactive 3D viewer built with deck.gl and React. Features:
+- **4 Visualization Modes**: room (complete), clusters (selected objects), multi-rooms (floor overview), room-with-objects (contextual)
+- **Automated Workflow**: One-command preparation with ai_api.py integration
+- **Smart UI**: Inspector with per-object visibility, UOBB toggles, smart titles
+- **Performance**: Handles 10M+ points at 60 FPS with intelligent downsampling
+
+### Quick Start
+
+```bash
+cd web/pointcloud-viewer
+npm install
+
+# Visualize a complete room with auto-serve
+npm run visualize -- \
+  --mode room \
+  --room 0-7 \
+  --name room_007 \
+  --clean-all \
+  --serve
+
+# Opens browser automatically at:
+# http://localhost:5173/?manifest=/manifests/room_007.json
+```
+
+### More Examples
+
+```bash
+# Selected objects (sofas from room 007)
+npm run visualize -- \
+  --mode clusters \
+  --objects "0-7-12,0-7-13,0-7-14" \
+  --name sofas \
+  --ratio 0.25
+
+# Floor layout overview (all room shells)
+npm run visualize -- \
+  --mode multi-rooms \
+  --rooms "0-1,0-2,0-3,0-4,0-5,0-6,0-7" \
+  --name floor_0 \
+  --ratio 0.1
+
+# Room with selected objects
+npm run visualize -- \
+  --mode room-with-objects \
+  --room 0-7 \
+  --objects "0-7-12,0-7-15,0-7-6" \
+  --name room_007_selected
+```
+
+**Documentation**: See [`docs/POINTCLOUD_VIEWER.md`](docs/POINTCLOUD_VIEWER.md) for complete guide.
 
 ## AI API (scripts/ai_api.py) and JSON output
 
@@ -98,6 +151,28 @@ Dev quickstart:
 cd web/pointcloud-viewer
 npm install
 npm run dev
+```
+
+The viewer now has a complete automated workflow. See examples above or check [`docs/POINTCLOUD_VIEWER.md`](docs/POINTCLOUD_VIEWER.md) for:
+- Complete API reference
+- Architecture documentation
+- Performance optimization guide
+- Troubleshooting tips
+
+**Legacy manual preparation** (for advanced users):
+
+```bash
+# Manual downsampling (if not using automated workflow)
+node scripts/downsample_and_prepare_room.mjs \
+  --room room_007 \
+  --shell "../../output/Full House/floor_0/room_007/results/shell/shell_007/0-7-0_shell.ply" \
+  --clustersDir "../../output/Full House/floor_0/room_007/results/filtered_clusters" \
+  --ratio 0.2 \
+  --ratioShell 0.05
+```
+
+
+## How to run
 ```
 
 Prepare a room (downsample and generate manifest):
@@ -361,4 +436,22 @@ Default file: `data/configs/default.yaml`. Key parameters with typical defaults:
 - color_bic_k_penalty (0): Unused in force-K=3 mode; kept for reference.
 - color_min_weight (0.10): Discard GMM components with weight below this threshold.
 - color_max_stddev (30.0): Discard components with any channel stddev above this (per channel).
-- color_deltaE_keep (20.0): ΔE*76 threshold; ΔE < threshold → merge (drop lower-weight), else keep both.
+- - color_deltaE_keep (20.0): ΔE*76 threshold; ΔE < threshold → merge (drop lower-weight), else keep both.
+
+## Documentation
+
+- **[Point Cloud Viewer](docs/POINTCLOUD_VIEWER.md)** - Complete visualization system guide
+  - Automated workflow with 4 modes
+  - Architecture and data flow
+  - Performance optimization
+  - Troubleshooting and best practices
+
+- **[AI API](docs/AI_API.md)** - Python orchestration layer
+  - Path resolution system
+  - Operation dispatch (RCN, VOL, ARE, CLR, BBD)
+  - JSON output schemas
+  - Integration examples
+
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+
+## License
