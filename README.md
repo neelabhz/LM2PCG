@@ -8,11 +8,11 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 
 - **Color-preserving PLY I/O**: Full XYZRGB support for clusters, UOBBs, and meshes
 - **FEC-style clustering**: Radius-based with smart filtering
-- **Upright bounding boxes**: Z-up oriented OBBs per cluster
+- **Upright bounding boxes**: Optimal OBBs using convex hull + rotating calipers (v1.2.1+)
 - **Reconstruction**: Poisson with acceptance checks + AF fallback
 - **Analysis tools**: Volume, surface area, dominant color, bbox distance
 - **AI API**: Python orchestration layer ([docs/AI_API.md](docs/AI_API.md))
-- **Web viewer**: Interactive 3D visualization ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
+- **Web viewer**: Interactive 3D visualization with automated UOBB generation ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
 
 ## Quick Start
 
@@ -119,7 +119,11 @@ npm run visualize -- --mode room --room 0-7 --name room_007 --serve
 ```
 
 **4 Modes**: `room`, `clusters`, `multi-rooms`, `room-with-objects`  
-**Features**: Per-object visibility, UOBB toggles, 10M+ points @ 60 FPS
+**Features**: 
+- Per-object visibility toggles with semantic naming
+- Automatic UOBB generation using convex hull + rotating calipers (v1.2.1+)
+- Multi-rooms mode with unified UOBB grouping
+- 10M+ points @ 60 FPS performance
 
 ## Configuration
 
@@ -138,6 +142,13 @@ Default settings in `data/configs/default.yaml`:
 **Color Analysis**:
 - `color_sample_n` (300): RGB sample size
 - `color_deltaE_keep` (20.0): Perceptual color merge threshold
+
+**Viewer (v1.2.1+)**:
+- `viewer_downsample_ratio` (0.2): Cluster downsampling rate
+- `viewer_downsample_ratio_shell` (0.05): Shell downsampling rate
+- `viewer_point_size` (3): Default point size for rendering
+- `viewer_uobb_opacity` (0.3): UOBB transparency (0.0-1.0)
+- `viewer_uobb_color` ([30, 144, 255]): UOBB color (RGB)
 
 **JSON Output**:
 ```yaml
@@ -158,6 +169,15 @@ output/<site>/<floor>/<room>/
 ```
 
 **Object codes**: `floor-room-object` (e.g., `0-7-12` = floor 0, room 7, object 12)
+
+## What's New in v1.2.1
+
+- **Optimal UOBB Algorithm**: Replaced PCA with convex hull + rotating calipers for exact minimum area bounding boxes
+- **Enhanced Viewer**: Automatic UOBB generation, improved naming conventions (e.g., `chair (object_id: 0-7-3)`), unified grouping
+- **Centralized Configuration**: Viewer parameters now in `data/configs/default.yaml`
+- **Better Documentation**: Detailed path resolution guide in AI_API.md
+
+See **[Changelog](docs/CHANGELOG.md)** for complete version history.
 
 ## Documentation
 

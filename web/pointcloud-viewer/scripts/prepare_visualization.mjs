@@ -87,6 +87,14 @@ function parseArgs(argv) {
   return args;
 }
 
+// ==================== Utility functions ====================
+
+function ensureDirSync(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
 // ==================== AI API integration ====================
 
 function getRepoRoot() {
@@ -229,6 +237,7 @@ async function startDevServer(port = 5173, manifestName) {
 async function downsampleAndPrepare(options) {
   const {
     name,
+    roomCode = null,  // Optional: actual room code for display names
     shell = null,
     shellCopy = null,
     clusters = [],
@@ -248,6 +257,11 @@ async function downsampleAndPrepare(options) {
     '--room', name,
     '--outDir', outDir,
   ];
+  
+  // Pass room code for proper display names if provided
+  if (roomCode) {
+    args.push('--roomCode', roomCode);
+  }
 
   if (shell) {
     args.push('--shell', shell);
@@ -326,6 +340,7 @@ async function handleRoomMode(args, config) {
   
   await downsampleAndPrepare({
     name: config.name,
+    roomCode,  // Pass room code for proper display names
     shell,
     clustersDir,
     ratio: config.ratio,
@@ -404,6 +419,7 @@ async function handleMultiRoomsMode(args, config) {
   
   // Process each shell as a separate "cluster" (shells are point clouds too)
   // Note: Use config.ratio (not ratioShell) for multi-room visualization
+  // UOBB will be computed automatically for each shell by downsample_and_prepare_room.mjs
   await downsampleAndPrepare({
     name: config.name,
     clusters: allShells,

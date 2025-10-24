@@ -2,6 +2,78 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.2.1 / 2025-10-24
+
+### Added
+- **UOBB Computation: Convex Hull + Rotating Calipers Algorithm**
+  - Replaced PCA-based UOBB with strict optimal algorithm using convex hull (Andrew's monotone chain) and rotating calipers
+  - Implemented in both C++ (`src/geometry/bbox.cpp`) and JavaScript (`web/pointcloud-viewer/scripts/uobb_compute.mjs`)
+  - Provides true minimum area oriented bounding boxes in XY plane
+  - Automatic UOBB generation from downsampled point clouds in visualization pipeline
+
+- **Viewer: Multi-Rooms Mode UOBB Display**
+  - Multi-rooms mode now displays UOBBs for all room shells
+  - UOBBs computed on-the-fly from downsampled point clouds
+  - All UOBBs grouped together in Layers panel for easier management
+
+- **Viewer: Enhanced Display Names**
+  - Improved naming conventions following `ai_api.py` path resolution rules:
+    - Shell: `room_shell (room_id: 0-7)`
+    - Shell UOBB: `room_uobb (room_id: 0-7)`
+    - Cluster objects: `chair (object_id: 0-7-3)`, `couch (object_id: 0-7-12)`
+  - Room code properly passed through visualization pipeline for accurate display names
+
+- **Configuration: Viewer Parameters in YAML**
+  - Added viewer-specific parameters to `data/configs/default.yaml`:
+    - `viewer_downsample_ratio`: 0.2 (cluster downsampling)
+    - `viewer_downsample_ratio_shell`: 0.05 (shell downsampling)
+    - `viewer_voxel_size`: null (optional spatial downsampling)
+    - `viewer_shell_no_color`: false (gray rendering option)
+    - `viewer_point_size`: 3 (default point size)
+    - `viewer_uobb_opacity`: 0.3 (UOBB transparency)
+    - `viewer_uobb_color`: [30, 144, 255] (dodger blue)
+    - `viewer_shell_color`: [180, 180, 180] (gray)
+
+### Changed
+- **UOBB Algorithm**: Complete replacement from approximate PCA to exact optimal solution
+  - XY projection → 2D convex hull → rotating calipers → minimum area rectangle
+  - Z-axis range preserved from original point cloud
+  - Binary PLY format (422 bytes per UOBB mesh)
+
+- **Visualization Pipeline**: Enhanced `downsample_and_prepare_room.mjs`
+  - Added `roomCode` parameter for proper display name generation
+  - Automatic UOBB computation integrated into downsampling workflow
+  - Shell detection logic for multi-rooms mode
+
+- **UOBB Grouping**: Unified grouping in Layers panel
+  - Changed from individual room codes to unified `{name}_uobbs` group
+  - All UOBBs for a visualization appear under single collapsible group
+
+### Improved
+- **Documentation: Path Resolution**
+  - Comprehensive path resolution documentation in `docs/AI_API.md`
+  - Detailed explanation of indexing mechanisms:
+    - File naming patterns (object-level, room-level, CSV)
+    - Parsing logic (object code extraction, kind detection, room inference)
+    - Shell detection rules (2-part vs 3-part naming)
+  - JSON output examples for all resolution methods
+  - Edge case explanations (ambiguity handling, object_id=0 convention)
+
+### Fixed
+- Regular expression mismatch in shell UOBB generation (tested basename instead of full path)
+- Display name issues in room mode (now correctly shows room code instead of output name)
+
+### Technical Details
+- **Convex Hull Implementation**: Andrew's monotone chain algorithm (O(n log n))
+- **Rotating Calipers**: Optimal O(n) scan of convex hull for minimum area rectangle
+- **UOBB Structure**: center, size, yaw, 8 corners, 12 triangular faces (binary PLY)
+- **File Locations**: UOBBs generated alongside source files with `_uobb.ply` suffix
+
+### Notes
+- All UOBB computations tested with Full House dataset (7 rooms)
+- JavaScript UOBB computation preferred over terminal commands for reliability
+- Viewer parameter defaults now centralized in configuration file for easier tuning
+
 ## 1.2.0 / 2025-10-24
 
 ### Added

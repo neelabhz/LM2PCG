@@ -28,3 +28,13 @@ af_require_closed: false    # require AF output to be closed; if false, accept o
 
 # Global output formatting
 json_output: true           # if true, apps emit structured JSON (suitable for chatbots)
+
+# Viewer visualization parameters
+viewer_downsample_ratio: 0.2        # downsample ratio for cluster point clouds (0.0-1.0)
+viewer_downsample_ratio_shell: 0.05 # downsample ratio for shell/room point clouds (0.0-1.0)
+viewer_voxel_size: null             # optional: voxel size for spatial downsampling (in meters); null = use ratio
+viewer_shell_no_color: false        # if true, render shell in constant gray color instead of original colors
+viewer_point_size: 3                # default point size for rendering
+viewer_uobb_opacity: 0.3            # opacity for UOBB mesh rendering (0.0-1.0)
+viewer_uobb_color: [30, 144, 255]   # RGB color for UOBB meshes (default: dodger blue)
+viewer_shell_color: [180, 180, 180] # RGB color for shell when shell_no_color is true (default: gray)

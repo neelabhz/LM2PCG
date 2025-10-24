@@ -11,7 +11,6 @@ A high-performance web-based point cloud visualization system built with deck.gl
 - [Architecture](#architecture)
 - [API Reference](#api-reference)
 - [Performance Optimization](#performance-optimization)
-- [Troubleshooting](#troubleshooting)
 
 ---
 

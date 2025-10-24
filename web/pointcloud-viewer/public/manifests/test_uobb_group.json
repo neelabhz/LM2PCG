@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "title": "Room test_uobb_group",
+  "defaults": {
+    "pointSize": 3
+  },
+  "items": [
+    {
+      "id": "cluster-0-1-2_shell",
+      "name": "0-1-2_shell",
+      "kind": "pointcloud",
+      "role": "shell",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-1-2_shell.ply"
+      },
+      "group": "test_uobb_group",
+      "visible": true,
+      "style": {
+        "colorMode": "file",
+        "pointSize": 3
+      }
+    },
+    {
+      "id": "uobb-0-1",
+      "name": "0-1 uobb",
+      "kind": "mesh",
+      "role": "uobb",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-1-2_shell_uobb.ply"
+      },
+      "group": "test_uobb_group_uobbs",
+      "visible": true,
+      "style": {
+        "color": [
+          30,
+          144,
+          255
+        ],
+        "opacity": 0.3
+      }
+    },
+    {
+      "id": "cluster-0-2-3_shell",
+      "name": "0-2-3_shell",
+      "kind": "pointcloud",
+      "role": "shell",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-2-3_shell.ply"
+      },
+      "group": "test_uobb_group",
+      "visible": true,
+      "style": {
+        "colorMode": "file",
+        "pointSize": 3
+      }
+    },
+    {
+      "id": "uobb-0-2",
+      "name": "0-2 uobb",
+      "kind": "mesh",
+      "role": "uobb",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-2-3_shell_uobb.ply"
+      },
+      "group": "test_uobb_group_uobbs",
+      "visible": true,
+      "style": {
+        "color": [
+          30,
+          144,
+          255
+        ],
+        "opacity": 0.3
+      }
+    },
+    {
+      "id": "cluster-0-7-0_shell",
+      "name": "0-7-0_shell",
+      "kind": "pointcloud",
+      "role": "shell",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-7-0_shell.ply"
+      },
+      "group": "test_uobb_group",
+      "visible": true,
+      "style": {
+        "colorMode": "file",
+        "pointSize": 3
+      }
+    },
+    {
+      "id": "uobb-0-7",
+      "name": "0-7 uobb",
+      "kind": "mesh",
+      "role": "uobb",
+      "source": {
+        "url": "/data/test_uobb_group/clusters/0-7-0_shell_uobb.ply"
+      },
+      "group": "test_uobb_group_uobbs",
+      "visible": true,
+      "style": {
+        "color": [
+          30,
+          144,
+          255
+        ],
+        "opacity": 0.3
+      }
+    }
+  ]
+}

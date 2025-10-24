@@ -16,6 +16,7 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { load, parse } from '@loaders.gl/core';
 import { PLYLoader } from '@loaders.gl/ply';
+import { computeUOBB, writeUOBBPly } from './uobb_compute.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -249,11 +250,11 @@ async function downsamplePly(inputPath, outputPath, { ratio, voxel, debug = fals
   if (!indices) {
     // no downsampling requested -> just write all attributes (optionally stripping color)
     writeAsciiPLY(outputPath, positions, stripColor ? null : (colors || null), { label: label || null, point_id: point_id || null });
-    return { in: length, out: length };
+    return { in: length, out: length, positions };
   }
   const gathered = gatherByIndices(positions, colors || null, indices, { label: label || null, point_id: point_id || null });
   writeAsciiPLY(outputPath, gathered.positions, stripColor ? null : (gathered.colors || null), { label: gathered.label || null, point_id: gathered.point_id || null });
-  return { in: length, out: indices.length };
+  return { in: length, out: indices.length, positions: gathered.positions };
 }
 
 async function main() {
@@ -274,6 +275,8 @@ Notes:
     process.exit(0);
   }
   const room = String(args.room);
+  // roomCode is the actual room identifier for display (e.g., "0-7"), defaults to room if not provided
+  const roomCode = args.roomCode ? String(args.roomCode) : room;
   const outRoot = args.outDir ? String(args.outDir) : 'public/data';
   // Handle both absolute and relative paths for outDir
   const outDir = path.isAbsolute(outRoot) 
@@ -306,17 +309,27 @@ Notes:
     const ratioShell = args.ratioShell ? Number(args.ratioShell) : (args.ratio ? Number(args.ratio) : undefined);
     const voxelShell = args.voxelShell ? Number(args.voxelShell) : (args.voxel ? Number(args.voxel) : undefined);
     const stripShellColor = Boolean(args.shellNoColor);
+    
+    let shellPositions = null; // Store positions for UOBB computation
+    
     if (ratioShell || voxelShell || stripShellColor) {
       console.log(`[shell] downsampling ${shellSrc} -> ${shellDst} (ratio=${ratioShell ?? '-'}, voxel=${voxelShell ?? '-'})`);
-      const stats = await downsamplePly(shellSrc, shellDst, { ratio: ratioShell, voxel: voxelShell, debug: Boolean(args.debug), stripColor: stripShellColor });
-      console.log(`[shell] ${stats.in} -> ${stats.out}`);
+      const result = await downsamplePly(shellSrc, shellDst, { ratio: ratioShell, voxel: voxelShell, debug: Boolean(args.debug), stripColor: stripShellColor });
+      console.log(`[shell] ${result.in} -> ${result.out}`);
+      shellPositions = result.positions; // Get positions for UOBB
     } else {
       console.log(`[shell] copying ${shellSrc} -> ${shellDst}`);
       await fsp.copyFile(shellSrc, shellDst);
+      // Load positions for UOBB computation
+      const buf = await fsp.readFile(shellSrc);
+      const data = await parse(buf, PLYLoader, { worker: false });
+      const { positions } = normalizeAttributes(data);
+      shellPositions = positions;
     }
+    
     manifest.items.push({
       id: `shell-${room}`,
-      name: `${room} shell`,
+      name: `room_shell (room_id: ${roomCode})`,
       kind: 'pointcloud',
       role: 'shell',
       source: { url: `/data/${room}/shell.ply` },
@@ -326,26 +339,31 @@ Notes:
       filters: args.shellHide ? { labelExclude: String(args.shellHide).split(',').map((s) => Number(s.trim())).filter((n) => !Number.isNaN(n)) } : undefined
     });
 
-    // Try to find and copy room UOBB alongside shell
-    const shellDir = path.dirname(shellSrc);
-    const shellBase = path.basename(shellSrc, '.ply');
-    const uobbCandidate = path.join(shellDir, `${shellBase}_uobb.ply`);
-    try {
-      await fsp.access(uobbCandidate, fs.constants.R_OK);
-      const uobbDst = path.join(outDir, 'shell_uobb.ply');
-      console.log(`[uobb] copying ${uobbCandidate} -> ${uobbDst}`);
-      await fsp.copyFile(uobbCandidate, uobbDst);
-      manifest.items.push({
-        id: `uobb-${room}`,
-        name: `${room} uobb`,
-        kind: 'mesh',
-        role: 'uobb',
-        source: { url: `/data/${room}/shell_uobb.ply` },
-        group: room,
-        visible: true,
-        style: { color: [30, 144, 255], opacity: 0.3 }
-      });
-    } catch {}
+    // Compute UOBB from downsampled/copied shell positions
+    if (shellPositions) {
+      try {
+        console.log(`[uobb] computing UOBB from shell positions...`);
+        const uobb = computeUOBB(shellPositions);
+        if (uobb) {
+          const uobbBuffer = writeUOBBPly(uobb);
+          const uobbDst = path.join(outDir, 'shell_uobb.ply');
+          await fsp.writeFile(uobbDst, uobbBuffer);
+          console.log(`[uobb] wrote computed UOBB to ${uobbDst}`);
+          manifest.items.push({
+            id: `uobb-${room}`,
+            name: `room_uobb (room_id: ${roomCode})`,
+            kind: 'mesh',
+            role: 'uobb',
+            source: { url: `/data/${room}/shell_uobb.ply` },
+            group: `${room}_uobbs`,
+            visible: true,
+            style: { color: [30, 144, 255], opacity: 0.3 }
+          });
+        }
+      } catch (e) {
+        console.warn(`[uobb] Failed to compute UOBB: ${e.message}`);
+      }
+    }
   }
 
   // Handle clusters
@@ -378,18 +396,73 @@ Notes:
     const name = base; // keep simple; could also include parent folder
     const dst = path.join(outClustersDir, `${name}.ply`);
     console.log(`[cluster] downsampling ${c} -> ${dst} (ratio=${ratio ?? '-'}, voxel=${voxel ?? '-'})`);
-  const stats = await downsamplePly(c, dst, { ratio, voxel, debug: Boolean(args.debug) });
+    const stats = await downsamplePly(c, dst, { ratio, voxel, debug: Boolean(args.debug) });
     console.log(`[cluster] ${name}: ${stats.in} -> ${stats.out}`);
+    
+    // Check if this is a shell file (for multi-rooms mode)
+    const isShell = /_shell$/i.test(base);
+    
+    // Parse display name based on file format
+    let displayName = name;
+    if (isShell) {
+      // Shell format: <floor>-<room>-<object>_shell (e.g., "0-7-0_shell")
+      const shellMatch = base.match(/^(\d+-\d+)-\d+_shell$/);
+      if (shellMatch) {
+        const roomId = shellMatch[1];
+        displayName = `room_shell (room_id: ${roomId})`;
+      }
+    } else {
+      // Cluster format: <floor>-<room>-<object>_<class>_cluster (e.g., "0-7-12_couch_cluster")
+      const clusterMatch = base.match(/^(\d+-\d+-\d+)_([^_]+)_cluster$/);
+      if (clusterMatch) {
+        const objectId = clusterMatch[1];
+        const className = clusterMatch[2];
+        displayName = `${className} (object_id: ${objectId})`;
+      }
+    }
+    
     manifest.items.push({
       id: `cluster-${name}`,
-      name,
+      name: displayName,
       kind: 'pointcloud',
-      role: 'object',
+      role: isShell ? 'shell' : 'object',
       source: { url: `/data/${room}/clusters/${name}.ply` },
       group: room,
       visible: true,
       style: { colorMode: 'file', pointSize: 3 }
     });
+    
+    // Compute UOBB for shell files in multi-rooms mode
+    if (isShell && stats.positions) {
+      try {
+        console.log(`[uobb] computing UOBB for ${name}...`);
+        const uobb = computeUOBB(stats.positions);
+        if (uobb) {
+          const uobbBuffer = writeUOBBPly(uobb);
+          const uobbDst = path.join(outClustersDir, `${name}_uobb.ply`);
+          await fsp.writeFile(uobbDst, uobbBuffer);
+          console.log(`[uobb] wrote computed UOBB to ${uobbDst}`);
+          
+          // Extract room code from shell filename (e.g., "0-7-0_shell" -> "0-7")
+          const shellMatch = base.match(/^(\d+-\d+)-\d+_shell$/);
+          const roomCode = shellMatch ? shellMatch[1] : name;
+          const uobbDisplayName = shellMatch ? `room_uobb (room_id: ${roomCode})` : `${name} uobb`;
+          
+          manifest.items.push({
+            id: `uobb-${roomCode}`,
+            name: uobbDisplayName,
+            kind: 'mesh',
+            role: 'uobb',
+            source: { url: `/data/${room}/clusters/${name}_uobb.ply` },
+            group: `${room}_uobbs`,
+            visible: true,
+            style: { color: [30, 144, 255], opacity: 0.3 }
+          });
+        }
+      } catch (e) {
+        console.warn(`[uobb] Failed to compute UOBB for ${name}: ${e.message}`);
+      }
+    }
   }
 
   // Write manifest
