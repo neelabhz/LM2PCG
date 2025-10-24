@@ -180,15 +180,6 @@ output/<site>/<floor>/<room>/
 
 **Object codes**: `floor-room-object` (e.g., `0-7-12` = floor 0, room 7, object 12)
 
-## What's New in v1.2.1
-
-- **Optimal UOBB Algorithm**: Replaced PCA with convex hull + rotating calipers for exact minimum area bounding boxes
-- **Enhanced Viewer**: Automatic UOBB generation, improved naming conventions (e.g., `chair (object_id: 0-7-3)`), unified grouping
-- **Centralized Configuration**: Viewer parameters now in `data/configs/default.yaml`
-- **Better Documentation**: Detailed path resolution guide in AI_API.md
-
-See **[Changelog](docs/CHANGELOG.md)** for complete version history.
-
 ## Documentation
 
 - **[AI API](docs/AI_API.md)** - Python orchestration and automation
