@@ -6,6 +6,7 @@ import { SimpleMeshLayer } from '@deck.gl/mesh-layers';
 import { loadPly } from '../loaders/ply';
 import { loadMeshPly } from '../loaders/mesh';
 import type { UnifiedManifest, ManifestItem, LoadedPointCloud } from '../types';
+import { resolveCode } from '../utils/api';
 
 type Props = { manifest: UnifiedManifest };
 
@@ -65,6 +66,10 @@ export default function PointCloudView({ manifest }: Props) {
   const [globalPointSize, setGlobalPointSize] = useState<number>(4);
   const [uobbOpacity, setUobbOpacity] = useState<number>(0.2); // Default 20%
   const [picked, setPicked] = useState<{ itemId: string; index: number; attrs: Record<string, any> } | null>(null);
+  const [selectedCloudId, setSelectedCloudId] = useState<string | null>(null); // Track selected point cloud for highlighting
+  const [sourceFileInfo, setSourceFileInfo] = useState<any>(null); // Store resolved source file information
+  const [loadingSourceFile, setLoadingSourceFile] = useState(false);
+  const [sourceFileError, setSourceFileError] = useState<string | null>(null);
   const [layersError, setLayersError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
@@ -191,36 +196,56 @@ export default function PointCloudView({ manifest }: Props) {
             console.warn('[Layer] Skipping empty cloud:', entry.id);
             continue;
           }
-          const includeFileColor = entry.style?.colorMode !== 'constant';
+          // Check if this cloud is selected for highlighting
+          const isSelected = selectedCloudId === entry.id;
+          
+          // If selected, use highlight color; otherwise use original color strategy
+          const includeFileColor = !isSelected && entry.style?.colorMode !== 'constant';
           const constantColor = (entry.style?.color ?? [128, 128, 128]) as [number, number, number];
           const accessors = buildBinaryAccessors(c, { includeColor: includeFileColor });
+          
           console.log('[Layer] Creating PointCloudLayer', entry.id, { 
             pts: c.length, 
             hasPos: Boolean(accessors.getPosition), 
             hasColor: Boolean(accessors.getColor),
             posSize: accessors.getPosition?.size,
-            posValueLength: accessors.getPosition?.value?.length
+            posValueLength: accessors.getPosition?.value?.length,
+            isSelected
           });
           // Store entry metadata in a way that can be accessed during picking
           const layerData = {
             entry,
             cloud: c
           };
-          list.push(new PointCloudLayer({
+          
+          // Highlight color: bright yellow-gold for selection
+          const highlightColor = [255, 220, 0] as [number, number, number];
+          
+          // Build layer config
+          const layerConfig: any = {
             id: entry.id,
             data: {
               length: c.length,
               attributes: accessors,
             },
             coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-            pointSize: globalPointSize || (entry.type === 'shell' ? 2 : 3),
-            opacity: 0.8,
+            pointSize: isSelected ? (globalPointSize + 1) : globalPointSize || (entry.role === 'shell' ? 2 : 3),
+            opacity: 1.0,
             pickable: true,
-            autoHighlight: true,
+            autoHighlight: !isSelected, // Disable autoHighlight when already selected
             highlightColor: [255, 255, 0, 200],
             // Store metadata for picking
             _layerData: layerData
-          }));
+          };
+          
+          // When selected, override color with highlight color
+          if (isSelected) {
+            layerConfig.getColor = highlightColor;
+          } else if (!includeFileColor) {
+            layerConfig.getColor = constantColor;
+          }
+          
+          list.push(new PointCloudLayer(layerConfig));
           layerCount++;
         } else if (entry.kind === 'mesh') {
           if (!entry.mesh) continue;
@@ -273,7 +298,7 @@ export default function PointCloudView({ manifest }: Props) {
       setLayersError(String(e?.message || e));
       return [];
     }
-  }, [items, globalPointSize, uobbOpacity]);
+  }, [items, globalPointSize, uobbOpacity, selectedCloudId]);
 
   const view = useMemo(() => new OrbitView({ far: 100000 }), []);
 
@@ -331,10 +356,59 @@ export default function PointCloudView({ manifest }: Props) {
             
             if (layerData) {
               const { entry, cloud } = layerData;
+              
+              // Extract object_code from filename or id
+              // Expected formats: 
+              // - Object: "0-7-3_chair_cluster", "chair (object_id: 0-7-3)"
+              // - Room shell: "0-7-0_shell", "room_shell (room_id: 0-7)"
+              let objectCode: string | null = null;
+              const name = entry.name || entry.id;
+              
+              // Try patterns in order of specificity
+              // 1. Match "object_id: X-X-X" or "room_id: X-X" in name
+              const idMatch = name.match(/(?:object_id|room_id):\s*(\d+-\d+(?:-\d+)?)/);
+              if (idMatch) {
+                objectCode = idMatch[1];
+              }
+              // 2. Match "X-X-X_" at start (object code)
+              else {
+                const objMatch = name.match(/^(\d+-\d+-\d+)_/);
+                if (objMatch) {
+                  objectCode = objMatch[1];
+                }
+                // 3. Match "X-X-X_" after "cluster-" prefix
+                else {
+                  const clusterMatch = name.match(/cluster-(\d+-\d+-\d+)_/);
+                  if (clusterMatch) {
+                    objectCode = clusterMatch[1];
+                  }
+                  // 4. For shells: match "X-X-X_shell" format
+                  else {
+                    const shellMatch = name.match(/^(\d+-\d+)-\d+_shell/);
+                    if (shellMatch) {
+                      objectCode = shellMatch[1]; // room code like "0-7"
+                    }
+                    // 5. For shells in manifest: "shell-room_XXX" -> try to extract from ID
+                    else if (entry.role === 'shell' && entry.id) {
+                      const shellIdMatch = entry.id.match(/shell-(.+)/);
+                      if (shellIdMatch) {
+                        // Try to find room code from the manifest data or source URL
+                        const urlMatch = entry.source?.url?.match(/(\d+-\d+)/);
+                        if (urlMatch) {
+                          objectCode = urlMatch[1];
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              
               const attrs: Record<string, any> = {
                 name: entry.name || entry.id,
-                type: entry.type,
+                role: entry.role,
+                sourceUrl: entry.source?.url,
               };
+              if (objectCode) attrs.objectCode = objectCode;
               if (entry.group) attrs.group = entry.group;
               
               // Extract point_id and label if they exist
@@ -345,22 +419,32 @@ export default function PointCloudView({ manifest }: Props) {
                 attrs.label = cloud.attributes.labels[info.index];
               }
               
+              // Highlight the entire point cloud
+              setSelectedCloudId(entry.id);
+              
               setPicked({
                 itemId: entry.id,
                 index: info.index,
                 attrs
               });
-              console.log('[DeckGL] Set picked:', { itemId: entry.id, index: info.index, attrs });
+              console.log('[DeckGL] Selected cloud and set picked:', { 
+                cloudId: entry.id, 
+                objectCode, 
+                index: info.index, 
+                attrs 
+              });
             } else {
               // Fallback if no layerData
+              setSelectedCloudId(info.layer.id || null);
               setPicked({
                 itemId: info.layer.id || 'unknown',
                 index: info.index,
-                attrs: { name: info.layer.id || 'unknown', type: 'unknown' }
+                attrs: { name: info.layer.id || 'unknown', role: 'unknown' }
               });
             }
           } else {
-            console.log('[DeckGL] Clear picked (not picked or index < 0)');
+            console.log('[DeckGL] Clear selection (not picked or index < 0)');
+            setSelectedCloudId(null);
             setPicked(null);
           }
         }}
@@ -445,14 +529,244 @@ export default function PointCloudView({ manifest }: Props) {
           )}
         </div>
         <div style={{ fontWeight: 600, marginBottom: 6 }}>Inspector</div>
-        {!picked && <div style={{ color: '#666' }}>Click a point to inspect attributes.</div>}
+        {!picked && <div style={{ color: '#666', fontSize: 12 }}>Click a point to inspect and highlight its point cloud.</div>}
         {picked && (
           <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12 }}>
-            <div>item: {picked.attrs.name ?? picked.itemId}</div>
+            <div style={{ marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid #ddd' }}>
+              <strong>Selected Cloud:</strong>
+            </div>
+            <div>name: {picked.attrs.name ?? picked.itemId}</div>
+            {picked.attrs.objectCode && (
+              <div style={{ color: '#0066cc', fontWeight: 600 }}>
+                object_code: {picked.attrs.objectCode}
+              </div>
+            )}
+            {picked.attrs.role && <div>role: {picked.attrs.role}</div>}
             {picked.attrs.group && <div>group: {picked.attrs.group}</div>}
+            {picked.attrs.sourceUrl && (
+              <div style={{ wordBreak: 'break-all', fontSize: 11, color: '#555' }}>
+                file: {picked.attrs.sourceUrl}
+              </div>
+            )}
+            <div style={{ marginTop: 8, paddingTop: 4, borderTop: '1px solid #eee' }}>
+              <strong>Clicked Point:</strong>
+            </div>
+            <div>index: {picked.index}</div>
             {picked.attrs.point_id !== undefined && <div>point_id: {String(picked.attrs.point_id)}</div>}
             {picked.attrs.label !== undefined && <div>label: {String(picked.attrs.label)}</div>}
-            <div>index: {picked.index}</div>
+            
+            {/* Confirm Selection Button */}
+            <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #eee' }}>
+              <button 
+                onClick={async () => {
+                  const code = picked.attrs.objectCode;
+                  const role = picked.attrs.role;
+                  
+                  if (!code) {
+                    alert('无法获取对象代码。请选择一个有效的对象或房间。');
+                    return;
+                  }
+                  
+                  setLoadingSourceFile(true);
+                  setSourceFileError(null);
+                  setSourceFileInfo(null);
+                  
+                  try {
+                    // Call API to resolve source file paths
+                    const info = await resolveCode(code);
+                    
+                    // Build selection result JSON
+                    const selectionResult = {
+                      timestamp: new Date().toISOString(),
+                      selection: {
+                        code: code,
+                        type: role,
+                        name: picked.attrs.name,
+                        viewer_url: picked.attrs.sourceUrl,
+                        clicked_point: {
+                          index: picked.index,
+                          point_id: picked.attrs.point_id,
+                          label: picked.attrs.label
+                        }
+                      },
+                      source_files: info
+                    };
+                    
+                    setSourceFileInfo(selectionResult);
+                    
+                    // Output to console for debugging
+                    console.log('=== Object Confirmation Result ===');
+                    console.log(JSON.stringify(selectionResult, null, 2));
+                    console.log('===================================');
+                    
+                  } catch (err: any) {
+                    const errorMsg = err.message || String(err);
+                    setSourceFileError(errorMsg);
+                    console.error('[Object Confirmation Failed]', err);
+                    alert(`Confirmation failed: ${errorMsg}\n\nPlease ensure the API server is running (port 8090)`);
+                  } finally {
+                    setLoadingSourceFile(false);
+                  }
+                }}
+                disabled={!picked.attrs.objectCode || loadingSourceFile}
+                style={{ 
+                  width: '100%',
+                  padding: '8px 12px', 
+                  fontSize: 12, 
+                  fontWeight: 600,
+                  cursor: picked.attrs.objectCode && !loadingSourceFile ? 'pointer' : 'not-allowed',
+                  background: picked.attrs.objectCode && !loadingSourceFile ? '#28a745' : '#ccc',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  marginBottom: 6,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (picked.attrs.objectCode && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#218838';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (picked.attrs.objectCode && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#28a745';
+                  }
+                }}
+              >
+                {loadingSourceFile ? '⏳ Confirming...' : '✓ Confirm Object'}
+              </button>
+              
+              <button 
+                onClick={async () => {
+                  // If we already have the source file info, use it directly
+                  if (sourceFileInfo && sourceFileInfo.source_files.cluster_path) {
+                    const clusterPath = sourceFileInfo.source_files.cluster_path;
+                    const filename = clusterPath.split('/').pop() || 'object.ply';
+                    
+                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(clusterPath)}`;
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    a.click();
+                    return;
+                  } else if (sourceFileInfo && sourceFileInfo.source_files.shell_path) {
+                    const shellPath = sourceFileInfo.source_files.shell_path;
+                    const filename = shellPath.split('/').pop() || 'room_shell.ply';
+                    
+                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(shellPath)}`;
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    a.click();
+                    return;
+                  }
+                  
+                  // Otherwise, fetch the source file info first
+                  if (!picked.attrs.objectCode) {
+                    alert('No object code found');
+                    return;
+                  }
+                  
+                  setLoadingSourceFile(true);
+                  setSourceFileError(null);
+                  
+                  try {
+                    const info = await resolveCode(picked.attrs.objectCode);
+                    
+                    // Determine file path based on type
+                    let filePath: string | undefined;
+                    if ('cluster_path' in info) {
+                      filePath = info.cluster_path;
+                    } else if ('shell_path' in info) {
+                      filePath = info.shell_path;
+                    }
+                    
+                    if (!filePath) {
+                      alert('No source file found for this object');
+                      return;
+                    }
+                    
+                    const filename = filePath.split('/').pop() || 'object.ply';
+                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(filePath)}`;
+                    
+                    // Trigger download
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    a.click();
+                    
+                  } catch (err: any) {
+                    const errorMsg = err.message || String(err);
+                    alert(`Download failed: ${errorMsg}\n\nPlease ensure the API server is running (port 8090)`);
+                  } finally {
+                    setLoadingSourceFile(false);
+                  }
+                }}
+                disabled={!picked.attrs.objectCode || loadingSourceFile}
+                style={{ 
+                  width: '100%',
+                  padding: '8px 12px', 
+                  fontSize: 12, 
+                  fontWeight: 600,
+                  cursor: picked.attrs.objectCode && !loadingSourceFile ? 'pointer' : 'not-allowed',
+                  background: picked.attrs.objectCode && !loadingSourceFile ? '#2196f3' : '#ccc',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  marginBottom: 6,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (picked.attrs.objectCode && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#1976d2';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (picked.attrs.objectCode && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#2196f3';
+                  }
+                }}
+                title="Download the source PLY file from /output"
+              >
+                {loadingSourceFile ? '⏳ Downloading...' : '💾 Download Object'}
+              </button>
+              
+              <button 
+                onClick={() => {
+                  setSelectedCloudId(null);
+                  setPicked(null);
+                  setSourceFileInfo(null);
+                  setSourceFileError(null);
+                }}
+                style={{ 
+                  width: '100%',
+                  padding: '6px 8px', 
+                  fontSize: 11, 
+                  cursor: 'pointer',
+                  background: '#f0f0f0',
+                  color: '#666',
+                  border: '1px solid #ccc',
+                  borderRadius: 4
+                }}
+              >
+                Clear Selection
+              </button>
+            </div>
+            
+            {/* Error Display */}
+            {sourceFileError && (
+              <div style={{ 
+                marginTop: 8, 
+                padding: 8, 
+                background: '#fee', 
+                border: '1px solid #fcc', 
+                borderRadius: 4,
+                fontSize: 11,
+                color: '#c00'
+              }}>
+                <strong>Error:</strong> {sourceFileError}
+              </div>
+            )}
           </div>
         )}
       </div>

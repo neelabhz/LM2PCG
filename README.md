@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline
+# Indoor Point Cloud Pipeline   1.3.0-alpha.1
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 
@@ -108,22 +108,32 @@ python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
 
 ## Web Visualization
 
-Interactive 3D viewer with automated workflow. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
+Interactive 3D viewer with automated workflow and object selection. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
 
 ```bash
 cd web/pointcloud-viewer
 npm install
 
-# Visualize a room with one command
+# Visualize a room with one command (auto-starts servers)
 npm run visualize -- --mode room --room 0-7 --name room_007 --serve
 ```
 
 **4 Modes**: `room`, `clusters`, `multi-rooms`, `room-with-objects`  
-**Features**: 
+**Features** (v1.3.0-alpha.1): 
+- **Interactive Object Selection**: Click objects to highlight, confirm, and download source files
+- **Backend Integration**: REST API for AI_API.py operations (port 8090)
+- **One-Click Download**: Fetch original .ply files from `/output` directory
 - Per-object visibility toggles with semantic naming
-- Automatic UOBB generation using convex hull + rotating calipers (v1.2.1+)
+- Automatic UOBB generation using convex hull + rotating calipers
 - Multi-rooms mode with unified UOBB grouping
 - 10M+ points @ 60 FPS performance
+
+**Quick Server Start:**
+```bash
+# From web/pointcloud-viewer
+./start_dev.sh    # Start frontend + API servers
+./stop_dev.sh     # Stop both servers
+```
 
 ## Configuration
 

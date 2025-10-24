@@ -2,6 +2,111 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.3.0-alpha.1 / 2025-10-24
+
+### Added
+- **Interactive Object Selection System**
+  - Click-to-select objects in 3D viewer with visual highlight (yellow-gold color)
+  - Real-time object information display in Inspector panel
+  - Object code extraction supporting both 3-segment (object) and 2-segment (room) formats
+  - Smart pattern matching for object codes from multiple naming conventions
+
+- **Backend API Server (`scripts/api_server.py`)**
+  - HTTP REST API for path resolution and file access
+  - Endpoints:
+    - `GET /api/resolve-object?code=<object_code>` - Resolve object paths
+    - `GET /api/resolve-room?code=<room_code>` - Resolve room paths
+    - `GET /api/download-file?path=<file_path>` - Stream file downloads
+    - `GET /health` - Health check endpoint
+  - Integration with `ai_api.py`'s PathIndex system
+  - CORS support for development
+  - Security: Path validation to prevent directory traversal
+
+- **Source File Download Functionality**
+  - "Confirm Object" button: Query backend API for source file metadata
+  - "Download Object" button: Direct download of original .ply files from `/output`
+  - Automatic path resolution (tries `cluster_path` then `shell_path`)
+  - Server-side file streaming for large PLY files
+  - One-click workflow: auto-resolve and download in single action
+
+- **Development Automation**
+  - `start_dev.sh` / `stop_dev.sh` scripts in `web/pointcloud-viewer/`
+  - One-command server startup for both frontend (port 5173) and API (port 8090)
+  - Automatic server cleanup before restart in visualization pipeline
+  - Background process management with PID tracking
+  - Log files: `/tmp/api_server.log` and `/tmp/vite_server.log`
+
+- **Enhanced Visualization Pipeline**
+  - `--serve` flag in `prepare_visualization.mjs` now starts both servers
+  - Automatic old server termination before starting new instances
+  - Project root path detection for cross-directory API server access
+  - Complete workflow: data prep → server startup → browser access in one command
+
+### Changed
+- **UI Language**: All interface text converted to English
+  - Button labels: "Confirm Object", "Download Object", "Clear Selection"
+  - Status messages: "Confirming...", "Downloading...", "Object Confirmed"
+  - Error messages and console output in English
+  - Alert dialogs and tooltips in English
+
+- **Object Selection Workflow**
+  - Removed JSON preview display from UI
+  - Simplified to two primary actions: Confirm (backend sync) and Download (file retrieval)
+  - Console logging preserved for debugging (press F12)
+  - Independent button operation (no dependency between Confirm and Download)
+
+- **Download Button Behavior**
+  - Changed from manifest-based to API-based file access
+  - Downloads original files from `/output` instead of downsampled viewer files
+  - Smart resolution: automatically fetches path if not already confirmed
+  - Progress indication: Shows "⏳ Downloading..." during API calls
+
+### Fixed
+- **Path Resolution**: Corrected project root calculation in ESM modules
+  - Fixed: `__dirname/../..` → `__dirname/../../..` for viewer scripts
+  - Proper handling of `web/pointcloud-viewer/scripts/` directory structure
+  - API server path correctly resolved across different execution contexts
+
+- **TypeScript Type Safety**
+  - Fixed union type handling for `ObjectInfo | RoomInfo`
+  - Added proper type guards using `'cluster_path' in info` checks
+  - Eliminated compile errors in object selection logic
+
+### Technical Details
+
+**New Files:**
+- `scripts/api_server.py` - Backend HTTP server (254 lines)
+- `web/pointcloud-viewer/start_dev.sh` - Unified server startup script
+- `web/pointcloud-viewer/stop_dev.sh` - Server cleanup script
+- `web/pointcloud-viewer/scripts/start_servers.mjs` - Node.js server orchestration (unused, replaced by shell scripts)
+
+**Modified Files:**
+- `web/pointcloud-viewer/src/viewer/PointCloudView2.tsx` - Selection and download logic
+- `web/pointcloud-viewer/src/utils/api.ts` - API client functions
+- `web/pointcloud-viewer/scripts/prepare_visualization.mjs` - Auto server management
+- `web/pointcloud-viewer/package.json` - Added `dev:api` and `dev:all` scripts
+
+**API Response Format:**
+```json
+{
+  "success": true,
+  "data": {
+    "object_code": "0-7-12",
+    "class": "couch",
+    "cluster_path": "/absolute/path/to/0-7-12_couch_cluster.ply",
+    "uobb_path": "/absolute/path/to/0-7-12_couch_uobb.ply",
+    "mesh_path": "/absolute/path/to/0-7-12_couch_mesh.ply",
+    "csv_data": { /* CSV row fields */ }
+  }
+}
+```
+
+**Security Features:**
+- Path validation: Only allows downloads from project directory
+- CORS: Wildcard allowed for development (should restrict in production)
+- File streaming: Prevents memory overflow for large files (8KB chunks)
+- Error handling: Graceful degradation with user-friendly messages
+
 ## 1.2.1 / 2025-10-24
 
 ### Added

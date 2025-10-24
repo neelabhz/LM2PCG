@@ -145,6 +145,151 @@ npm run visualize -- \
 
 ---
 
+## Interactive Object Selection
+
+The viewer supports interactive object selection with backend integration for AI operations and file downloads.
+
+### Server Setup
+
+**Quick Start (Recommended):**
+```bash
+cd web/pointcloud-viewer
+./start_dev.sh
+# Frontend: http://localhost:5173/
+# API: http://localhost:8090/
+```
+
+**Stop Servers:**
+```bash
+./stop_dev.sh
+```
+
+**Or use automation pipeline:**
+```bash
+npm run visualize -- --mode room --room 0-7 --name room_007 --serve
+# Automatically starts both servers
+```
+
+### Selection Workflow
+
+1. **Click Object** → Point cloud highlights in yellow-gold
+2. **View Info** → Inspector panel shows object_code (e.g., `0-7-12`)
+3. **Confirm Object** → Queries backend API for source file paths
+4. **Download Object** → Downloads original .ply from `/output` directory
+5. **Clear Selection** → Deselect and choose another object
+
+### Object Code Format
+
+- **Object:** `<floor>-<room>-<object>` (e.g., `0-7-12`)
+- **Room:** `<floor>-<room>` (e.g., `0-7`)
+
+Extracted from:
+- Name pattern: `"couch (object_id: 0-7-12)"`
+- File pattern: `"0-7-12_couch_cluster.ply"`
+
+### JSON Output Structure
+
+**Object Selection:**
+```json
+{
+  "timestamp": "2025-10-24T09:00:00.000Z",
+  "selection": {
+    "code": "0-7-12",
+    "type": "object",
+    "name": "couch (object_id: 0-7-12)",
+    "viewer_url": "/data/room_007/clusters/0-7-12_couch_cluster.ply"
+  },
+  "source_files": {
+    "object_code": "0-7-12",
+    "class": "couch",
+    "cluster_path": "/path/to/output/.../0-7-12_couch_cluster.ply",
+    "uobb_path": "/path/to/output/.../0-7-12_couch_uobb.ply",
+    "mesh_path": "/path/to/output/.../0-7-12_couch_mesh.ply",
+    "csv_data": { /* Full CSV row */ }
+  }
+}
+```
+
+**Room Selection:**
+```json
+{
+  "timestamp": "2025-10-24T09:00:00.000Z",
+  "selection": {
+    "code": "0-7",
+    "type": "shell",
+    "name": "room_shell (room_id: 0-7)"
+  },
+  "source_files": {
+    "room_code": "0-7",
+    "shell_path": "/path/to/output/.../0-7-0_shell.ply",
+    "shell_uobb_path": "/path/to/output/.../0-7-0_shell_uobb.ply",
+    "clusters_dir": "/path/to/output/.../filtered_clusters"
+  }
+}
+```
+
+### Integration with AI_API.py
+
+Use selection results with AI operations:
+
+```python
+from scripts.ai_api import Dispatcher
+d = Dispatcher()
+
+# Reconstruct mesh for selected object
+result = d.op_RCN(object_code='0-7-12')
+
+# Calculate volume
+volume = d.op_VOL(object_code='0-7-12')
+
+# Color analysis for selected room
+result = d.op_CLR(room_code='0-7')
+```
+
+### API Endpoints
+
+Backend API (`http://localhost:8090`):
+
+- `GET /api/resolve-object?code=0-7-12` - Get object source files
+- `GET /api/resolve-room?code=0-7` - Get room source files  
+- `GET /api/download-file?path=<path>` - Stream file downloads
+- `GET /health` - Health check
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "data": {
+    "object_code": "0-7-12",
+    "cluster_path": "/absolute/path/to/cluster.ply",
+    "uobb_path": "/absolute/path/to/uobb.ply",
+    "csv_data": { /* Object metadata */ }
+  }
+}
+```
+
+### Troubleshooting
+
+**Buttons Disabled:**
+- Ensure manifest uses correct naming: `"class (object_id: X-X-X)"`
+- Regenerate manifest if needed
+
+**API Connection Failed:**
+```bash
+# Check server status
+curl http://localhost:8090/health
+
+# Restart server
+cd web/pointcloud-viewer
+./stop_dev.sh && ./start_dev.sh
+```
+
+**Object Not Found:**
+- Verify `/output` directory structure is complete
+- Restart API server to reload PathIndex
+
+---
+
 ## Automated Workflow
 
 ### Command Structure

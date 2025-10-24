@@ -205,7 +205,55 @@ async function cleanAllOutputs(outRoot) {
 // ==================== Server ====================
 
 async function startDevServer(port = 5173, manifestName) {
-  console.log(`\n[serve] Starting dev server on port ${port}...`);
+  console.log(`\n[serve] Stopping any existing servers...`);
+  
+  // Stop existing servers using stop_dev.sh
+  const stopScript = path.join(__dirname, '../stop_dev.sh');
+  try {
+    execSync(`bash ${stopScript}`, { stdio: 'inherit' });
+    console.log(`[serve] Previous servers stopped`);
+  } catch (e) {
+    console.log(`[serve] No previous servers to stop (or stop failed)`);
+  }
+  
+  // Wait a moment for ports to be released
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  console.log(`\n[serve] Starting both frontend and backend servers...`);
+  console.log(`[serve] Frontend: http://localhost:${port}/`);
+  console.log(`[serve] Backend API: http://localhost:8090/`);
+  
+  // Start API server first
+  // __dirname is .../web/pointcloud-viewer/scripts
+  // Go up 3 levels: scripts -> pointcloud-viewer -> web -> project_root
+  const projectRoot = path.resolve(__dirname, '../../..');
+  const apiServerPath = path.join(projectRoot, 'scripts/api_server.py');
+  
+  console.log(`[serve] Project root: ${projectRoot}`);
+  console.log(`[serve] API server path: ${apiServerPath}`);
+  
+  const apiServer = spawn('python3', [
+    apiServerPath,
+    '--port', '8090'
+  ], {
+    stdio: 'pipe',
+    cwd: projectRoot
+  });
+  
+  apiServer.stdout.on('data', (data) => {
+    const lines = data.toString().split('\n').filter(line => line.trim());
+    lines.forEach(line => console.log(`[API] ${line}`));
+  });
+  
+  apiServer.stderr.on('data', (data) => {
+    const lines = data.toString().split('\n').filter(line => line.trim());
+    lines.forEach(line => console.error(`[API ERROR] ${line}`));
+  });
+  
+  // Wait for API server to start
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Start Vite dev server
   const viteCmd = spawn('npm', ['run', 'dev', '--', '--port', String(port)], {
     stdio: 'inherit',
     cwd: path.join(__dirname, '..'),
@@ -215,13 +263,22 @@ async function startDevServer(port = 5173, manifestName) {
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   const url = `http://localhost:${port}/?manifest=/manifests/${manifestName}.json`;
-  console.log(`\n✅ Dev server started!`);
+  console.log(`\n✅ Both servers started!`);
   console.log(`🌐 Open in browser: ${url}\n`);
-  console.log(`Press Ctrl+C to stop the server.\n`);
+  console.log(`Press Ctrl+C to stop both servers.\n`);
+  
+  // Handle Ctrl+C to stop both servers
+  process.on('SIGINT', () => {
+    console.log('\n[shutdown] Stopping servers...');
+    apiServer.kill();
+    viteCmd.kill();
+    process.exit(0);
+  });
   
   // Keep the process running
   return new Promise((resolve, reject) => {
     viteCmd.on('close', (code) => {
+      apiServer.kill();
       if (code !== 0) {
         reject(new Error(`Dev server exited with code ${code}`));
       } else {
@@ -229,6 +286,12 @@ async function startDevServer(port = 5173, manifestName) {
       }
     });
     viteCmd.on('error', reject);
+    
+    apiServer.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`[API] Server exited with code ${code}`);
+      }
+    });
   });
 }
 

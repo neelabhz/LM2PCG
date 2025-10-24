@@ -4,6 +4,7 @@ export type ManifestItemStyle = {
   colorMode?: 'file' | 'constant';
   color?: [number, number, number];
   opacity?: number; // for mesh or overlay transparency (0..1)
+  wireframe?: boolean; // for mesh rendering
 };
 
 export type ManifestItemFilters = {

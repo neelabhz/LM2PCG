@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "python3 ../../scripts/api_server.py --port 8090",
+    "dev:all": "node scripts/start_servers.mjs",
     "build": "vite build",
     "preview": "vite preview --port 5174",
     "prepare:room": "node scripts/downsample_and_prepare_room.mjs --help",

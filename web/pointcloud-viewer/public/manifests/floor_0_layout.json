@@ -7,7 +7,7 @@
   "items": [
     {
       "id": "cluster-0-1-2_shell",
-      "name": "0-1-2_shell",
+      "name": "room_shell (room_id: 0-1)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -22,7 +22,7 @@
     },
     {
       "id": "uobb-0-1",
-      "name": "0-1 uobb",
+      "name": "room_uobb (room_id: 0-1)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -41,7 +41,7 @@
     },
     {
       "id": "cluster-0-2-3_shell",
-      "name": "0-2-3_shell",
+      "name": "room_shell (room_id: 0-2)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -56,7 +56,7 @@
     },
     {
       "id": "uobb-0-2",
-      "name": "0-2 uobb",
+      "name": "room_uobb (room_id: 0-2)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -75,7 +75,7 @@
     },
     {
       "id": "cluster-0-3-4_shell",
-      "name": "0-3-4_shell",
+      "name": "room_shell (room_id: 0-3)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -90,7 +90,7 @@
     },
     {
       "id": "uobb-0-3",
-      "name": "0-3 uobb",
+      "name": "room_uobb (room_id: 0-3)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -109,7 +109,7 @@
     },
     {
       "id": "cluster-0-4-0_shell",
-      "name": "0-4-0_shell",
+      "name": "room_shell (room_id: 0-4)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -124,7 +124,7 @@
     },
     {
       "id": "uobb-0-4",
-      "name": "0-4 uobb",
+      "name": "room_uobb (room_id: 0-4)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -143,7 +143,7 @@
     },
     {
       "id": "cluster-0-5-0_shell",
-      "name": "0-5-0_shell",
+      "name": "room_shell (room_id: 0-5)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -158,7 +158,7 @@
     },
     {
       "id": "uobb-0-5",
-      "name": "0-5 uobb",
+      "name": "room_uobb (room_id: 0-5)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -177,7 +177,7 @@
     },
     {
       "id": "cluster-0-6-0_shell",
-      "name": "0-6-0_shell",
+      "name": "room_shell (room_id: 0-6)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -192,7 +192,7 @@
     },
     {
       "id": "uobb-0-6",
-      "name": "0-6 uobb",
+      "name": "room_uobb (room_id: 0-6)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
@@ -211,7 +211,7 @@
     },
     {
       "id": "cluster-0-7-0_shell",
-      "name": "0-7-0_shell",
+      "name": "room_shell (room_id: 0-7)",
       "kind": "pointcloud",
       "role": "shell",
       "source": {
@@ -226,7 +226,7 @@
     },
     {
       "id": "uobb-0-7",
-      "name": "0-7 uobb",
+      "name": "room_uobb (room_id: 0-7)",
       "kind": "mesh",
       "role": "uobb",
       "source": {
