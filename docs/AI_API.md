@@ -1,5 +1,22 @@
 # AI API layer: path resolution + head-code dispatcher
 
+## Table of Contents
+- [Overview](#overview)
+- [Installation & Build](#installation--build)
+  - [First Run (Auto-build)](#first-run-auto-build)
+  - [Manual Build Options](#manual-build-options)
+- [Path Resolution](#path-resolution)
+- [Head Codes (Operations)](#head-codes-operations)
+  - [RCN - Reconstruct](#rcn---reconstruct)
+  - [VOL - Volume](#vol---volume)
+  - [ARE - Surface Area](#are---surface-area)
+  - [CLR - Dominant Color](#clr---dominant-color)
+  - [BBD - BBox Distance](#bbd---bbox-distance)
+- [JSON Output](#json-output)
+- [Examples](#examples)
+
+## Overview
+
 This document sketches a unified, AI-friendly control surface for the pipeline. It provides:
 
   - By `object_code` (e.g., `0-7-12`) → find cluster/uobb/mesh files and the room directory
