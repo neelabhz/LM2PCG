@@ -56,4 +56,4 @@ echo ""
 echo ""
 echo "📊 Running RMS (Room Manifest Summary)..."
 echo ""
-python3 "$SCRIPT_DIR/scripts/ai_api.py" RMS
+python3 "$SCRIPT_DIR/scripts/ai_api.py" RMS --visualize --vis-name all_rooms

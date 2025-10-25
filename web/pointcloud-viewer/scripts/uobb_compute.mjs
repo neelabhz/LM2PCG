@@ -183,20 +183,18 @@ export function computeUOBB(positions) {
   // Find minimum area rectangle using rotating calipers
   const rect = rotatingCalipers(hull);
   
+  // Compute center BEFORE swapping (use original rect values)
+  const cx_2d = (rect.min_u + rect.max_u) * 0.5;
+  const cy_2d = (rect.min_v + rect.max_v) * 0.5;
+  
   // Ensure L >= W (length along e1 >= width along e2)
   let yaw = rect.theta;
   let lx = rect.max_u - rect.min_u;
   let ly = rect.max_v - rect.min_v;
-  let min_u = rect.min_u;
-  let max_u = rect.max_u;
-  let min_v = rect.min_v;
-  let max_v = rect.max_v;
   
   if (ly > lx) {
     // Swap L and W, rotate by 90 degrees
     [lx, ly] = [ly, lx];
-    [min_u, min_v] = [min_v, min_u];
-    [max_u, max_v] = [max_v, max_u];
     yaw += Math.PI / 2;
   }
   
@@ -204,15 +202,17 @@ export function computeUOBB(positions) {
   while (yaw > Math.PI) yaw -= 2 * Math.PI;
   while (yaw < -Math.PI) yaw += 2 * Math.PI;
   
-  // Compute rotation matrix
+  // Compute rotation matrix for the ORIGINAL angle (rect.theta)
+  const cos_theta = Math.cos(rect.theta);
+  const sin_theta = Math.sin(rect.theta);
+  
+  // Transform center from rotated frame back to world frame
+  const cx = cos_theta * cx_2d - sin_theta * cy_2d;
+  const cy = sin_theta * cx_2d + cos_theta * cy_2d;
+  
+  // Compute final rotation matrix for yaw
   const cos_yaw = Math.cos(yaw);
   const sin_yaw = Math.sin(yaw);
-  const u = { x: cos_yaw, y: sin_yaw };
-  const v = { x: -sin_yaw, y: cos_yaw };
-  
-  // Compute center in XY
-  const cx = u.x * (min_u + max_u) * 0.5 + v.x * (min_v + max_v) * 0.5;
-  const cy = u.y * (min_u + max_u) * 0.5 + v.y * (min_v + max_v) * 0.5;
   
   // Height from z-range
   const lz = zmax - zmin;

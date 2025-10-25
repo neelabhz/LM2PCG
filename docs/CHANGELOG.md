@@ -2,6 +2,53 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.3.0-alpha.3 / 2025-10-25
+
+### Added
+- **VIS (Visualization) Operation**
+  - New `VIS` command for automated point cloud visualization
+  - Auto-detection of visualization mode from input codes (room, clusters, multi-rooms, room-with-objects)
+  - Automatic name generation based on mode and codes
+  - Default behavior: auto-clean all outputs and auto-start server
+  - Configuration reading from `data/configs/default.yaml`
+  - Support for `--no-clean-all` and `--no-serve` flags to override defaults
+
+- **RMS Visualization**
+  - Added `--visualize` flag to RMS operation
+  - Automatic multi-rooms visualization after manifest summary
+  - Optimized shell downsample ratio (0.01 = 1%) for performance
+
+- **API Server Enhancements**
+  - `/api/resolve-object` and `/api/resolve-room` now return relative paths
+  - `/api/download-file` supports both absolute and relative paths
+  - Improved path portability across different project locations
+
+### Changed
+- **Viewer Improvements**
+  - UOBB bounding boxes are no longer selectable (pickable=false)
+  - Fixed UOBB center calculation bug for rotated boxes
+  - Fixed manifest path handling (auto-prepend /manifests/)
+  - Server startup now uses independent start_dev.sh script
+
+- **Pipeline Processing**
+  - Fixed multi-rooms shell downsample ratio (now uses ratioShell parameter)
+  - Shell downsampling: 0.05 (normal), 0.01 (RMS multi-rooms)
+
+### Fixed
+- **Path Resolution**
+  - Fixed absolute path issue in download functionality
+  - API now returns relative paths for better portability
+  - Download handler resolves relative paths against project root
+
+- **UOBB Calculation**
+  - Fixed center position calculation for oriented bounding boxes
+  - Center now computed before L/W dimension swap
+
+### Documentation
+- Merged VIS_EXAMPLES.md and VIS_IMPLEMENTATION.md into AI_API.md
+- Updated POINTCLOUD_VIEWER.md with latest features
+- Added comprehensive VIS usage examples
+
 ## 1.3.0-alpha.2 / 2025-10-25
 
 ### Changed

@@ -270,8 +270,8 @@ export default function PointCloudView({ manifest }: Props) {
             getPosition: (d: any) => d.position,
             getColor: rgba as any,
             opacity: alpha,
-            pickable: true,
-            autoHighlight: true,
+            pickable: false, // UOBB meshes are not selectable
+            autoHighlight: false,
             coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
             wireframe: entry.style?.wireframe ?? false,
             // Fix rendering issues:

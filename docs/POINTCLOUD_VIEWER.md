@@ -101,14 +101,18 @@ web/pointcloud-viewer/
 - **UOBB Visualization**
   - Wireframe mesh rendering
   - Automatic detection from `*_uobb.ply` files
+  - **Non-pickable** (cannot be selected, clicks pass through to point clouds)
   - Toggle visibility per object
   - Customizable wireframe color
+  - **Fixed center calculation** (properly handles rotated bounding boxes)
 
 - **Interactive Controls**
   - Orbit camera with smooth transitions
   - Auto-calculated zoom based on scene bounds
   - Per-object visibility toggles
   - Smart title generation from filename patterns
+  - **Object selection and confirmation**
+  - **Download source PLY files** via API integration
 
 ### 3. Inspector UI
 
@@ -123,7 +127,9 @@ Inspector Panel Features:
     ├── Visibility checkbox
     ├── Smart title (e.g., "Couch 12" from "0-7-12_couch_cluster")
     ├── Point count display
-    └── UOBB toggle (if available)
+    ├── UOBB toggle (if available)
+    ├── Select/Confirm button (with backend integration)
+    └── Download button (with API server)
 ```
 
 ### 4. Performance Optimization
@@ -285,21 +291,26 @@ Backend API (`http://localhost:8090`):
 
 - `GET /api/resolve-object?code=0-7-12` - Get object source files
 - `GET /api/resolve-room?code=0-7` - Get room source files  
-- `GET /api/download-file?path=<path>` - Stream file downloads
+- `GET /api/download-file?path=<path>` - Stream file downloads (supports both absolute and relative paths)
 - `GET /health` - Health check
 
-**Response Format:**
+**Response Format (Updated to use relative paths):**
 ```json
 {
   "success": true,
   "data": {
     "object_code": "0-7-12",
-    "cluster_path": "/absolute/path/to/cluster.ply",
-    "uobb_path": "/absolute/path/to/uobb.ply",
+    "cluster_path": "output/floor_0/room_007/results/filtered_clusters/couch_007/0-7-12_couch_cluster.ply",
+    "uobb_path": "output/floor_0/room_007/results/filtered_clusters/couch_007/0-7-12_couch_uobb.ply",
     "csv_data": { /* Object metadata */ }
   }
 }
 ```
+
+**Key Features:**
+- **Relative Paths**: API returns paths relative to project root for better portability
+- **Dynamic Resolution**: Download endpoint resolves relative paths at runtime
+- **Security**: Paths are validated to ensure they're within project directory
 
 ### Troubleshooting
 
@@ -316,6 +327,12 @@ curl http://localhost:8090/health
 cd web/pointcloud-viewer
 ./stop_dev.sh && ./start_dev.sh
 ```
+
+**Download Failed:**
+- Server must be running (`./start_dev.sh`)
+- Check `/tmp/api_server.log` for errors
+- Verify file exists in output directory
+- Ensure API server has been restarted after code changes
 
 **Object Not Found:**
 - Verify `/output` directory structure is complete

@@ -12,7 +12,11 @@ export default function App() {
   const [manifest, setManifest] = useState<UnifiedManifest | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const manifestUrl = query.get('manifest') ?? `/manifests/room_007.json`;
+  // Build manifest URL: if query param doesn't start with /, prepend /manifests/
+  const manifestParam = query.get('manifest');
+  const manifestUrl = manifestParam
+    ? (manifestParam.startsWith('/') ? manifestParam : `/manifests/${manifestParam}`)
+    : `/manifests/room_007.json`;
 
   useEffect(() => {
     loadManifest(manifestUrl)

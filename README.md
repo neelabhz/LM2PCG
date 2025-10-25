@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline   1.3.0-alpha.1
+# Indoor Point Cloud Pipeline   1.3.0-alpha.3
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 
@@ -8,11 +8,11 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 
 - **Color-preserving PLY I/O**: Full XYZRGB support for clusters, UOBBs, and meshes
 - **FEC-style clustering**: Radius-based with smart filtering
-- **Upright bounding boxes**: Optimal OBBs using convex hull + rotating calipers (v1.2.1+)
+- **Upright bounding boxes**: Optimal OBBs using convex hull + rotating calipers
 - **Reconstruction**: Poisson with acceptance checks + AF fallback
 - **Analysis tools**: Volume, surface area, dominant color, bbox distance
-- **AI API**: Python orchestration layer ([docs/AI_API.md](docs/AI_API.md))
-- **Web viewer**: Interactive 3D visualization with automated UOBB generation ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
+- **AI API**: Python orchestration with auto-detection ([docs/AI_API.md](docs/AI_API.md))
+- **Web viewer**: Interactive 3D visualization with object selection and download ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
 
 ## Quick Start
 
@@ -112,44 +112,61 @@ Analyzes dominant colors using GMM and perceptual color distance (ΔE*76).
 
 ## AI API
 
-Python orchestration layer for automation. **[Complete guide →](docs/AI_API.md)**
+Python orchestration layer with intelligent auto-detection. **[Complete guide →](docs/AI_API.md)**
 
 ```bash
-python3 scripts/ai_api.py VOL --object 0-7-12 --json
-python3 scripts/ai_api.py ARE --object 0-7-12 --json
-python3 scripts/ai_api.py CLR --object 0-7-12 --json
-python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
-python3 scripts/ai_api.py RMS --json
+# Direct operations with auto-detection
+python3 scripts/ai_api.py VOL 0-7-12
+python3 scripts/ai_api.py ARE 0-7-12
+python3 scripts/ai_api.py CLR 0-7-12
+python3 scripts/ai_api.py BBD 1-7-2 1-7-3
+python3 scripts/ai_api.py RMS
+
+# Visualization (auto-clean-all, auto-serve)
+python3 scripts/ai_api.py VIS 0-7        # Visualize room
+python3 scripts/ai_api.py VIS 0-7-12     # Visualize single object
+python3 scripts/ai_api.py VIS 0-1,0-5,0-7 # Multi-rooms
 ```
 
-**Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary)
+**Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary), `VIS` (visualization)
+
+**Key Features (v1.4.0)**:
+- Auto-detection of rooms and objects
+- Relative path handling for portability
+- VIS auto-clean-all and auto-serve by default
+- Multi-rooms visualization support
 
 ## Web Visualization
 
-Interactive 3D viewer with automated workflow and object selection. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
+Interactive 3D viewer with object selection, confirmation, and download. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
 
 ```bash
 cd web/pointcloud-viewer
 npm install
 
-# Visualize a room with one command (auto-starts servers)
-npm run visualize -- --mode room --room 0-7 --name room_007 --serve
+# Quick start (via AI API - recommended)
+python3 ../../scripts/ai_api.py VIS 0-7    # Auto-clean, auto-serve
+
+# Or manual npm commands
+npm run visualize -- --mode room --room 0-7 --name room_007
 ```
 
 **4 Modes**: `room`, `clusters`, `multi-rooms`, `room-with-objects`  
-**Features** (v1.3.0-alpha.1): 
-- **Interactive Object Selection**: Click objects to highlight, confirm, and download source files
-- **Backend Integration**: REST API for AI_API.py operations (port 8090)
-- **One-Click Download**: Fetch original .ply files from `/output` directory
+
+**Key Features (v1.4.0)**: 
+- **Interactive Object Selection**: Click to highlight, confirm selections
+- **One-Click Download**: Download source PLY files via integrated API
+- **Non-pickable UOBB**: Bounding boxes don't block object selection
+- **Multi-rooms Support**: Unified visualization with 1% shell downsampling
+- **Auto-serve**: Servers start automatically with VIS command
 - Per-object visibility toggles with semantic naming
 - Automatic UOBB generation using convex hull + rotating calipers
-- Multi-rooms mode with unified UOBB grouping
 - 10M+ points @ 60 FPS performance
 
-**Quick Server Start:**
+**Server Management:**
 ```bash
 # From web/pointcloud-viewer
-./start_dev.sh    # Start frontend + API servers
+./start_dev.sh    # Start frontend (5173) + API server (8090)
 ./stop_dev.sh     # Stop both servers
 ```
 
@@ -171,9 +188,10 @@ Default settings in `data/configs/default.yaml`:
 - `color_sample_n` (300): RGB sample size
 - `color_deltaE_keep` (20.0): Perceptual color merge threshold
 
-**Viewer (v1.2.1+)**:
-- `viewer_downsample_ratio` (0.2): Cluster downsampling rate
-- `viewer_downsample_ratio_shell` (0.05): Shell downsampling rate
+**Viewer (v1.4.0)**:
+- `viewer_downsample_ratio` (0.2): Cluster downsampling rate (20%)
+- `viewer_downsample_ratio_shell` (0.05): Shell downsampling rate (5%)
+  - Note: RMS multi-rooms mode uses 1% (0.01) for performance
 - `viewer_point_size` (3): Default point size for rendering
 - `viewer_uobb_opacity` (0.3): UOBB transparency (0.0-1.0)
 - `viewer_uobb_color` ([30, 144, 255]): UOBB color (RGB)

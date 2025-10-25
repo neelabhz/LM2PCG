@@ -4,10 +4,26 @@ AI-facing API layer for local point-cloud pipeline control.
 
 Provides two main capabilities:
 1) Path resolution (by object_code, filename, or room code)
-2) Operation dispatch via 3-letter head codes (e.g., RCN, VOL)
+2) Operation dispatch via 3-letter head codes (e.g., RCN, VOL, VIS)
+
+Available operations:
+- RCN: Reconstruct mesh from cluster
+- VOL: Compute mesh volume
+- ARE: Compute mesh surface area
+- CLR: Analyze dominant color
+- BBD: Compute distance between two objects
+- RMS: Parse room manifest and summarize
+- VIS: Prepare and launch visualization (NEW)
+
+Visualization (VIS) modes:
+- room: Visualize entire room (shell + all clusters)
+- clusters: Visualize selected clusters only
+- multi-rooms: Visualize multiple room shells
+- room-with-objects: Room shell with selected objects
 
 Conventions assumed from the C++ pipeline:
 - Object code format: <floor_id>-<room_id>-<object_id> (e.g., 0-7-12)
+- Room code format: <floor_id>-<room_id> (e.g., 0-7)
 - Filenames: <object_code>_<class>_{cluster|uobb|mesh[,_possion|_af]}.ply
 - Room outputs: output/<site>/floor_<f>/room_<rrr>/
 - CSV path: output/.../floor_<f>/room_<rrr>/<room_dirname>.csv
@@ -79,6 +95,73 @@ def room_identifiers(room_dir: Path) -> Tuple[Optional[int], Optional[int]]:
         return extract_int(floor_name), extract_int(room_name)
     except Exception:
         return None, None
+
+
+def auto_detect_vis_mode(codes: List[str]) -> Tuple[str, List[str], List[str]]:
+    """
+    Auto-detect visualization mode based on input codes.
+    Returns: (mode, room_codes, object_codes)
+    
+    Logic:
+    - All codes match room pattern (X-Y) -> single room if 1, multi-rooms if >1
+    - All codes match object pattern (X-Y-Z) -> clusters
+    - Mix of both -> room-with-objects
+    """
+    room_codes = []
+    object_codes = []
+    
+    for code in codes:
+        code = code.strip()
+        if OBJ_RE.match(code):
+            object_codes.append(code)
+        elif ROOM_RE.match(code):
+            room_codes.append(code)
+        else:
+            raise ValueError(f"Invalid code '{code}'. Expected room code 'X-Y' or object code 'X-Y-Z'")
+    
+    # Determine mode
+    if room_codes and object_codes:
+        mode = "room-with-objects"
+    elif object_codes and not room_codes:
+        mode = "clusters"
+    elif room_codes and not object_codes:
+        mode = "room" if len(room_codes) == 1 else "multi-rooms"
+    else:
+        raise ValueError("No valid codes provided")
+    
+    return mode, room_codes, object_codes
+
+
+def generate_vis_name(mode: str, room_codes: List[str], object_codes: List[str]) -> str:
+    """
+    Generate a visualization name based on mode and codes.
+    
+    Examples:
+    - room: "room_0-7"
+    - multi-rooms: "multi_rooms_0-7_0-8"
+    - clusters: "clusters_0-7-12_0-7-15"
+    - room-with-objects: "room_0-7_with_objects"
+    """
+    if mode == "room":
+        return f"room_{room_codes[0].replace('-', '_')}"
+    elif mode == "multi-rooms":
+        # Limit to first few room codes to avoid overly long names
+        preview = "_".join(rc.replace("-", "_") for rc in room_codes[:3])
+        if len(room_codes) > 3:
+            preview += f"_plus{len(room_codes) - 3}"
+        return f"multi_rooms_{preview}"
+    elif mode == "clusters":
+        # Limit to first few object codes
+        preview = "_".join(oc.replace("-", "_") for oc in object_codes[:3])
+        if len(object_codes) > 3:
+            preview += f"_plus{len(object_codes) - 3}"
+        return f"clusters_{preview}"
+    elif mode == "room-with-objects":
+        # Use first room and count of objects
+        room_preview = room_codes[0].replace("-", "_") if room_codes else "unknown"
+        return f"room_{room_preview}_with_{len(object_codes)}_objects"
+    else:
+        return "visualization"
 
 
 # ------------------------------
@@ -523,11 +606,236 @@ class Dispatcher:
             raise RuntimeError("Failed to parse output from pcg_bbox.")
         return dist, vec  # type: ignore[return-value]
 
+    # --- Head code: VIS (visualization) ---
+    def op_VIS(self, mode: str, name: str,
+               room_codes: Optional[List[str]] = None,
+               object_codes: Optional[List[str]] = None,
+               ratio: Optional[float] = None,
+               ratio_shell: Optional[float] = None,
+               voxel: Optional[float] = None,
+               shell_no_color: Optional[bool] = None,
+               clean: bool = True,
+               clean_all: bool = False,
+               auto_serve: bool = False,
+               port: int = 5173) -> Dict[str, object]:
+        """Prepare and optionally launch visualization for rooms/objects.
+        
+        Modes:
+        - 'room': Visualize entire room (shell + all clusters)
+          Required: room_codes (single room code like '0-7')
+        - 'clusters': Visualize selected clusters only
+          Required: object_codes (list of object codes like ['0-7-12', '0-7-15'])
+        - 'multi-rooms': Visualize multiple room shells
+          Required: room_codes (list of room codes like ['0-7', '0-6'])
+        - 'room-with-objects': Room shell with selected objects
+          Required: room_codes (single), object_codes (list)
+        
+        Args:
+            mode: Visualization mode (room, clusters, multi-rooms, room-with-objects)
+            name: Output name for the visualization (used for data folder and manifest)
+            room_codes: List of room codes in format '<floor>-<room>' (e.g., ['0-7'])
+            object_codes: List of object codes in format '<floor>-<room>-<object>' (e.g., ['0-7-12'])
+            ratio: Downsample ratio for clusters (None = use config default)
+            ratio_shell: Downsample ratio for shell (None = use config default)
+            voxel: Optional voxel size for spatial sampling (None = use config default)
+            shell_no_color: Strip color from shell (None = use config default)
+            clean: Clean previous outputs before preparation
+            clean_all: Clean ALL previous outputs (not just same name)
+            auto_serve: Automatically start dev server after preparation
+            port: Dev server port (default 5173)
+        
+        Returns:
+            Dict with status, viewer_url, and details about prepared files
+        """
+        # Load defaults from config file if parameters not specified
+        # Use simple key-value parsing similar to C++ params.cpp
+        config_path = self.root / "data" / "configs" / "default.yaml"
+        config_defaults = {
+            'ratio': 0.2,
+            'ratio_shell': 0.05,
+            'voxel': None,
+            'shell_no_color': False,
+        }
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith('#'):
+                            continue
+                        # Parse key: value or key = value
+                        sep_pos = line.find(':')
+                        if sep_pos == -1:
+                            sep_pos = line.find('=')
+                        if sep_pos == -1:
+                            continue
+                        key = line[:sep_pos].strip()
+                        value = line[sep_pos + 1:].strip()
+                        # Remove inline comments
+                        comment_pos = value.find('#')
+                        if comment_pos != -1:
+                            value = value[:comment_pos].strip()
+                        
+                        # Parse viewer parameters
+                        if key == 'viewer_downsample_ratio':
+                            try:
+                                config_defaults['ratio'] = float(value)
+                            except ValueError:
+                                pass
+                        elif key == 'viewer_downsample_ratio_shell':
+                            try:
+                                config_defaults['ratio_shell'] = float(value)
+                            except ValueError:
+                                pass
+                        elif key == 'viewer_voxel_size':
+                            if value.lower() not in ('null', 'none', ''):
+                                try:
+                                    config_defaults['voxel'] = float(value)
+                                except ValueError:
+                                    pass
+                        elif key == 'viewer_shell_no_color':
+                            v = value.lower()
+                            config_defaults['shell_no_color'] = v in ('1', 'true', 'yes')
+            except Exception:
+                # If config parsing fails, use hardcoded defaults
+                pass
+        
+        # Apply defaults from config if not specified
+        if ratio is None:
+            ratio = config_defaults['ratio']
+        if ratio_shell is None:
+            ratio_shell = config_defaults['ratio_shell']
+        if voxel is None:
+            voxel = config_defaults['voxel']
+        if shell_no_color is None:
+            shell_no_color = config_defaults['shell_no_color']
+        
+        # Validate mode
+        valid_modes = ['room', 'clusters', 'multi-rooms', 'room-with-objects']
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid mode '{mode}'. Must be one of {valid_modes}.")
+        
+        # Validate required parameters per mode
+        if mode == 'room':
+            if not room_codes or len(room_codes) != 1:
+                raise ValueError("Mode 'room' requires exactly one room_code.")
+        elif mode == 'clusters':
+            if not object_codes or len(object_codes) == 0:
+                raise ValueError("Mode 'clusters' requires at least one object_code.")
+        elif mode == 'multi-rooms':
+            if not room_codes or len(room_codes) == 0:
+                raise ValueError("Mode 'multi-rooms' requires at least one room_code.")
+        elif mode == 'room-with-objects':
+            if not room_codes or len(room_codes) != 1:
+                raise ValueError("Mode 'room-with-objects' requires exactly one room_code.")
+            if not object_codes or len(object_codes) == 0:
+                raise ValueError("Mode 'room-with-objects' requires at least one object_code.")
+        
+        # Find viewer directory
+        viewer_dir = self.root / "web" / "pointcloud-viewer"
+        if not viewer_dir.exists():
+            raise FileNotFoundError(f"Viewer directory not found at {viewer_dir}.")
+        
+        script_path = viewer_dir / "scripts" / "prepare_visualization.mjs"
+        if not script_path.exists():
+            raise FileNotFoundError(f"Visualization script not found at {script_path}.")
+        
+        # Build command
+        cmd = ["node", str(script_path), "--mode", mode, "--name", name]
+        
+        # Add room codes
+        if room_codes:
+            if mode in ['room', 'room-with-objects']:
+                cmd.extend(["--room", room_codes[0]])
+            elif mode == 'multi-rooms':
+                cmd.extend(["--rooms", ",".join(room_codes)])
+        
+        # Add object codes
+        if object_codes:
+            cmd.extend(["--objects", ",".join(object_codes)])
+        
+        # Add optional parameters
+        cmd.extend(["--ratio", str(ratio)])
+        cmd.extend(["--ratioShell", str(ratio_shell)])
+        if voxel is not None:
+            cmd.extend(["--voxel", str(voxel)])
+        if shell_no_color:
+            cmd.append("--shellNoColor")
+        if not clean:
+            cmd.append("--no-clean")
+        if clean_all:
+            cmd.append("--clean-all")
+        # Don't pass --serve to prepare_visualization.mjs
+        # We'll start the server separately using start_dev.sh
+        
+        # Execute visualization preparation (data processing only)
+        try:
+            cwd_original = Path.cwd()
+            import os
+            os.chdir(str(viewer_dir))
+            
+            # Run data preparation synchronously
+            proc = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            out = proc.stdout
+            
+            # If auto_serve is True, start the dev server independently
+            if auto_serve:
+                start_script = viewer_dir / "start_dev.sh"
+                if not start_script.exists():
+                    raise RuntimeError(f"start_dev.sh not found at {start_script}")
+                
+                # Execute start_dev.sh in background using nohup to make it truly independent
+                subprocess.Popen(
+                    ['bash', str(start_script)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                    cwd=str(viewer_dir)
+                )
+                
+                out += f"\n🚀 Development servers starting in background...\n"
+                out += f"   Frontend: http://localhost:{port}\n"
+                out += f"   Backend API: http://localhost:8090\n"
+                out += f"   Logs: /tmp/vite_server.log, /tmp/api_server.log\n"
+                out += f"   To stop: bash {viewer_dir}/stop_dev.sh\n"
+            
+            os.chdir(str(cwd_original))
+            
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Visualization preparation failed:\n{e.stdout}")
+        except Exception as e:
+            raise RuntimeError(f"Visualization preparation error: {str(e)}")
+        
+        # Parse output for URL
+        viewer_url = f"http://localhost:{port}/?manifest={name}.json"
+        
+        # Build result
+        result: Dict[str, object] = {
+            "status": "success",
+            "mode": mode,
+            "name": name,
+            "viewer_url": viewer_url,
+            "output": out,
+        }
+        
+        if room_codes:
+            result["room_codes"] = room_codes
+        if object_codes:
+            result["object_codes"] = object_codes
+        
+        return result
+
     # --- Head code: RMS (Room Manifest Summary) ---
-    def op_RMS(self, site_name: Optional[str] = None) -> Dict[str, object]:
+    def op_RMS(self, site_name: Optional[str] = None, visualize: bool = False, 
+               vis_name: Optional[str] = None, auto_serve: bool = True, 
+               clean_all: bool = True) -> Dict[str, object]:
         """Parse all rooms_manifest.csv files in subdirectories and return summary of floors and rooms.
         Input: site_name (optional; if not provided, auto-detect from /output directory)
-        Returns: dict with total_floors, total_rooms, and list of room_codes
+               visualize: if True, also prepare visualization of all rooms (multi-rooms mode)
+               vis_name: output name for visualization (default: 'all_rooms')
+               auto_serve: if True, auto-start dev server after visualization (default: True)
+               clean_all: if True, clean all previous outputs before visualization (default: True)
+        Returns: dict with total_floors, total_rooms, list of room_codes, and optional viewer_url
         """
         # Auto-detect site if not provided
         if site_name is None:
@@ -612,7 +920,7 @@ class Dispatcher:
         rooms_info.sort(key=lambda x: (x['floor_id'], x['room_id']))
         room_codes = [r['room_code'] for r in rooms_info]
         
-        return {
+        result = {
             "site_name": site_name,
             "total_floors": len(floors_set),
             "total_rooms": len(rooms_info),
@@ -620,6 +928,27 @@ class Dispatcher:
             "rooms": rooms_info,
             "manifest_files": [str(p) for p in manifest_files]
         }
+        
+        # Optional: visualize all rooms
+        if visualize and room_codes:
+            if vis_name is None:
+                vis_name = f"all_rooms_{site_name}"
+            
+            vis_result = self.op_VIS(
+                mode="multi-rooms",
+                name=vis_name,
+                room_codes=room_codes,
+                ratio_shell=0.01,  # Force low shell downsample ratio (1%) for RMS multi-rooms performance
+                clean_all=clean_all,
+                auto_serve=auto_serve
+            )
+            result["visualization"] = {
+                "status": vis_result["status"],
+                "viewer_url": vis_result["viewer_url"],
+                "name": vis_result["name"]
+            }
+        
+        return result
 
     # ------------------------------
     # Utilities
@@ -757,9 +1086,30 @@ def _cli() -> int:
     p_bbd.add_argument("object_code_2")
     p_bbd.add_argument("--json", action="store_true")
 
+    # VIS (visualization)
+    p_vis = sub.add_parser("VIS", help="Prepare and launch visualization for rooms/objects")
+    p_vis.add_argument("codes", nargs="+", help="Room codes (e.g., '0-7') and/or object codes (e.g., '0-7-12')")
+    p_vis.add_argument("--mode", 
+                       choices=["room", "clusters", "multi-rooms", "room-with-objects"],
+                       help="Visualization mode (auto-detected if omitted)")
+    p_vis.add_argument("--name", help="Output name for visualization (auto-generated if omitted)")
+    p_vis.add_argument("--ratio", type=float, help="Downsample ratio for clusters (default: from config)")
+    p_vis.add_argument("--ratio-shell", type=float, help="Downsample ratio for shell (default: from config)")
+    p_vis.add_argument("--voxel", type=float, help="Voxel size for spatial sampling (default: from config)")
+    p_vis.add_argument("--shell-no-color", action="store_true", default=None, help="Strip color from shell (default: from config)")
+    p_vis.add_argument("--no-clean", action="store_true", help="Skip cleaning previous outputs (default: clean)")
+    p_vis.add_argument("--no-clean-all", action="store_true", help="Do NOT clean all previous outputs (default: clean all)")
+    p_vis.add_argument("--no-serve", action="store_true", help="Do NOT auto-start dev server (default: auto-start)")
+    p_vis.add_argument("--port", type=int, default=5173, help="Dev server port (default: 5173)")
+    p_vis.add_argument("--json", action="store_true")
+
     # RMS (Room Manifest Summary)
     p_rms = sub.add_parser("RMS", help="Parse rooms_manifest.csv and summarize floors/rooms")
     p_rms.add_argument("site_name", nargs="?", default=None, help="Site name (optional; auto-detected if omitted)")
+    p_rms.add_argument("--visualize", action="store_true", help="Visualize all rooms in multi-rooms mode")
+    p_rms.add_argument("--vis-name", help="Visualization output name (default: 'all_rooms_<site>')")
+    p_rms.add_argument("--no-serve", action="store_true", help="Do NOT auto-start dev server (default: auto-start)")
+    p_rms.add_argument("--no-clean-all", action="store_true", help="Do NOT clean all previous outputs (default: clean all)")
     p_rms.add_argument("--json", action="store_true")
 
     # check environment
@@ -916,8 +1266,73 @@ def _cli() -> int:
             print(f"vector_1_to_2: {vec[0]}, {vec[1]}, {vec[2]}")
             print(f"distance: {dist}")
         return 0
+    if args.cmd == "VIS":
+        # Auto-detect mode and parse codes
+        if args.mode:
+            # Manual mode specified
+            mode = args.mode
+            # Parse codes based on mode
+            room_codes = []
+            object_codes = []
+            for code in args.codes:
+                code = code.strip()
+                if OBJ_RE.match(code):
+                    object_codes.append(code)
+                elif ROOM_RE.match(code):
+                    room_codes.append(code)
+                else:
+                    print(f"Error: Invalid code '{code}'. Expected room code 'X-Y' or object code 'X-Y-Z'")
+                    return 2
+        else:
+            # Auto-detect mode from codes
+            try:
+                mode, room_codes, object_codes = auto_detect_vis_mode(args.codes)
+            except ValueError as e:
+                print(f"Error: {e}")
+                return 2
+        
+        # Generate name if not provided
+        name = args.name if args.name else generate_vis_name(mode, room_codes, object_codes)
+        
+        result = d.op_VIS(
+            mode=mode,
+            name=name,
+            room_codes=room_codes if room_codes else None,
+            object_codes=object_codes if object_codes else None,
+            ratio=args.ratio,
+            ratio_shell=args.ratio_shell,
+            voxel=args.voxel,
+            shell_no_color=args.shell_no_color,
+            clean=not args.no_clean,
+            clean_all=not args.no_clean_all,
+            auto_serve=not args.no_serve,
+            port=args.port
+        )
+        
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False))
+        else:
+            print(f"Status: {result['status']}")
+            print(f"Mode: {result['mode']}")
+            print(f"Name: {result['name']}")
+            print(f"Viewer URL: {result['viewer_url']}")
+            if 'room_codes' in result:
+                print(f"Rooms: {', '.join(result['room_codes'])}")
+            if 'object_codes' in result:
+                print(f"Objects: {', '.join(result['object_codes'])}")
+            if args.no_serve:
+                print("\nTo view, run:")
+                print(f"  cd web/pointcloud-viewer && npm run dev")
+                print(f"  Then open: {result['viewer_url']}")
+        return 0
     if args.cmd == "RMS":
-        result = d.op_RMS(args.site_name)
+        result = d.op_RMS(
+            site_name=args.site_name,
+            visualize=args.visualize,
+            vis_name=args.vis_name,
+            auto_serve=not args.no_serve,
+            clean_all=not args.no_clean_all
+        )
         if args.json:
             print(json.dumps(result, ensure_ascii=False))
         else:
@@ -927,6 +1342,15 @@ def _cli() -> int:
             print("Room codes:")
             for code in result['room_codes']:
                 print(f"  {code}")
+            
+            if 'visualization' in result:
+                print(f"\n✓ Visualization prepared: {result['visualization']['name']}")
+                print(f"  Viewer URL: {result['visualization']['viewer_url']}")
+                if args.no_serve:
+                    print("\n  To view, run:")
+                    print(f"    cd web/pointcloud-viewer && npm run dev")
+                else:
+                    print(f"\n🚀 Server starting automatically...")
         return 0
     if args.cmd == "check-env":
         info = d.env_status()

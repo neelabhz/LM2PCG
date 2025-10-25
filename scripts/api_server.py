@@ -110,6 +110,16 @@ class APIHandler(BaseHTTPRequestHandler):
             uobb_path = assets.uobbs[0] if assets.uobbs else None
             mesh_path = assets.meshes[0] if assets.meshes else None
             
+            # Convert paths to relative paths (relative to project root)
+            project_root = Path(__file__).parent.parent.resolve()
+            
+            def to_relative(p: Path) -> str:
+                try:
+                    return str(p.relative_to(project_root))
+                except ValueError:
+                    # If path is not relative to project root, return absolute
+                    return str(p)
+            
             # Try to find CSV data
             csv_files = self.dispatcher.index.find_csv(floor_id, room_id)
             csv_data = None
@@ -135,9 +145,9 @@ class APIHandler(BaseHTTPRequestHandler):
                     'room_id': room_id,
                     'object_id': object_id,
                     'class': csv_data.get('class') if csv_data else None,
-                    'cluster_path': str(cluster_path) if cluster_path else None,
-                    'uobb_path': str(uobb_path) if uobb_path else None,
-                    'mesh_path': str(mesh_path) if mesh_path else None,
+                    'cluster_path': to_relative(cluster_path) if cluster_path else None,
+                    'uobb_path': to_relative(uobb_path) if uobb_path else None,
+                    'mesh_path': to_relative(mesh_path) if mesh_path else None,
                     'room_dir': str(assets.room_dir) if assets.room_dir else None,
                     'csv_data': csv_data
                 }
@@ -184,6 +194,16 @@ class APIHandler(BaseHTTPRequestHandler):
                 if potential_clusters.exists():
                     clusters_dir = potential_clusters
             
+            # Convert paths to relative paths (relative to project root)
+            project_root = Path(__file__).parent.parent.resolve()
+            
+            def to_relative(p: Path) -> str:
+                try:
+                    return str(p.relative_to(project_root))
+                except ValueError:
+                    # If path is not relative to project root, return absolute
+                    return str(p)
+            
             # Build response
             response = {
                 'success': True,
@@ -191,10 +211,10 @@ class APIHandler(BaseHTTPRequestHandler):
                     'room_code': code,
                     'floor_id': floor_id,
                     'room_id': room_id,
-                    'csv_path': str(csv_path) if csv_path else None,
-                    'shell_path': str(shell_path) if shell_path else None,
-                    'shell_uobb_path': str(shell_uobb_path) if shell_uobb_path else None,
-                    'clusters_dir': str(clusters_dir) if clusters_dir else None
+                    'csv_path': to_relative(csv_path) if csv_path else None,
+                    'shell_path': to_relative(shell_path) if shell_path else None,
+                    'shell_uobb_path': to_relative(shell_uobb_path) if shell_uobb_path else None,
+                    'clusters_dir': to_relative(clusters_dir) if clusters_dir else None
                 }
             }
             
@@ -215,12 +235,17 @@ class APIHandler(BaseHTTPRequestHandler):
             return
         
         try:
-            file_path = Path(file_path_str)
-            
-            # Security check: ensure the file is within the project directory
+            # Get project root
             project_root = Path(__file__).parent.parent.resolve()
+            
+            # If path is relative, resolve it relative to project root
+            file_path = Path(file_path_str)
+            if not file_path.is_absolute():
+                file_path = project_root / file_path
+            
             file_path = file_path.resolve()
             
+            # Security check: ensure the file is within the project directory
             if not str(file_path).startswith(str(project_root)):
                 self._send_error(403, 'Access denied: file is outside project directory')
                 return

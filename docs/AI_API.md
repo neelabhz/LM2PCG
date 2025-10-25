@@ -23,6 +23,8 @@ An AI-friendly control surface for the LM2PCG pipeline. It resolves paths (by ob
   - [ARE — Surface Area](#are--surface-area)
   - [CLR — Dominant Color](#clr--dominant-color)
   - [BBD — BBox Distance (pair)](#bbd--bbox-distance-pair)
+  - [RMS — Room Manifest Summary](#rms--room-manifest-summary)
+  - [VIS — Visualization](#vis--visualization)
 - [Python API](#python-api)
 - [JSON output](#json-output)
 - [Related docs](#related-docs)
@@ -416,6 +418,251 @@ Errors:
 - Either object lacks a UOBB PLY
 - Tool output not parsable
 
+### RMS — Room Manifest Summary
+
+Parse all `rooms_manifest.csv` files and return statistics about floors and rooms.
+
+Usage:
+
+```bash
+# Auto-detect site from output directory
+python3 scripts/ai_api.py RMS --json
+
+# Specify site name explicitly
+python3 scripts/ai_api.py RMS "Full House" --json
+```
+
+Output:
+
+```json
+{
+  "site_name": "output",
+  "total_floors": 2,
+  "total_rooms": 10,
+  "room_codes": ["0-1", "0-2", "0-3", "0-6", "0-7", "1-1", "1-2", "1-3", "1-4", "1-5"],
+  "rooms": [
+    {
+      "floor_id": 0,
+      "room_id": 1,
+      "room_code": "0-1",
+      "room_type": "bedroom",
+      "source_manifest": "/abs/path/.../floor_0/rooms_manifest.csv"
+    },
+    ...
+  ],
+  "manifest_files": ["/abs/path/.../floor_0/rooms_manifest.csv", ...]
+}
+```
+
+**Use cases:**
+- Discover available rooms before visualization
+- Generate floor/room statistics for reports
+- Validate pipeline outputs across multiple floors
+
+### VIS — Visualization
+
+Prepare and optionally launch web-based visualization for rooms and objects. The VIS command features **automatic mode detection** and **name generation**, making it extremely easy to use.
+
+#### Quick Start
+
+```bash
+# Single room - auto-detects 'room' mode, auto-serves
+python3 scripts/ai_api.py VIS 0-7
+
+# Multiple rooms - auto-detects 'multi-rooms' mode
+python3 scripts/ai_api.py VIS 0-1 0-2 0-3
+
+# Specific objects - auto-detects 'clusters' mode
+python3 scripts/ai_api.py VIS 0-7-12 0-7-15
+
+# Room with selected objects - auto-detects 'room-with-objects' mode
+python3 scripts/ai_api.py VIS 0-7 0-7-12 0-7-15
+```
+
+**Default Behavior:**
+- ✅ Automatically cleans all previous visualization outputs
+- ✅ Automatically starts the development server
+- ✅ Auto-detects mode from input codes
+- ✅ Auto-generates descriptive names
+
+Use `--no-clean-all` to keep previous outputs or `--no-serve` to skip server startup.
+
+#### Configuration
+
+VIS reads default parameters from `data/configs/default.yaml`:
+
+```yaml
+# Viewer visualization parameters
+viewer_downsample_ratio: 0.2        # downsample ratio for cluster point clouds (0.0-1.0)
+viewer_downsample_ratio_shell: 0.05 # downsample ratio for shell/room point clouds (0.0-1.0)
+viewer_voxel_size: null             # optional: voxel size for spatial downsampling (in meters)
+viewer_shell_no_color: false        # if true, render shell in constant gray color
+```
+
+You can override these defaults with command-line arguments.
+
+#### Auto-Detection
+
+The VIS command automatically detects the visualization mode based on input codes:
+
+| Input Pattern | Detected Mode | Auto-Generated Name | Example |
+|--------------|---------------|---------------------|---------|
+| Single room code (`X-Y`) | `room` | `room_0_7` | `VIS 0-7` |
+| Multiple room codes | `multi-rooms` | `multi_rooms_0_1_0_2_0_3` | `VIS 0-1 0-2 0-3` |
+| Object codes only (`X-Y-Z`) | `clusters` | `clusters_0_7_12_0_7_15` | `VIS 0-7-12 0-7-15` |
+| Mix of rooms and objects | `room-with-objects` | `room_0_7_with_2_objects` | `VIS 0-7 0-7-12 0-7-15` |
+
+#### Usage
+
+```bash
+python3 scripts/ai_api.py VIS <codes>... \
+  [--mode <mode>] \
+  [--name <output_name>] \
+  [--ratio <float>] \
+  [--ratio-shell <float>] \
+  [--voxel <float>] \
+  [--shell-no-color] \
+  [--no-clean] \
+  [--no-clean-all] \
+  [--no-serve] \
+  [--port <int>] \
+  [--json]
+```
+
+**Positional Arguments:**
+- `codes`: Room codes (e.g., `0-7`) and/or object codes (e.g., `0-7-12`)
+  - Mode is auto-detected if `--mode` is not specified
+  - Name is auto-generated if `--name` is not specified
+
+**Modes (auto-detected or manual):**
+
+1. **`room`** — Visualize entire room (shell + all clusters)
+   - Input: Single room code (e.g., `0-7`)
+   - Automatically finds shell and all object clusters
+
+2. **`clusters`** — Visualize selected clusters only
+   - Input: Object codes only (e.g., `0-7-12 0-7-15`)
+   - No room context, just the specified objects
+
+3. **`multi-rooms`** — Visualize multiple room shells
+   - Input: Multiple room codes (e.g., `0-1 0-2 0-3`)
+   - Shell only, useful for floor layout overview
+
+4. **`room-with-objects`** — Room shell with selected objects
+   - Input: One room code + object codes (e.g., `0-7 0-7-12 0-7-15`)
+   - Combines room context with specific object highlights
+
+**Options:**
+- `--mode`: Manual mode specification (auto-detected if omitted)
+- `--name`: Custom output name (auto-generated if omitted)
+- `--ratio`: Downsample ratio for clusters (default from config: 0.2)
+- `--ratio-shell`: Downsample ratio for shell (default from config: 0.05)
+- `--voxel`: Optional voxel size for spatial sampling
+- `--shell-no-color`: Strip color from shell (gray rendering)
+- `--no-clean`: Skip cleaning same-name output (default: clean same-name)
+- `--no-clean-all`: Skip cleaning ALL outputs (default: clean all)
+- `--no-serve`: Don't auto-start dev server (default: auto-start)
+- `--port`: Dev server port (default: 5173)
+
+#### Examples
+
+**Simple room visualization:**
+```bash
+# Visualize room 0-7 (auto-detects room mode, auto-serves, auto-cleans)
+python3 scripts/ai_api.py VIS 0-7
+# Output name: room_0_7
+# Viewer URL: http://localhost:5173/?manifest=room_0_7.json
+```
+
+**Multiple rooms overview:**
+```bash
+# Floor layout with multiple rooms
+python3 scripts/ai_api.py VIS 0-1 0-2 0-3 0-6 0-7
+# Output name: multi_rooms_0_1_0_2_0_3_0_6_0_7
+```
+
+**Selected objects:**
+```bash
+# Visualize specific furniture items
+python3 scripts/ai_api.py VIS 0-7-12 0-7-15 0-7-3
+# Output name: clusters_0_7_12_0_7_15_0_7_3
+
+# With custom settings
+python3 scripts/ai_api.py VIS 0-7-12 --ratio 0.5 --name couch_detail
+```
+
+**Room with highlighted objects:**
+```bash
+# Room context with specific objects
+python3 scripts/ai_api.py VIS 0-7 0-7-12 0-7-15
+# Output name: room_0_7_with_2_objects
+```
+
+**Manual mode specification:**
+```bash
+# Explicitly specify mode and name
+python3 scripts/ai_api.py VIS 0-7 --mode room --name my_room
+```
+
+**Without server auto-start:**
+```bash
+# Prepare visualization without launching server
+python3 scripts/ai_api.py VIS 0-7 --no-serve
+# Then manually: cd web/pointcloud-viewer && npm run dev
+```
+
+**Output with `--json`:**
+
+```json
+{
+  "status": "success",
+  "mode": "room",
+  "name": "room_0_7",
+  "viewer_url": "http://localhost:5173/?manifest=room_0_7.json",
+  "room_codes": ["0-7"]
+}
+```
+
+#### Integration Details
+
+**Architecture:**
+```
+User Input (CLI/Python)
+    ↓
+ai_api.py::op_VIS()
+    ↓
+PathIndex (path resolution)
+    ↓
+prepare_visualization.mjs (Node.js)
+    ↓
+downsample_and_prepare_room.mjs
+    ↓
+Web Viewer (deck.gl)
+```
+
+**What VIS Does:**
+1. Auto-detects mode from input codes (or uses specified `--mode`)
+2. Auto-generates descriptive name (or uses specified `--name`)
+3. Resolves paths using PathIndex to find shells, clusters, UOBBs
+4. Cleans previous visualization outputs (configurable)
+5. Calls Node.js preparation script with resolved paths
+6. Downsamples PLY files for performant web rendering
+7. Generates manifest JSON for the viewer
+8. Auto-starts development server (configurable)
+
+**Output Location:**
+- Data files: `web/pointcloud-viewer/public/data/<name>/`
+- Manifest: `web/pointcloud-viewer/public/manifests/<name>.json`
+
+**Prerequisites:**
+- Node.js >= 18 installed
+- Viewer dependencies installed: `cd web/pointcloud-viewer && npm install`
+
+**Server Management:**
+- Start: `cd web/pointcloud-viewer && bash start_dev.sh`
+- Stop: `cd web/pointcloud-viewer && bash stop_dev.sh`
+- Logs: `/tmp/vite_server.log`, `/tmp/api_server.log`
+
 ## Python API
 
 ```python
@@ -434,6 +681,29 @@ mesh, vol, closed = d.op_VOL(object_code="0-7-12")
 mesh, area, closed = d.op_ARE(object_code="0-7-12")
 color = d.op_CLR(object_code="0-7-12")
 dist, vec = d.op_BBD("0-7-12", "0-7-14")
+
+# Room manifest summary
+manifest_summary = d.op_RMS()  # or op_RMS("Full House")
+
+# Visualization
+vis_result = d.op_VIS(
+    mode="room",
+    name="room_007",
+    room_codes=["0-7"],
+    ratio=0.2,
+    ratio_shell=0.05,
+    auto_serve=True,
+    port=5173
+)
+print(vis_result["viewer_url"])
+
+# Visualize selected objects
+vis_result = d.op_VIS(
+    mode="clusters",
+    name="furniture_items",
+    object_codes=["0-7-12", "0-7-15", "0-7-3"],
+    ratio=0.3
+)
 ```
 
 ## JSON output

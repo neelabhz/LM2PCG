@@ -481,12 +481,13 @@ async function handleMultiRoomsMode(args, config) {
   }
   
   // Process each shell as a separate "cluster" (shells are point clouds too)
-  // Note: Use config.ratio (not ratioShell) for multi-room visualization
+  // Note: In multi-rooms mode, shells are passed as clusters, so we need to use ratioShell
+  // to control their downsample ratio (not ratio, which is for regular clusters)
   // UOBB will be computed automatically for each shell by downsample_and_prepare_room.mjs
   await downsampleAndPrepare({
     name: config.name,
     clusters: allShells,
-    ratio: config.ratio, // Use user-specified ratio for all shells
+    ratio: config.ratioShell, // Use ratioShell for shell downsampling in multi-rooms mode
     voxel: config.voxel,
     shellNoColor: config.shellNoColor,
     outDir: config.outDir,
