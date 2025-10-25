@@ -221,7 +221,3 @@ output/<site>/<floor>/<room>/
 - **[AI API](docs/AI_API.md)** - Python orchestration and automation
 - **[Point Cloud Viewer](docs/POINTCLOUD_VIEWER.md)** - Web visualization system
 - **[Changelog](docs/CHANGELOG.md)** - Version history
-
-## License
-
-MIT License - see LICENSE file for details
