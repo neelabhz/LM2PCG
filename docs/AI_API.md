@@ -8,9 +8,7 @@ An AI-friendly control surface for the LM2PCG pipeline. It resolves paths (by ob
 - [Capabilities](#capabilities)
 - [Quick Start](#quick-start)
 - [Prerequisites](#prerequisites)
-- [Install & Build](#install--build)
-  - [Auto-build (first run)](#auto-build-first-run)
-  - [Manual build](#manual-build)
+- [Building the Project](#building-the-project)
 - [Conventions](#conventions)
   - [Object/Room codes](#objectroom-codes)
   - [Directory layout](#directory-layout)
@@ -37,10 +35,10 @@ The AI API is a lightweight Python layer at `scripts/ai_api.py` that:
 
 - Scans `output/` once to build indices (by filename, room, object_code)
 - Resolves inputs like `0-7-12_couch_cluster.ply`, `0-7`, or `0-7-12`
-- Dispatches short, memorable operations (RCN/VOL/ARE/CLR/BBD) to the C++ apps
-- Auto-builds missing executables into `build/` when needed
+- Dispatches short, memorable operations (RCN/VOL/ARE/CLR/BBD/RMS) to the C++ apps
+- Provides helpful error messages when executables are missing
 
-It’s designed for automation agents and local scripting. All results are printed to stdout and can be emitted as JSON.
+It's designed for automation agents and local scripting. All results are printed to stdout and can be emitted as JSON.
 
 ## Capabilities
 
@@ -48,7 +46,7 @@ It’s designed for automation agents and local scripting. All results are print
 - Room-level resolution: CSV + shell copies + shell UOBB
 - Object-level resolution: clusters, UOBBs, recon meshes, and inferred `room_dir`
 - Head code dispatcher that wraps `pcg_*` binaries with correct arguments
-- Auto-build with CMake on demand
+- Room manifest summary (RMS) operation for floor/room statistics
 
 ## Quick Start
 
@@ -59,6 +57,9 @@ python3 scripts/ai_api.py check-env --json
 # Resolve assets for one object
 python3 scripts/ai_api.py resolve-object 0-7-12 --json
 
+# Room manifest summary
+python3 scripts/ai_api.py RMS --json
+
 # Reconstruct (RCN) and compute area (ARE)
 python3 scripts/ai_api.py RCN --object 0-7-12 --json
 python3 scripts/ai_api.py ARE --object 0-7-12 --json
@@ -67,7 +68,7 @@ python3 scripts/ai_api.py ARE --object 0-7-12 --json
 python3 scripts/ai_api.py BBD 0-7-12 0-7-14 --json
 ```
 
-Tip: prefer `--json` for machine-readable integration.
+**Note**: The API no longer auto-builds. If executables are missing, you'll receive a helpful error message with build instructions. Use `./pcg.sh` or manually build the project first.
 
 ## Prerequisites
 
@@ -80,7 +81,36 @@ macOS hint (Homebrew):
 brew install cmake cgal boost eigen pcl
 ```
 
+```
+
 Linux: use your distro packages for the equivalents.
+
+## Building the Project
+
+The AI API requires C++ executables to be built beforehand. The easiest way is to use the wrapper script:
+
+```bash
+# Auto-builds if needed, then processes your data
+./pcg.sh "./data/rooms/Full House"
+```
+
+Alternatively, build manually:
+
+```bash
+mkdir -p build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . -j
+```
+
+Check executable availability:
+
+```bash
+python3 scripts/ai_api.py check-env --json
+```
+
+If executables are missing, the API will provide helpful error messages with build instructions.
+
+## Conventions
 
 ## Install & Build
 

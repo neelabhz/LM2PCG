@@ -224,51 +224,6 @@ class Dispatcher:
             "executables": bins,
         }
 
-    # ------------------------------
-    # Build helpers (optional): configure and build if executables missing
-    # ------------------------------
-    def _cmake_build(self, reconfigure: bool = False) -> None:
-        """Run cmake configure+build in build/ (Release). Safe to call multiple times."""
-        self.bin_dir.mkdir(parents=True, exist_ok=True)
-        cfg_cmd = [
-            "cmake",
-            "-DCMAKE_BUILD_TYPE=Release",
-            str(self.root),
-        ]
-        build_cmd = [
-            "cmake",
-            "--build",
-            str(self.bin_dir),
-            "-j",
-        ]
-        # If build dir not configured yet (no cache) or explicit reconfigure
-        need_cfg = reconfigure or not (self.bin_dir / "CMakeCache.txt").exists()
-        if need_cfg:
-            subprocess.run(cfg_cmd, cwd=self.bin_dir, check=True)
-        subprocess.run(build_cmd, check=True)
-
-    def _ensure_executables(self, tools: List[str]) -> None:
-        """Ensure the given executables exist; if not, attempt to build.
-        tools: e.g., ["pcg_reconstruct", "pcg_volume", "pcg_area", "pcg_color", "pcg_bbox", "pcg_room"]
-        """
-        missing = [t for t in tools if not (self.bin_dir / t).exists()]
-        if not missing:
-            return
-        # Try a configure+build; if still missing, raise with a hint
-        try:
-            self._cmake_build(reconfigure=not (self.bin_dir / "CMakeCache.txt").exists())
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(
-                "Auto-build failed. Ensure dependencies (CMake, PCL, CGAL) are installed.\n"
-                f"Command returned {e.returncode}. Check logs above."
-            )
-        still_missing = [t for t in tools if not (self.bin_dir / t).exists()]
-        if still_missing:
-            raise FileNotFoundError(
-                "Missing executables after build: " + ", ".join(still_missing) +
-                " — ensure CGAL is installed for reconstruct/volume/area."
-            )
-
     # --- Head code: RCN (reconstruction) ---
     def op_RCN(self, object_code: Optional[str] = None, filename: Optional[str] = None,
                only_substring: Optional[str] = None) -> Path:
@@ -305,9 +260,12 @@ class Dispatcher:
             raise RuntimeError(f"Cannot infer room directory for '{cluster_path}'.")
 
         # Call pcg_reconstruct <cluster_ply> <room_dir>
-        # Ensure binary exists (auto-build if necessary)
-        self._ensure_executables(["pcg_reconstruct"])
         exe = self.bin_dir / "pcg_reconstruct"
+        if not exe.exists():
+            raise FileNotFoundError(
+                f"pcg_reconstruct not found at {exe}. Please build the project first:\n"
+                "  cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+            )
         self._run([str(exe), str(cluster_path), str(room_dir)])
 
         # Find the generated mesh path after reconstruction. New naming includes method suffix.
@@ -364,8 +322,12 @@ class Dispatcher:
         if mesh_path is None:
             raise RuntimeError("Internal error: mesh_path is None after resolution.")
 
-        self._ensure_executables(["pcg_volume"])  # CGAL required
         exe = self.bin_dir / "pcg_volume"
+        if not exe.exists():
+            raise FileNotFoundError(
+                f"pcg_volume not found at {exe}. Please build the project first (CGAL required):\n"
+                "  cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+            )
         # Run and parse output
         out = self._run([str(exe), str(mesh_path)])
         # Try JSON first
@@ -423,9 +385,13 @@ class Dispatcher:
                 if not matches:
                     raise FileNotFoundError(f"No file named '{filename}' under '{self.out_root}'.")
                 target = self._choose_one(matches)
-        # Ensure the executable exists; auto-build if missing (consistent with other ops)
-        self._ensure_executables(["pcg_color"])
+        # Check if executable exists
         exe = self.bin_dir / "pcg_color"
+        if not exe.exists():
+            raise FileNotFoundError(
+                f"pcg_color not found at {exe}. Please build the project first:\n"
+                "  cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+            )
         out = self._run([str(exe), str(target)])
 
         # Prefer JSON
@@ -491,8 +457,12 @@ class Dispatcher:
             else:
                 raise ValueError("ARE expects a mesh PLY, or a cluster with auto_reconstruct=True.")
 
-        self._ensure_executables(["pcg_area"])  # CGAL required
         exe = self.bin_dir / "pcg_area"
+        if not exe.exists():
+            raise FileNotFoundError(
+                f"pcg_area not found at {exe}. Please build the project first (CGAL required):\n"
+                "  cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+            )
         out = self._run([str(exe), str(mesh_path)])
         j = self._try_parse_json(out)
         if j and "area" in j:
@@ -522,8 +492,12 @@ class Dispatcher:
             raise FileNotFoundError(f"No UOBB for object_code '{object_code_2}'.")
         u1 = self._choose_one(assets1.uobbs)
         u2 = self._choose_one(assets2.uobbs)
-        self._ensure_executables(["pcg_bbox"]) 
         exe = self.bin_dir / "pcg_bbox"
+        if not exe.exists():
+            raise FileNotFoundError(
+                f"pcg_bbox not found at {exe}. Please build the project first:\n"
+                "  cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j"
+            )
         out = self._run([str(exe), str(u1), str(u2)])
         # Try JSON
         j = self._try_parse_json(out)
@@ -548,6 +522,104 @@ class Dispatcher:
         if dist is None:
             raise RuntimeError("Failed to parse output from pcg_bbox.")
         return dist, vec  # type: ignore[return-value]
+
+    # --- Head code: RMS (Room Manifest Summary) ---
+    def op_RMS(self, site_name: Optional[str] = None) -> Dict[str, object]:
+        """Parse all rooms_manifest.csv files in subdirectories and return summary of floors and rooms.
+        Input: site_name (optional; if not provided, auto-detect from /output directory)
+        Returns: dict with total_floors, total_rooms, and list of room_codes
+        """
+        # Auto-detect site if not provided
+        if site_name is None:
+            if not self.out_root.exists():
+                raise FileNotFoundError(f"Output directory '{self.out_root}' does not exist.")
+            
+            # Check if rooms_manifest.csv exists directly under floor_X directories in output root
+            manifest_files = []
+            for item in self.out_root.iterdir():
+                if item.is_dir() and item.name.startswith("floor_"):
+                    manifest_path = item / "rooms_manifest.csv"
+                    if manifest_path.exists():
+                        manifest_files.append(manifest_path)
+            
+            # If found manifests directly under floor_X, use output root as site_dir
+            if manifest_files:
+                site_dir = self.out_root
+                site_name = "output"
+            else:
+                # Otherwise, look for the old structure: output/site_name/floor_X
+                candidates = []
+                for item in self.out_root.iterdir():
+                    if item.is_dir():
+                        # Check if any subdirectory contains rooms_manifest.csv
+                        has_manifest = False
+                        for subitem in item.iterdir():
+                            if subitem.is_dir() and (subitem / "rooms_manifest.csv").exists():
+                                has_manifest = True
+                                break
+                        if has_manifest:
+                            candidates.append(item)
+                if not candidates:
+                    raise FileNotFoundError(f"No rooms_manifest.csv found in any subdirectory structure under '{self.out_root}'.")
+                site_dir = candidates[0]
+                site_name = site_dir.name
+        else:
+            site_dir = self.out_root / site_name
+        
+        if not site_dir.exists():
+            raise FileNotFoundError(f"Site directory '{site_dir}' does not exist.")
+        
+        # Find all rooms_manifest.csv files in subdirectories
+        manifest_files = []
+        for subdir in site_dir.iterdir():
+            if subdir.is_dir():
+                manifest_path = subdir / "rooms_manifest.csv"
+                if manifest_path.exists():
+                    manifest_files.append(manifest_path)
+        
+        if not manifest_files:
+            raise FileNotFoundError(f"No rooms_manifest.csv found in any subdirectory of '{site_dir}'.")
+        
+        import csv
+        rooms_info = []
+        floors_set = set()
+        
+        # Read and combine all manifest files
+        for manifest_path in manifest_files:
+            with open(manifest_path, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        # Strip whitespace from keys and values
+                        row = {k.strip(): v.strip() for k, v in row.items()}
+                        room_id = int(row['room_id'])
+                        floor_id = int(row['floor_id'])
+                        floors_set.add(floor_id)
+                        # Room code format: <floor_id>-<room_id> (e.g., '0-7')
+                        room_code = f"{floor_id}-{room_id}"
+                        rooms_info.append({
+                            "floor_id": floor_id,
+                            "room_id": room_id,
+                            "room_code": room_code,
+                            "room_type": row.get('room_type', 'unknown'),
+                            "source_manifest": str(manifest_path)
+                        })
+                    except (ValueError, KeyError) as e:
+                        # Skip malformed rows
+                        continue
+        
+        # Sort room codes for consistent output
+        rooms_info.sort(key=lambda x: (x['floor_id'], x['room_id']))
+        room_codes = [r['room_code'] for r in rooms_info]
+        
+        return {
+            "site_name": site_name,
+            "total_floors": len(floors_set),
+            "total_rooms": len(rooms_info),
+            "room_codes": room_codes,
+            "rooms": rooms_info,
+            "manifest_files": [str(p) for p in manifest_files]
+        }
 
     # ------------------------------
     # Utilities
@@ -685,13 +757,14 @@ def _cli() -> int:
     p_bbd.add_argument("object_code_2")
     p_bbd.add_argument("--json", action="store_true")
 
+    # RMS (Room Manifest Summary)
+    p_rms = sub.add_parser("RMS", help="Parse rooms_manifest.csv and summarize floors/rooms")
+    p_rms.add_argument("site_name", nargs="?", default=None, help="Site name (optional; auto-detected if omitted)")
+    p_rms.add_argument("--json", action="store_true")
+
     # check environment
     p_chk = sub.add_parser("check-env", help="Show availability of required executables")
     p_chk.add_argument("--json", action="store_true")
-
-    # build (optional): configure and build missing executables
-    p_build = sub.add_parser("BUILD", help="Configure and build C++ apps (auto-run when needed)")
-    p_build.add_argument("--reconfigure", action="store_true", help="Force cmake reconfigure before build")
 
     args = parser.parse_args()
     d = Dispatcher()
@@ -843,6 +916,18 @@ def _cli() -> int:
             print(f"vector_1_to_2: {vec[0]}, {vec[1]}, {vec[2]}")
             print(f"distance: {dist}")
         return 0
+    if args.cmd == "RMS":
+        result = d.op_RMS(args.site_name)
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False))
+        else:
+            print(f"Site: {result['site_name']}")
+            print(f"Total floors: {result['total_floors']}")
+            print(f"Total rooms: {result['total_rooms']}")
+            print("Room codes:")
+            for code in result['room_codes']:
+                print(f"  {code}")
+        return 0
     if args.cmd == "check-env":
         info = d.env_status()
         if args.json:
@@ -854,14 +939,6 @@ def _cli() -> int:
             print("executables:")
             for k, v in info["executables"].items():
                 print(f"  {k}: {'yes' if v else 'no'}")
-        return 0
-    if args.cmd == "BUILD":
-        try:
-            d._cmake_build(reconfigure=args.reconfigure)
-        except subprocess.CalledProcessError as e:
-            print(f"Build failed with exit code {e.returncode}")
-            return e.returncode
-        print("Build completed")
         return 0
     return 2
 

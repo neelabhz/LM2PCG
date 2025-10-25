@@ -2,6 +2,60 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.3.0-alpha.2 / 2025-10-25
+
+### Changed
+- **Output Structure Simplification**
+  - `pcg_room` now outputs directly to `./output/floor_X/room_XXX/` (removed site name subdirectory)
+  - Fixed output path to `./output/` with automatic clearing before each run
+  - Removed support for processing single room directories (now requires full site structure)
+  - Updated CLI: `pcg_room <input_dir> [radius] [min_cluster_size]` (removed output_dir parameter)
+
+- **Manifest File Handling**
+  - Automatic copying of `rooms_manifest.csv` from input to output directories
+  - Copies manifest files to each `output/floor_X/` directory during processing
+
+- **Wrapper Script (`pcg.sh`)**
+  - Simplified to only accept `<input_path>` parameter
+  - Auto-build functionality if `pcg_room` executable is missing
+  - Automatically runs RMS (Room Manifest Summary) after `pcg_room` completes
+  - JSON output for immediate room statistics
+
+- **AI API (`scripts/ai_api.py`)**
+  - **Removed auto-build functionality** - now provides helpful error messages with build instructions
+  - Updated `op_RMS` to support new flat directory structure (`output/floor_X/` instead of `output/site/floor_X/`)
+  - Improved directory structure detection with fallback to legacy structure for backward compatibility
+  - Enhanced error messages for missing executables
+
+### Added
+- **RMS Operation Enhancement**
+  - Automatic execution in `pcg.sh` workflow
+  - Support for both new flat structure and legacy nested structure
+  - Auto-detection of manifest files in `floor_X` directories
+
+### Documentation
+- **README.md Updates**
+  - Added "Quick Start with Wrapper Script" section
+  - Updated `pcg_room` usage examples
+  - Clarified output structure and auto-clear behavior
+  - Added RMS operation to operations list
+  - Noted removal of auto-build from AI API
+
+- **AI_API.md Updates**
+  - Removed "Auto-build (first run)" section
+  - Renamed "Install & Build" to "Building the Project"
+  - Added recommendation to use `./pcg.sh` wrapper script
+  - Updated quick start examples with RMS operation
+  - Clarified that executables must be built beforehand
+
+- **Removed BUILD_AND_RUN.md**
+  - Content merged into README.md
+  - Deprecated in favor of integrated documentation
+
+### Fixed
+- `op_RMS` manifest file detection for new output structure
+- Path resolution in `ai_api.py` to work with flat directory layout
+
 ## 1.3.0-alpha.1 / 2025-10-24
 
 ### Added

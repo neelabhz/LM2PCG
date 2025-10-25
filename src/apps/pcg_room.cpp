@@ -384,13 +384,24 @@ static void process_one_room(const fs::path& room_in,
 }
 
 int main(int argc, char** argv) {
-    if (argc < 3) {
-        std::cerr << "Usage: pcg_room <input_root_dir> <output_root_dir> [radius] [min_cluster_size]\n";
+    if (argc < 2) {
+        std::cerr << "Usage: pcg_room <input_root_dir> [radius] [min_cluster_size]\n";
+        std::cerr << "Output will be automatically placed in ./output (cleared before processing)\n";
         return 1;
     }
 
     fs::path input_root = argv[1];
-    fs::path output_root = argv[2];
+    fs::path output_root = "output"; // Fixed output directory
+    
+    // Clear output directory before processing
+    std::error_code clear_ec;
+    if (fs::exists(output_root, clear_ec)) {
+        std::cout << "Clearing existing output directory: " << output_root << "\n";
+        fs::remove_all(output_root, clear_ec);
+        if (clear_ec) {
+            std::cerr << "Warning: Failed to clear output directory: " << clear_ec.message() << "\n";
+        }
+    }
 
     // Load params from config file if present
     pcg::ParamsConfig cfg; // defaults
@@ -406,25 +417,37 @@ int main(int argc, char** argv) {
     }
     pcg::load_params_from_file(cfg_path.string(), cfg, &cfgErr);
 
-    // CLI overrides
-    double radius = (argc >= 4) ? std::stod(argv[3]) : cfg.radius;
-    int min_cluster = (argc >= 5) ? std::stoi(argv[4]) : cfg.min_cluster_size;
+    // CLI overrides (note: argv indices shifted by 1 since output_root is now fixed)
+    double radius = (argc >= 3) ? std::stod(argv[2]) : cfg.radius;
+    int min_cluster = (argc >= 4) ? std::stoi(argv[3]) : cfg.min_cluster_size;
     const int max_neighbors = cfg.max_neighbors;
 
     std::error_code ec;
     fs::create_directories(output_root, ec);
 
-    // Case A: input_root is a leaf room folder (contains .ply files)
-    if (has_any_ply(input_root)) {
-        process_one_room(input_root, output_root, cfg, radius, min_cluster, max_neighbors);
-        return 0;
-    }
-
-    // Case B: input_root contains floors -> rooms
+    // Process input_root containing floors -> rooms
     size_t rooms_processed = 0;
     for (auto& floor_entry : fs::directory_iterator(input_root)) {
         if (!floor_entry.is_directory()) continue;
         const fs::path floor_dir = floor_entry.path();
+        
+        // Copy rooms_manifest.csv from floor directory if it exists
+        const fs::path manifest_src = floor_dir / "rooms_manifest.csv";
+        if (fs::exists(manifest_src)) {
+            const fs::path manifest_dst = output_root / floor_dir.filename() / "rooms_manifest.csv";
+            std::error_code copy_ec;
+            fs::create_directories(manifest_dst.parent_path(), copy_ec);
+            copy_ec.clear();
+            fs::copy_file(manifest_src, manifest_dst, fs::copy_options::overwrite_existing, copy_ec);
+            if (copy_ec) {
+                std::cerr << "Warning: Failed to copy " << manifest_src << " to " << manifest_dst 
+                          << ": " << copy_ec.message() << "\n";
+            } else {
+                std::cout << "Copied manifest: " << manifest_src.filename() << " -> " 
+                          << manifest_dst.parent_path() << "\n";
+            }
+        }
+        
         for (auto& room_entry : fs::directory_iterator(floor_dir)) {
             if (!room_entry.is_directory()) continue;
             const fs::path room_dir = room_entry.path();

@@ -34,11 +34,29 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j
 ```
 
-### Basic Usage
+### Quick Start with Wrapper Script (Recommended)
+
+Use `pcg.sh` for automated building and execution:
+
+```bash
+# Auto-builds if needed, then processes the dataset
+./pcg.sh "./data/rooms/Full House"
+```
+
+**Features**:
+- Auto-build on first run or when executable is missing
+- Fixed output to `./output/` (auto-cleared before each run)
+- Automatic RMS (Room Manifest Summary) generation after processing
+- Copies `rooms_manifest.csv` to output directories
+
+### Manual Usage
 
 ```bash
 # Process a room (clustering + UOBB + CSV)
-./build/pcg_room "data/rooms/Full House" "output/Full House"
+./build/pcg_room "./data/rooms/Full House"
+
+# Note: Output is now fixed to ./output/ and is auto-cleared before each run
+# Room processing no longer accepts single room directories
 
 # Reconstruct clusters to meshes
 ./build/pcg_reconstruct "output/Full House" "output/Full House"
@@ -52,9 +70,9 @@ cmake --build . -j
 
 ### 1. pcg_room - Clustering and Processing
 ```bash
-./build/pcg_room <input_dir> <output_dir> [radius] [min_cluster_size]
+./build/pcg_room <input_dir> [radius] [min_cluster_size]
 ```
-Process entire sites or individual rooms. Outputs colored cluster PLYs, UOBBs, and CSV summaries.
+Process entire sites with floor/room structure. Output is fixed to `./output/` (auto-cleared). Outputs colored cluster PLYs, UOBBs, and CSV summaries.
 
 ### 2. pcg_reconstruct - Mesh Generation
 ```bash
@@ -97,14 +115,14 @@ Analyzes dominant colors using GMM and perceptual color distance (ΔE*76).
 Python orchestration layer for automation. **[Complete guide →](docs/AI_API.md)**
 
 ```bash
-# Auto-builds on first run
 python3 scripts/ai_api.py VOL --object 0-7-12 --json
 python3 scripts/ai_api.py ARE --object 0-7-12 --json
 python3 scripts/ai_api.py CLR --object 0-7-12 --json
 python3 scripts/ai_api.py BBD 1-7-2 1-7-3 --json
+python3 scripts/ai_api.py RMS --json
 ```
 
-**Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance)
+**Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary)
 
 ## Web Visualization
 
