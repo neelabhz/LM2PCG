@@ -153,7 +153,7 @@ npm run visualize -- --mode room --room 0-7 --name room_007
 
 **4 Modes**: `room`, `clusters`, `multi-rooms`, `room-with-objects`  
 
-**Key Features (v1.4.0)**: 
+**Key Features**: 
 - **Interactive Object Selection**: Click to highlight, confirm selections
 - **One-Click Download**: Download source PLY files via integrated API
 - **Non-pickable UOBB**: Bounding boxes don't block object selection
@@ -188,7 +188,7 @@ Default settings in `data/configs/default.yaml`:
 - `color_sample_n` (300): RGB sample size
 - `color_deltaE_keep` (20.0): Perceptual color merge threshold
 
-**Viewer (v1.4.0)**:
+**Viewer**:
 - `viewer_downsample_ratio` (0.2): Cluster downsampling rate (20%)
 - `viewer_downsample_ratio_shell` (0.05): Shell downsampling rate (5%)
   - Note: RMS multi-rooms mode uses 1% (0.01) for performance
