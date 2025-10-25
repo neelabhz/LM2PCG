@@ -130,7 +130,7 @@ python3 scripts/ai_api.py VIS 0-1,0-5,0-7 # Multi-rooms
 
 **Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary), `VIS` (visualization)
 
-**Key Features (v1.4.0)**:
+**Key Features**:
 - Auto-detection of rooms and objects
 - Relative path handling for portability
 - VIS auto-clean-all and auto-serve by default
