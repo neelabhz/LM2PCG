@@ -65,9 +65,10 @@ export default function PointCloudView({ manifest }: Props) {
   const [viewState, setViewState] = useState<any>(INITIAL_VIEW_STATE);
   const [globalPointSize, setGlobalPointSize] = useState<number>(4);
   const [uobbOpacity, setUobbOpacity] = useState<number>(0.2); // Default 20%
-  const [picked, setPicked] = useState<{ itemId: string; index: number; attrs: Record<string, any> } | null>(null);
-  const [selectedCloudId, setSelectedCloudId] = useState<string | null>(null); // Track selected point cloud for highlighting
-  const [sourceFileInfo, setSourceFileInfo] = useState<any>(null); // Store resolved source file information
+  // Multi-select support: store array of picked items
+  const [pickedItems, setPickedItems] = useState<Array<{ itemId: string; index: number; attrs: Record<string, any> }>>([]);
+  const [selectedCloudIds, setSelectedCloudIds] = useState<Set<string>>(new Set()); // Track selected point clouds for highlighting
+  const [sourceFileInfos, setSourceFileInfos] = useState<any[]>([]); // Store resolved source file information for all selected items
   const [loadingSourceFile, setLoadingSourceFile] = useState(false);
   const [sourceFileError, setSourceFileError] = useState<string | null>(null);
   const [layersError, setLayersError] = useState<string | null>(null);
@@ -197,7 +198,7 @@ export default function PointCloudView({ manifest }: Props) {
             continue;
           }
           // Check if this cloud is selected for highlighting
-          const isSelected = selectedCloudId === entry.id;
+          const isSelected = selectedCloudIds.has(entry.id);
           
           // If selected, use highlight color; otherwise use original color strategy
           const includeFileColor = !isSelected && entry.style?.colorMode !== 'constant';
@@ -298,7 +299,7 @@ export default function PointCloudView({ manifest }: Props) {
       setLayersError(String(e?.message || e));
       return [];
     }
-  }, [items, globalPointSize, uobbOpacity, selectedCloudId]);
+  }, [items, globalPointSize, uobbOpacity, selectedCloudIds]);
 
   const view = useMemo(() => new OrbitView({ far: 100000 }), []);
 
@@ -341,7 +342,7 @@ export default function PointCloudView({ manifest }: Props) {
         onViewStateChange={(e: any) => setViewState(e.viewState)}
         layers={readyLayers}
         style={{ position: 'absolute', inset: '0' }}
-        onClick={(info: any) => {
+        onClick={(info: any, event: any) => {
           console.log('[DeckGL] onClick info:', {
             picked: info.picked,
             index: info.index,
@@ -350,6 +351,7 @@ export default function PointCloudView({ manifest }: Props) {
             object: info.object
           });
           
+          // Accumulative selection mode: always add to selection unless clicking on already selected item
           if (info.picked && info.index >= 0 && info.layer) {
             const layerData = (info.layer.props as any)?._layerData;
             console.log('[DeckGL] layerData:', layerData);
@@ -419,33 +421,53 @@ export default function PointCloudView({ manifest }: Props) {
                 attrs.label = cloud.attributes.labels[info.index];
               }
               
-              // Highlight the entire point cloud
-              setSelectedCloudId(entry.id);
-              
-              setPicked({
+              const pickedItem = {
                 itemId: entry.id,
                 index: info.index,
                 attrs
-              });
-              console.log('[DeckGL] Selected cloud and set picked:', { 
-                cloudId: entry.id, 
-                objectCode, 
-                index: info.index, 
-                attrs 
-              });
+              };
+              
+              // Accumulative selection: toggle if already selected, otherwise add to selection
+              const isAlreadySelected = selectedCloudIds.has(entry.id);
+              if (isAlreadySelected) {
+                // Deselect: remove from selection
+                const newSelected = new Set(selectedCloudIds);
+                newSelected.delete(entry.id);
+                setSelectedCloudIds(newSelected);
+                setPickedItems(pickedItems.filter(p => p.itemId !== entry.id));
+                console.log('[DeckGL] Deselected cloud:', entry.id);
+              } else {
+                // Add to selection
+                const newSelected = new Set(selectedCloudIds);
+                newSelected.add(entry.id);
+                setSelectedCloudIds(newSelected);
+                setPickedItems([...pickedItems, pickedItem]);
+                console.log('[DeckGL] Added cloud to selection:', entry.id);
+              }
             } else {
               // Fallback if no layerData
-              setSelectedCloudId(info.layer.id || null);
-              setPicked({
+              const pickedItem = {
                 itemId: info.layer.id || 'unknown',
                 index: info.index,
                 attrs: { name: info.layer.id || 'unknown', role: 'unknown' }
-              });
+              };
+              
+              const isAlreadySelected = selectedCloudIds.has(info.layer.id);
+              if (isAlreadySelected) {
+                const newSelected = new Set(selectedCloudIds);
+                newSelected.delete(info.layer.id);
+                setSelectedCloudIds(newSelected);
+                setPickedItems(pickedItems.filter(p => p.itemId !== info.layer.id));
+              } else {
+                const newSelected = new Set(selectedCloudIds);
+                newSelected.add(info.layer.id);
+                setSelectedCloudIds(newSelected);
+                setPickedItems([...pickedItems, pickedItem]);
+              }
             }
           } else {
-            console.log('[DeckGL] Clear selection (not picked or index < 0)');
-            setSelectedCloudId(null);
-            setPicked(null);
+            // Clicking on empty space - do nothing (keep selection)
+            console.log('[DeckGL] Clicked empty space - keeping current selection');
           }
         }}
         onWebGLInitialized={(gl: any) => {
@@ -529,227 +551,317 @@ export default function PointCloudView({ manifest }: Props) {
           )}
         </div>
         <div style={{ fontWeight: 600, marginBottom: 6 }}>Inspector</div>
-        {!picked && <div style={{ color: '#666', fontSize: 12 }}>Click a point to inspect and highlight its point cloud.</div>}
-        {picked && (
+        {pickedItems.length === 0 && (
+          <div style={{ color: '#666', fontSize: 12 }}>
+            Click objects to add to selection. Click selected object again to remove.
+          </div>
+        )}
+        {pickedItems.length > 0 && (
           <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12 }}>
-            <div style={{ marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid #ddd' }}>
-              <strong>Selected Cloud:</strong>
-            </div>
-            <div>name: {picked.attrs.name ?? picked.itemId}</div>
-            {picked.attrs.objectCode && (
-              <div style={{ color: '#0066cc', fontWeight: 600 }}>
-                object_code: {picked.attrs.objectCode}
-              </div>
-            )}
-            {picked.attrs.role && <div>role: {picked.attrs.role}</div>}
-            {picked.attrs.group && <div>group: {picked.attrs.group}</div>}
-            {picked.attrs.sourceUrl && (
-              <div style={{ wordBreak: 'break-all', fontSize: 11, color: '#555' }}>
-                file: {picked.attrs.sourceUrl}
-              </div>
-            )}
-            <div style={{ marginTop: 8, paddingTop: 4, borderTop: '1px solid #eee' }}>
-              <strong>Clicked Point:</strong>
-            </div>
-            <div>index: {picked.index}</div>
-            {picked.attrs.point_id !== undefined && <div>point_id: {String(picked.attrs.point_id)}</div>}
-            {picked.attrs.label !== undefined && <div>label: {String(picked.attrs.label)}</div>}
-            
-            {/* Confirm Selection Button */}
-            <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #eee' }}>
-              <button 
-                onClick={async () => {
-                  const code = picked.attrs.objectCode;
-                  const role = picked.attrs.role;
-                  
-                  if (!code) {
-                    alert('无法获取对象代码。请选择一个有效的对象或房间。');
-                    return;
-                  }
-                  
-                  setLoadingSourceFile(true);
-                  setSourceFileError(null);
-                  setSourceFileInfo(null);
-                  
-                  try {
-                    // Call API to resolve source file paths
-                    const info = await resolveCode(code);
-                    
-                    // Build selection result JSON
-                    const selectionResult = {
-                      timestamp: new Date().toISOString(),
-                      selection: {
-                        code: code,
-                        type: role,
-                        name: picked.attrs.name,
-                        viewer_url: picked.attrs.sourceUrl,
-                        clicked_point: {
-                          index: picked.index,
-                          point_id: picked.attrs.point_id,
-                          label: picked.attrs.label
-                        }
-                      },
-                      source_files: info
-                    };
-                    
-                    setSourceFileInfo(selectionResult);
-                    
-                    // Output to console for debugging
-                    console.log('=== Object Confirmation Result ===');
-                    console.log(JSON.stringify(selectionResult, null, 2));
-                    console.log('===================================');
-                    
-                  } catch (err: any) {
-                    const errorMsg = err.message || String(err);
-                    setSourceFileError(errorMsg);
-                    console.error('[Object Confirmation Failed]', err);
-                    alert(`Confirmation failed: ${errorMsg}\n\nPlease ensure the API server is running (port 8090)`);
-                  } finally {
-                    setLoadingSourceFile(false);
-                  }
-                }}
-                disabled={!picked.attrs.objectCode || loadingSourceFile}
-                style={{ 
-                  width: '100%',
-                  padding: '8px 12px', 
-                  fontSize: 12, 
-                  fontWeight: 600,
-                  cursor: picked.attrs.objectCode && !loadingSourceFile ? 'pointer' : 'not-allowed',
-                  background: picked.attrs.objectCode && !loadingSourceFile ? '#28a745' : '#ccc',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  marginBottom: 6,
-                  transition: 'background 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (picked.attrs.objectCode && !loadingSourceFile) {
-                    e.currentTarget.style.background = '#218838';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (picked.attrs.objectCode && !loadingSourceFile) {
-                    e.currentTarget.style.background = '#28a745';
-                  }
-                }}
-              >
-                {loadingSourceFile ? '⏳ Confirming...' : '✓ Confirm Object'}
-              </button>
-              
-              <button 
-                onClick={async () => {
-                  // If we already have the source file info, use it directly
-                  if (sourceFileInfo && sourceFileInfo.source_files.cluster_path) {
-                    const clusterPath = sourceFileInfo.source_files.cluster_path;
-                    const filename = clusterPath.split('/').pop() || 'object.ply';
-                    
-                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(clusterPath)}`;
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = filename;
-                    a.click();
-                    return;
-                  } else if (sourceFileInfo && sourceFileInfo.source_files.shell_path) {
-                    const shellPath = sourceFileInfo.source_files.shell_path;
-                    const filename = shellPath.split('/').pop() || 'room_shell.ply';
-                    
-                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(shellPath)}`;
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = filename;
-                    a.click();
-                    return;
-                  }
-                  
-                  // Otherwise, fetch the source file info first
-                  if (!picked.attrs.objectCode) {
-                    alert('No object code found');
-                    return;
-                  }
-                  
-                  setLoadingSourceFile(true);
-                  setSourceFileError(null);
-                  
-                  try {
-                    const info = await resolveCode(picked.attrs.objectCode);
-                    
-                    // Determine file path based on type
-                    let filePath: string | undefined;
-                    if ('cluster_path' in info) {
-                      filePath = info.cluster_path;
-                    } else if ('shell_path' in info) {
-                      filePath = info.shell_path;
-                    }
-                    
-                    if (!filePath) {
-                      alert('No source file found for this object');
-                      return;
-                    }
-                    
-                    const filename = filePath.split('/').pop() || 'object.ply';
-                    const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(filePath)}`;
-                    
-                    // Trigger download
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = filename;
-                    a.click();
-                    
-                  } catch (err: any) {
-                    const errorMsg = err.message || String(err);
-                    alert(`Download failed: ${errorMsg}\n\nPlease ensure the API server is running (port 8090)`);
-                  } finally {
-                    setLoadingSourceFile(false);
-                  }
-                }}
-                disabled={!picked.attrs.objectCode || loadingSourceFile}
-                style={{ 
-                  width: '100%',
-                  padding: '8px 12px', 
-                  fontSize: 12, 
-                  fontWeight: 600,
-                  cursor: picked.attrs.objectCode && !loadingSourceFile ? 'pointer' : 'not-allowed',
-                  background: picked.attrs.objectCode && !loadingSourceFile ? '#2196f3' : '#ccc',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  marginBottom: 6,
-                  transition: 'background 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (picked.attrs.objectCode && !loadingSourceFile) {
-                    e.currentTarget.style.background = '#1976d2';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (picked.attrs.objectCode && !loadingSourceFile) {
-                    e.currentTarget.style.background = '#2196f3';
-                  }
-                }}
-                title="Download the source PLY file from /output"
-              >
-                {loadingSourceFile ? '⏳ Downloading...' : '💾 Download Object'}
-              </button>
-              
+            <div style={{ marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong>Selected ({pickedItems.length})</strong>
               <button 
                 onClick={() => {
-                  setSelectedCloudId(null);
-                  setPicked(null);
-                  setSourceFileInfo(null);
+                  setSelectedCloudIds(new Set());
+                  setPickedItems([]);
+                  setSourceFileInfos([]);
                   setSourceFileError(null);
                 }}
                 style={{ 
-                  width: '100%',
-                  padding: '6px 8px', 
-                  fontSize: 11, 
+                  padding: '2px 6px', 
+                  fontSize: 10, 
                   cursor: 'pointer',
                   background: '#f0f0f0',
                   color: '#666',
                   border: '1px solid #ccc',
-                  borderRadius: 4
+                  borderRadius: 3
                 }}
               >
-                Clear Selection
+                Clear All
+              </button>
+            </div>
+            
+            {/* List of selected items */}
+            <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 8 }}>
+              {pickedItems.map((picked, idx) => (
+                <div key={picked.itemId} style={{ 
+                  padding: '6px 8px', 
+                  marginBottom: 4, 
+                  background: '#f8f8f8', 
+                  borderRadius: 4,
+                  border: '1px solid #e0e0e0'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 4 }}>
+                    <div style={{ fontWeight: 600, fontSize: 11, flex: 1 }}>
+                      {picked.attrs.name ?? picked.itemId}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newSelected = new Set(selectedCloudIds);
+                        newSelected.delete(picked.itemId);
+                        setSelectedCloudIds(newSelected);
+                        setPickedItems(pickedItems.filter(p => p.itemId !== picked.itemId));
+                        setSourceFileInfos(sourceFileInfos.filter((_, i) => i !== idx));
+                      }}
+                      style={{ 
+                        padding: '1px 4px', 
+                        fontSize: 9, 
+                        cursor: 'pointer',
+                        background: '#fff',
+                        color: '#999',
+                        border: '1px solid #ccc',
+                        borderRadius: 2,
+                        marginLeft: 4
+                      }}
+                      title="Remove from selection"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {picked.attrs.objectCode && (
+                    <div style={{ color: '#0066cc', fontWeight: 600, fontSize: 11 }}>
+                      {picked.attrs.objectCode}
+                    </div>
+                  )}
+                  {picked.attrs.role && <div style={{ fontSize: 10, color: '#666' }}>{picked.attrs.role}</div>}
+                </div>
+              ))}
+            </div>
+            
+            {/* Batch Actions */}
+            <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #eee' }}>
+              <button 
+                onClick={async () => {
+                  // Check if all selected items have object codes
+                  const itemsWithCodes = pickedItems.filter(p => p.attrs.objectCode);
+                  if (itemsWithCodes.length === 0) {
+                    alert('No valid objects selected. Please select objects with valid codes.');
+                    return;
+                  }
+                  
+                  setLoadingSourceFile(true);
+                  setSourceFileError(null);
+                  setSourceFileInfos([]);
+                  
+                  try {
+                    // Resolve all object codes in parallel
+                    const results = await Promise.all(
+                      itemsWithCodes.map(async (picked) => {
+                        try {
+                          const info = await resolveCode(picked.attrs.objectCode);
+                          return {
+                            timestamp: new Date().toISOString(),
+                            selection: {
+                              code: picked.attrs.objectCode,
+                              type: picked.attrs.role,
+                              name: picked.attrs.name,
+                              viewer_url: picked.attrs.sourceUrl,
+                              clicked_point: {
+                                index: picked.index,
+                                point_id: picked.attrs.point_id,
+                                label: picked.attrs.label
+                              }
+                            },
+                            source_files: info
+                          };
+                        } catch (err: any) {
+                          return {
+                            error: true,
+                            code: picked.attrs.objectCode,
+                            message: err.message || String(err)
+                          };
+                        }
+                      })
+                    );
+                    
+                    // Separate successful and failed results
+                    const successful = results.filter(r => !(r as any).error);
+                    const failed = results.filter(r => (r as any).error);
+                    
+                    setSourceFileInfos(successful);
+                    
+                    // Output to console for debugging
+                    console.log('=== Multi-Object Confirmation Results ===');
+                    console.log(JSON.stringify({ 
+                      total: itemsWithCodes.length,
+                      successful: successful.length,
+                      failed: failed.length,
+                      results: successful 
+                    }, null, 2));
+                    console.log('==========================================');
+                    
+                    // Submit selection to backend (real-time notification)
+                    if (successful.length > 0) {
+                      try {
+                        const selectionData = successful.map((s: any) => ({
+                          itemCode: s.selection?.code || 'unknown',
+                          displayName: s.selection?.name || 'unknown',
+                          type: s.selection?.type || 'unknown',
+                          sourceFile: s.source_files?.mesh_path || s.source_files?.cluster_path || '',
+                          timestamp: s.timestamp
+                        }));
+                        
+                        const response = await fetch('http://localhost:8090/api/submit-selection', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(selectionData)
+                        });
+                        
+                        if (!response.ok) {
+                          console.warn('Failed to submit selection to backend:', response.statusText);
+                        } else {
+                          console.log('✓ Selection submitted to backend successfully');
+                        }
+                      } catch (submitErr) {
+                        console.warn('Could not submit selection to backend:', submitErr);
+                      }
+                    }
+                    
+                    if (failed.length > 0) {
+                      console.error('Failed confirmations:', failed);
+                      alert(`Warning: ${failed.length} object(s) failed to confirm:\n${failed.map((f: any) => f.code).join(', ')}`);
+                    } else {
+                      alert(`Successfully confirmed ${successful.length} object(s)!`);
+                    }
+                    
+                  } catch (err: any) {
+                    const errorMsg = err.message || String(err);
+                    setSourceFileError(errorMsg);
+                    console.error('[Multi-Object Confirmation Failed]', err);
+                    alert(`Batch confirmation failed: ${errorMsg}\n\nPlease ensure the API server is running (port 8090)`);
+                  } finally {
+                    setLoadingSourceFile(false);
+                  }
+                }}
+                disabled={pickedItems.filter(p => p.attrs.objectCode).length === 0 || loadingSourceFile}
+                style={{ 
+                  width: '100%',
+                  padding: '8px 12px', 
+                  fontSize: 12, 
+                  fontWeight: 600,
+                  cursor: pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile ? 'pointer' : 'not-allowed',
+                  background: pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile ? '#28a745' : '#ccc',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  marginBottom: 6,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#218838';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#28a745';
+                  }
+                }}
+              >
+                {loadingSourceFile ? '⏳ Confirming...' : `✓ Confirm All (${pickedItems.filter(p => p.attrs.objectCode).length})`}
+              </button>
+              
+              <button 
+                onClick={async () => {
+                  // Use confirmed source file infos if available, otherwise fetch them
+                  let infosToDownload = sourceFileInfos;
+                  
+                  if (infosToDownload.length === 0) {
+                    // Need to fetch first
+                    const itemsWithCodes = pickedItems.filter(p => p.attrs.objectCode);
+                    if (itemsWithCodes.length === 0) {
+                      alert('No valid objects to download');
+                      return;
+                    }
+                    
+                    setLoadingSourceFile(true);
+                    setSourceFileError(null);
+                    
+                    try {
+                      const results = await Promise.all(
+                        itemsWithCodes.map(async (picked) => {
+                          try {
+                            const info = await resolveCode(picked.attrs.objectCode);
+                            return {
+                              selection: {
+                                code: picked.attrs.objectCode,
+                                name: picked.attrs.name
+                              },
+                              source_files: info
+                            };
+                          } catch (err: any) {
+                            return null;
+                          }
+                        })
+                      );
+                      
+                      infosToDownload = results.filter(r => r !== null) as any[];
+                    } catch (err: any) {
+                      alert(`Failed to fetch file info: ${err.message || String(err)}`);
+                      setLoadingSourceFile(false);
+                      return;
+                    }
+                    setLoadingSourceFile(false);
+                  }
+                  
+                  // Download all files
+                  if (infosToDownload.length === 0) {
+                    alert('No valid files to download');
+                    return;
+                  }
+                  
+                  for (const info of infosToDownload) {
+                    let filePath: string | undefined;
+                    if ('cluster_path' in info.source_files) {
+                      filePath = info.source_files.cluster_path;
+                    } else if ('shell_path' in info.source_files) {
+                      filePath = info.source_files.shell_path;
+                    }
+                    
+                    if (filePath) {
+                      const filename = filePath.split('/').pop() || 'object.ply';
+                      const downloadUrl = `http://localhost:8090/api/download-file?path=${encodeURIComponent(filePath)}`;
+                      
+                      // Trigger download (stagger to avoid browser blocking)
+                      const a = document.createElement('a');
+                      a.href = downloadUrl;
+                      a.download = filename;
+                      a.click();
+                      
+                      // Small delay between downloads
+                      await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                  }
+                  
+                  alert(`Downloading ${infosToDownload.length} file(s)`);
+                }}
+                disabled={pickedItems.filter(p => p.attrs.objectCode).length === 0 || loadingSourceFile}
+                style={{ 
+                  width: '100%',
+                  padding: '8px 12px', 
+                  fontSize: 12, 
+                  fontWeight: 600,
+                  cursor: pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile ? 'pointer' : 'not-allowed',
+                  background: pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile ? '#2196f3' : '#ccc',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  marginBottom: 6,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#1976d2';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pickedItems.filter(p => p.attrs.objectCode).length > 0 && !loadingSourceFile) {
+                    e.currentTarget.style.background = '#2196f3';
+                  }
+                }}
+                title="Download all selected objects as PLY files"
+              >
+                {loadingSourceFile ? '⏳ Downloading...' : `💾 Download All (${pickedItems.filter(p => p.attrs.objectCode).length})`}
               </button>
             </div>
             

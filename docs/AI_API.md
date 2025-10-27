@@ -54,23 +54,33 @@ It's designed for automation agents and local scripting. All results are printed
 
 ```bash
 # Check environment and tool availability
-python3 scripts/ai_api.py check-env --json
+python3 scripts/ai_api.py check-env
 
 # Resolve assets for one object
-python3 scripts/ai_api.py resolve-object 0-7-12 --json
+python3 scripts/ai_api.py resolve-object 0-7-12
 
 # Room manifest summary
-python3 scripts/ai_api.py RMS --json
+python3 scripts/ai_api.py RMS
 
 # Reconstruct (RCN) and compute area (ARE)
-python3 scripts/ai_api.py RCN --object 0-7-12 --json
-python3 scripts/ai_api.py ARE --object 0-7-12 --json
+python3 scripts/ai_api.py RCN 0-7-12
+python3 scripts/ai_api.py ARE 0-7-12
 
-# BBox distance between two objects (pair op)
-python3 scripts/ai_api.py BBD 0-7-12 0-7-14 --json
+# BBox distance between two objects
+python3 scripts/ai_api.py BBD 0-7-12 0-7-14
+
+# Color analysis
+python3 scripts/ai_api.py CLR 0-7-12
+
+# Interactive visualization
+python3 scripts/ai_api.py VIS 0-7
 ```
 
-**Note**: The API no longer auto-builds. If executables are missing, you'll receive a helpful error message with build instructions. Use `./pcg.sh` or manually build the project first.
+**Note**: 
+- All commands now use unified format: `<OPERATION> <ID>`
+- JSON output is enabled by default (configured in `data/configs/default.yaml`)
+- No `--object`, `--filename`, or `` flags needed
+- The API no longer auto-builds. If executables are missing, you'll receive a helpful error message with build instructions.
 
 ## Prerequisites
 
@@ -107,7 +117,7 @@ cmake --build . -j
 Check executable availability:
 
 ```bash
-python3 scripts/ai_api.py check-env --json
+python3 scripts/ai_api.py check-env 
 ```
 
 If executables are missing, the API will provide helpful error messages with build instructions.
@@ -124,13 +134,13 @@ When a head code needs a missing executable, the API configures and builds Relea
 
 ```bash
 # Example: compute surface area; triggers configure+build on first run
-python3 scripts/ai_api.py ARE --object 0-7-12 --json
+python3 scripts/ai_api.py ARE 0-7-12 
 ```
 
 Check availability anytime:
 
 ```bash
-python3 scripts/ai_api.py check-env --json
+python3 scripts/ai_api.py check-env 
 ```
 
 ### Manual build
@@ -233,7 +243,7 @@ The `PathIndex` class recursively walks the `output/` directory tree and categor
 Returns all absolute paths matching a given filename (useful when the same file exists in multiple output runs).
 
 ```bash
-python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply --json
+python3 scripts/ai_api.py resolve-filename 0-7-12_couch_cluster.ply 
 ```
 
 Output:
@@ -253,7 +263,7 @@ Output:
 Returns room-level assets: CSV files, shell point clouds, and shell UOBBs.
 
 ```bash
-python3 scripts/ai_api.py resolve-room 0-7 --json
+python3 scripts/ai_api.py resolve-room 0-7 
 ```
 
 Output:
@@ -269,7 +279,7 @@ Output:
 
 Alternative syntax using separate integers:
 ```bash
-python3 scripts/ai_api.py resolve-room-csv 0 7 --json
+python3 scripts/ai_api.py resolve-room-csv 0 7 
 ```
 
 **Note**: The object_id in shell filenames is always `0` (e.g., `0-7-0_shell.ply` for room `0-7`), indicating room-level data rather than a specific object.
@@ -279,7 +289,7 @@ python3 scripts/ai_api.py resolve-room-csv 0 7 --json
 Returns all assets associated with an object code: clusters, UOBBs, meshes, and the inferred parent room directory.
 
 ```bash
-python3 scripts/ai_api.py resolve-object 0-7-12 --json
+python3 scripts/ai_api.py resolve-object 0-7-12 
 ```
 
 Output:
@@ -302,7 +312,7 @@ Output:
 
 ## Head Codes (operations)
 
-All head codes accept `--json` for structured output where applicable. Missing executables trigger an auto-build.
+All operations use unified command format: `<OPERATION> <ID>`. JSON output is enabled by default via `json_output: true` in `data/configs/default.yaml`.
 
 ### RCN — Reconstruct
 
@@ -311,15 +321,14 @@ Reconstruct a mesh from a cluster PLY.
 Usage:
 
 ```bash
-python3 scripts/ai_api.py RCN --object 0-7-12 [--only-substr <hint>] [--json]
-python3 scripts/ai_api.py RCN --filename 0-7-12_couch_cluster.ply [--only-substr <hint>] [--json]
+python3 scripts/ai_api.py RCN 0-7-12
 ```
 
 Behavior:
 - Resolves the cluster and its `room_dir`, runs `pcg_reconstruct <cluster> <room_dir>`
 - Returns the generated mesh path; method suffix differentiates Poisson/AF
 
-Output with `--json` (from the API):
+Output with `` (from the API):
 
 ```json
 { "mesh": "/abs/path/..._mesh_possion.ply", "method": "poisson" }
@@ -336,8 +345,8 @@ Compute mesh volume and closedness.
 Usage:
 
 ```bash
-python3 scripts/ai_api.py VOL --object 0-7-12 [--no-auto-recon] [--json]
-python3 scripts/ai_api.py VOL --filename 0-7-12_couch_mesh.ply [--no-auto-recon] [--json]
+python3 scripts/ai_api.py VOL 0-7-12
+python3 scripts/ai_api.py VOL 0-7-12_couch_cluster.ply
 ```
 
 Behavior:
@@ -361,8 +370,8 @@ Compute mesh surface area and closedness.
 Usage:
 
 ```bash
-python3 scripts/ai_api.py ARE --object 0-7-12 [--no-auto-recon] [--json]
-python3 scripts/ai_api.py ARE --filename 0-7-12_couch_mesh.ply [--no-auto-recon] [--json]
+python3 scripts/ai_api.py ARE 0-7-12
+python3 scripts/ai_api.py ARE 0-7-12_couch_cluster.ply
 ```
 
 Output:
@@ -378,8 +387,8 @@ Run color GMM analysis on a PLY (prefers cluster when given an object code).
 Usage:
 
 ```bash
-python3 scripts/ai_api.py CLR --object 0-7-12 --json
-python3 scripts/ai_api.py CLR --filename some_cluster_or_mesh.ply --json
+python3 scripts/ai_api.py CLR 0-7-12 
+python3 scripts/ai_api.py CLR 0-7-12_couch_cluster.ply 
 ```
 
 Output (from tool JSON when available):
@@ -405,7 +414,7 @@ Distance and vector between two UOBB centers.
 Usage:
 
 ```bash
-python3 scripts/ai_api.py BBD 0-7-12 0-7-14 --json
+python3 scripts/ai_api.py BBD 0-7-12 0-7-14 
 ```
 
 Output:
@@ -426,10 +435,10 @@ Usage:
 
 ```bash
 # Auto-detect site from output directory
-python3 scripts/ai_api.py RMS --json
+python3 scripts/ai_api.py RMS 
 
 # Specify site name explicitly
-python3 scripts/ai_api.py RMS "Full House" --json
+python3 scripts/ai_api.py RMS "Full House" 
 ```
 
 Output:
@@ -477,13 +486,31 @@ python3 scripts/ai_api.py VIS 0-7-12 0-7-15
 
 # Room with selected objects - auto-detects 'room-with-objects' mode
 python3 scripts/ai_api.py VIS 0-7 0-7-12 0-7-15
+
+# Non-interactive mode (visualization only, no waiting)
+python3 scripts/ai_api.py VIS 0-7 --no-wait
 ```
 
-**Default Behavior:**
-- ✅ Automatically cleans all previous visualization outputs
-- ✅ Automatically starts the development server
-- ✅ Auto-detects mode from input codes
-- ✅ Auto-generates descriptive names
+**Output Example:**
+```
+Status: success
+Mode: room
+Name: room_0_7
+Viewer URL: http://localhost:5173/?manifest=room_0_7.json
+Rooms: 0-7
+
+[User selects objects in browser and confirms]
+
+[
+  {
+    "itemCode": "0-7-12",
+    "displayName": "couch (object_id: 0-7-12)",
+    "type": "object",
+    "sourceFile": "output/.../0-7-12_couch_cluster.ply",
+    "timestamp": "2025-10-27T10:30:00.000Z"
+  }
+]
+```
 
 Use `--no-clean-all` to keep previous outputs or `--no-serve` to skip server startup.
 
@@ -526,7 +553,7 @@ python3 scripts/ai_api.py VIS <codes>... \
   [--no-clean-all] \
   [--no-serve] \
   [--port <int>] \
-  [--json]
+ 
 ```
 
 **Positional Arguments:**
@@ -611,7 +638,7 @@ python3 scripts/ai_api.py VIS 0-7 --no-serve
 # Then manually: cd web/pointcloud-viewer && npm run dev
 ```
 
-**Output with `--json`:**
+**Output with ``:**
 
 ```json
 {
@@ -708,9 +735,17 @@ vis_result = d.op_VIS(
 
 ## JSON output
 
-Global control: `data/configs/default.yaml` → `json_output: true` (default). When enabled, C++ tools emit structured JSON to stdout (one object per processed input).
+**Global Configuration:** Set `json_output: true` in `data/configs/default.yaml` (enabled by default). This controls both:
+1. **CLI Output Format**: All `ai_api.py` commands return JSON by default
+2. **C++ Tool Output**: When enabled, C++ tools emit structured JSON to stdout
 
-API `--json` flag: forces structured output for the Python CLI regardless of C++ mode (the API prefers consuming tool JSON and falls back to text parsing when needed).
+**Configuration:**
+```yaml
+# data/configs/default.yaml
+json_output: true           # Enable JSON output for all tools
+viewer_downsample_ratio: 0.2
+viewer_downsample_ratio_shell: 0.05
+```
 
 Per-tool JSON shapes (tool output):
 

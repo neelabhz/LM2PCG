@@ -2,6 +2,77 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.3.0-beta / 2025-10-27
+
+### Breaking Changes
+- **Unified Command Format**: All AI API operations now use simplified format `<OPERATION> <ID>`
+  - Removed `--object`, `--filename`, and `--json` flags
+  - Example: `python3 scripts/ai_api.py RCN 0-7-12` (no flags needed)
+  - JSON output controlled by `json_output: true` in `data/configs/default.yaml`
+
+### Added
+- **Interactive VIS Workflow** (Default Mode)
+  - Automatic server startup (frontend on 5173, backend on 8090)
+  - Real-time selection monitoring with 5-minute timeout
+  - Auto-cleanup of old selection files before each run
+  - JSON output of user selections when "Confirm All" is clicked
+  - Automatic server shutdown after selection or timeout
+  - Added `--no-wait` flag for non-interactive visualization mode
+
+- **Configuration-Based JSON Output**
+  - Global `json_output` setting in `data/configs/default.yaml` (default: true)
+  - All operations automatically return JSON format without flags
+  - Consistent output structure across all commands
+
+### Changed
+- **Command Interface Simplification**
+  - RCN: `--object 0-7-12` → `0-7-12`
+  - VOL: `--object 0-7-12 --no-auto-recon` → `0-7-12 --no-auto-recon`
+  - ARE: `--object 0-7-12` → `0-7-12`
+  - CLR: `--object 0-7-12` → `0-7-12`
+  - BBD: Already using simple format (no change)
+  - VIS: Already using simple format (enhanced with interactive mode)
+
+- **VIS Output Format**
+  - Simplified initial output (Status, Mode, Name, Viewer URL, Rooms/Objects)
+  - Removed verbose prompts and suggestions
+  - User selection output as pure JSON array
+  - Silent server shutdown (no extra messages)
+
+- **Node.js Visualization Scripts**
+  - Removed `--json` flag from `ai_api.py` calls in `prepare_visualization.mjs`
+  - Automatic JSON parsing based on config setting
+
+### Fixed
+- **Selection File Caching**
+  - Old selection files (`/tmp/viewer_selection.json`) now cleaned before each VIS run
+  - Prevents immediate detection of previous selections
+  - Ensures fresh user input on every visualization
+
+- **Duplicate BBD Parser**
+  - Removed duplicate BBD argument parser definition
+  - Fixed `argparse.ArgumentError: conflicting subparser` error
+
+### Documentation
+- **Consolidated Documentation**
+  - Merged `UNIFIED_API_USAGE.md` content into `AI_API.md`
+  - Merged `REALTIME_SELECTION.md` content into `POINTCLOUD_VIEWER.md`
+  - Removed redundant documentation files
+  - Updated all command examples to use new unified format
+  - Added interactive workflow examples and output samples
+
+- **Enhanced Examples**
+  - Added complete workflow examples for all operations
+  - Included JSON output samples for each command
+  - Documented interactive vs non-interactive VIS modes
+  - Added configuration guidelines
+
+### Developer Notes
+- All API operations now prioritize simplicity: `<OPERATION> <ID>`
+- JSON output is the default behavior (configured, not commanded)
+- Interactive mode is default for VIS (use `--no-wait` to override)
+- Selection workflow: prepare → serve → wait → detect → output → close
+
 ## 1.3.0-alpha.3 / 2025-10-25
 
 ### Added

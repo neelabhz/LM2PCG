@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline   1.3.0-alpha.3
+# Indoor Point Cloud Pipeline   1.3.0-beta
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 
@@ -11,8 +11,9 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 - **Upright bounding boxes**: Optimal OBBs using convex hull + rotating calipers
 - **Reconstruction**: Poisson with acceptance checks + AF fallback
 - **Analysis tools**: Volume, surface area, dominant color, bbox distance
-- **AI API**: Python orchestration with auto-detection ([docs/AI_API.md](docs/AI_API.md))
-- **Web viewer**: Interactive 3D visualization with object selection and download ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
+- **Unified AI API**: Simplified Python interface with `<OPERATION> <ID>` format ([docs/AI_API.md](docs/AI_API.md))
+- **Interactive Web Viewer**: Real-time 3D visualization with selection monitoring ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
+- **JSON-First Output**: Configuration-based structured output for AI agents
 
 ## Quick Start
 
@@ -112,40 +113,52 @@ Analyzes dominant colors using GMM and perceptual color distance (ΔE*76).
 
 ## AI API
 
-Python orchestration layer with intelligent auto-detection. **[Complete guide →](docs/AI_API.md)**
+Unified Python interface with simplified command format. **[Complete guide →](docs/AI_API.md)**
+
+### Quick Start
 
 ```bash
-# Direct operations with auto-detection
-python3 scripts/ai_api.py VOL 0-7-12
-python3 scripts/ai_api.py ARE 0-7-12
-python3 scripts/ai_api.py CLR 0-7-12
-python3 scripts/ai_api.py BBD 1-7-2 1-7-3
-python3 scripts/ai_api.py RMS
+# All operations use simple format: <OPERATION> <ID>
+python3 scripts/ai_api.py RCN 0-7-12     # Reconstruct mesh
+python3 scripts/ai_api.py VOL 0-7-12     # Compute volume
+python3 scripts/ai_api.py ARE 0-7-12     # Compute surface area
+python3 scripts/ai_api.py CLR 0-7-12     # Analyze color
+python3 scripts/ai_api.py BBD 0-7-12 0-7-15  # Distance between objects
+python3 scripts/ai_api.py RMS            # Room manifest summary
 
-# Visualization (auto-clean-all, auto-serve)
-python3 scripts/ai_api.py VIS 0-7        # Visualize room
-python3 scripts/ai_api.py VIS 0-7-12     # Visualize single object
-python3 scripts/ai_api.py VIS 0-1,0-5,0-7 # Multi-rooms
+# Interactive visualization (default mode)
+python3 scripts/ai_api.py VIS 0-7        # Visualize room, wait for user selection
+python3 scripts/ai_api.py VIS 0-7-12 0-7-15  # Visualize objects
+
+# Non-interactive mode
+python3 scripts/ai_api.py VIS 0-7 --no-wait
 ```
+
+**Key Features**:
+- ✅ **Unified Format**: All commands use `<OPERATION> <ID>` (no `--object`, `--filename`, or `--json` flags)
+- ✅ **JSON by Default**: Configured in `data/configs/default.yaml` (`json_output: true`)
+- ✅ **Interactive VIS**: Auto-starts servers, waits for selection, outputs JSON, auto-closes
+- ✅ **Auto-Detection**: Automatically detects room vs object codes, visualization modes
+- ✅ **AI Agent Ready**: Structured JSON output for automated workflows
 
 **Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary), `VIS` (visualization)
 
-**Key Features**:
-- Auto-detection of rooms and objects
-- Relative path handling for portability
-- VIS auto-clean-all and auto-serve by default
-- Multi-rooms visualization support
-
 ## Web Visualization
 
-Interactive 3D viewer with object selection, confirmation, and download. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
+Interactive 3D viewer with real-time object selection monitoring. **[Complete guide →](docs/POINTCLOUD_VIEWER.md)**
 
 ```bash
-cd web/pointcloud-viewer
-npm install
+# Quick start via AI API (recommended - fully automated)
+python3 scripts/ai_api.py VIS 0-7
+# → Auto-starts frontend (5173) and backend (8090) servers
+# → Opens browser for visualization
+# → Waits for user to select objects and click "Confirm All"
+# → Outputs selection as JSON
+# → Auto-closes servers
 
-# Quick start (via AI API - recommended)
-python3 ../../scripts/ai_api.py VIS 0-7    # Auto-clean, auto-serve
+# Manual server management (from web/pointcloud-viewer)
+./start_dev.sh                 # Start servers manually
+./stop_dev.sh                  # Stop servers
 
 # Or manual npm commands
 npm run visualize -- --mode room --room 0-7 --name room_007
@@ -154,18 +167,13 @@ npm run visualize -- --mode room --room 0-7 --name room_007
 **4 Modes**: `room`, `clusters`, `multi-rooms`, `room-with-objects`  
 
 **Key Features**: 
-- **Interactive Object Selection**: Click to highlight, confirm selections
+- **Real-time Selection Monitoring**: Interactive workflow with automatic JSON output
 - **One-Click Download**: Download source PLY files via integrated API
+- **Auto-Detection**: Automatically determines visualization mode from input codes
+- **Smart Server Management**: Auto-start, auto-wait, auto-close by default
 - **Non-pickable UOBB**: Bounding boxes don't block object selection
-- **Multi-rooms Support**: Unified visualization with 1% shell downsampling
-- **Auto-serve**: Servers start automatically with VIS command
 - Per-object visibility toggles with semantic naming
-- Automatic UOBB generation using convex hull + rotating calipers
-- 10M+ points @ 60 FPS performance
-
-**Server Management:**
-```bash
-# From web/pointcloud-viewer
+- 10M+ points @ 60 FPS performance with optimized downsampling
 ./start_dev.sh    # Start frontend (5173) + API server (8090)
 ./stop_dev.sh     # Stop both servers
 ```

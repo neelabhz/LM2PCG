@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 """
 HTTP API server for the pointcloud viewer to resolve source file paths.
 
 Provides REST endpoints:
 - GET /api/resolve-object?code=<object_code>  - Resolve object by code (e.g., 0-7-12)
 - GET /api/resolve-room?code=<room_code>      - Resolve room by code (e.g., 0-7)
+- POST /api/submit-selection                  - Receive user selections from viewer
 
 Usage:
     python scripts/api_server.py [--port 8080] [--host 0.0.0.0]
@@ -15,6 +16,10 @@ import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
+
+# Force unbuffered output for real-time logging
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 
 # Add parent directory to path to import ai_api
 sys.path.insert(0, str(Path(__file__).parent))
@@ -57,10 +62,20 @@ class APIHandler(BaseHTTPRequestHandler):
         else:
             self._send_error(404, f"Unknown endpoint: {path}")
     
+    def do_POST(self):
+        """Handle POST requests"""
+        parsed = urlparse(self.path)
+        path = parsed.path
+        
+        if path == '/api/submit-selection':
+            self._handle_submit_selection()
+        else:
+            self._send_error(404, f"Unknown endpoint: {path}")
+    
     def _send_cors_headers(self):
         """Send CORS headers"""
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
     
     def _send_json(self, data: dict, status: int = 200):
@@ -86,6 +101,66 @@ class APIHandler(BaseHTTPRequestHandler):
             'service': 'pointcloud-api',
             'index_loaded': bool(self.dispatcher.index)
         })
+    
+    def _handle_submit_selection(self):
+        """Handle POST /api/submit-selection - User confirms selection in viewer"""
+        try:
+            # Read request body
+            content_length = int(self.headers.get('Content-Length', 0))
+            if content_length == 0:
+                self._send_error(400, 'Empty request body')
+                return
+            
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode('utf-8'))
+            
+            # Validate data structure
+            if not isinstance(data, list):
+                self._send_error(400, 'Expected array of selected objects')
+                return
+            
+            # Print friendly real-time message to terminal
+            print("\n" + "="*60)
+            print("🎯 实时检测到用户选择！")
+            print("="*60)
+            
+            if len(data) == 0:
+                print("📭 用户清空了选择")
+            else:
+                print(f"✅ 用户选择了 {len(data)} 个物体：")
+                print()
+                for i, item in enumerate(data, 1):
+                    display_name = item.get('displayName', 'unknown')
+                    item_code = item.get('itemCode', 'unknown')
+                    print(f"   {i}. {display_name} ({item_code})")
+                
+                print()
+                print("📦 详细信息：")
+                print(json.dumps(data, indent=2, ensure_ascii=False))
+            
+            print("="*60)
+            print()
+            
+            # Save selection to file for AI agent
+            selection_file = Path("/tmp/viewer_selection.json")
+            try:
+                with open(selection_file, 'w') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                print(f"💾 选择已保存到: {selection_file}\n")
+            except Exception as e:
+                print(f"⚠️  保存选择文件失败: {e}\n")
+            
+            # Send success response
+            self._send_json({
+                'success': True,
+                'message': f'Received selection of {len(data)} objects',
+                'count': len(data)
+            })
+            
+        except json.JSONDecodeError as e:
+            self._send_error(400, f'Invalid JSON: {str(e)}')
+        except Exception as e:
+            self._send_error(500, f'Server error: {str(e)}')
     
     def _handle_resolve_object(self, params: dict):
         """Handle /api/resolve-object?code=<object_code>"""

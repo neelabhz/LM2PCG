@@ -213,9 +213,53 @@ npm run visualize -- --mode room --room 0-7 --name room_007 --serve
 
 1. **Click Object** → Point cloud highlights in yellow-gold
 2. **View Info** → Inspector panel shows object_code (e.g., `0-7-12`)
-3. **Confirm Object** → Queries backend API for source file paths
-4. **Download Object** → Downloads original .ply from `/output` directory
-5. **Clear Selection** → Deselect and choose another object
+3. **Click "Confirm All"** → Sends selection to backend API (localhost:8090)
+4. **Backend Response** → Terminal displays selection JSON in real-time
+5. **Auto-Close** → Servers shut down automatically (when using `ai_api.py VIS`)
+
+**Interactive Mode (Default with VIS command):**
+```bash
+python3 scripts/ai_api.py VIS 0-7
+# → Starts servers automatically
+# → Opens browser for visualization
+# → Waits for user selection (timeout: 5 minutes)
+# → Prints selection JSON to terminal
+# → Auto-closes servers
+```
+
+**Output Example:**
+```
+Status: success
+Mode: room
+Name: room_0_7
+Viewer URL: http://localhost:5173/?manifest=room_0_7.json
+Rooms: 0-7
+
+[User clicks objects and confirms]
+
+[
+  {
+    "itemCode": "0-7-12",
+    "displayName": "couch (object_id: 0-7-12)",
+    "type": "object",
+    "sourceFile": "output/.../0-7-12_couch_cluster.ply",
+    "timestamp": "2025-10-27T10:30:00.000Z"
+  }
+]
+```
+
+**Manual Mode:**
+```bash
+# Start servers manually (keeps running)
+cd web/pointcloud-viewer
+./start_dev.sh
+
+# In another terminal, visualize without auto-close
+python3 scripts/ai_api.py VIS 0-7 --no-wait
+
+# Stop servers when done
+./stop_dev.sh
+```
 
 ### Object Code Format
 

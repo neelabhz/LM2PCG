@@ -117,7 +117,7 @@ function callAiApi(args) {
   if (!fs.existsSync(apiScript)) {
     throw new Error(`ai_api.py not found at ${apiScript}`);
   }
-  const cmd = ['python3', apiScript, ...args, '--json'];
+  const cmd = ['python3', apiScript, ...args];
   try {
     const output = execSync(cmd.join(' '), { encoding: 'utf-8', cwd: root });
     return JSON.parse(output);

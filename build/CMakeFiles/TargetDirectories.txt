@@ -1,0 +1,13 @@
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_room.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_color.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_bbox.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_reconstruct.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_volume.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/pcg_area.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/edit_cache.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/rebuild_cache.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/list_install_components.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/install.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/install/local.dir
+/Users/jacksonye/Documents/GitHub/Spariallm_geopipieline/build/CMakeFiles/install/strip.dir

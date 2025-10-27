@@ -616,7 +616,7 @@ class Dispatcher:
                shell_no_color: Optional[bool] = None,
                clean: bool = True,
                clean_all: bool = False,
-               auto_serve: bool = False,
+               auto_serve: bool = True,
                port: int = 5173) -> Dict[str, object]:
         """Prepare and optionally launch visualization for rooms/objects.
         
@@ -1029,64 +1029,74 @@ def _cli() -> int:
     parser = argparse.ArgumentParser(description="AI API for local PCG pipeline")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
+    # Load json_output setting from config
+    config_path = repo_root() / "data" / "configs" / "default.yaml"
+    default_json_output = True  # fallback
+    if config_path.exists():
+        try:
+            with open(config_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if ':' in line or '=' in line:
+                        sep_pos = line.find(':')
+                        if sep_pos == -1:
+                            sep_pos = line.find('=')
+                        key = line[:sep_pos].strip()
+                        value = line[sep_pos + 1:].strip()
+                        comment_pos = value.find('#')
+                        if comment_pos != -1:
+                            value = value[:comment_pos].strip()
+                        if key == 'json_output':
+                            v = value.lower()
+                            default_json_output = v in ('1', 'true', 'yes')
+                            break
+        except Exception:
+            pass
+
     # Resolve by filename
     p_res_fn = sub.add_parser("resolve-filename", help="Find file by name under output/")
     p_res_fn.add_argument("name")
-    p_res_fn.add_argument("--json", action="store_true", help="Emit JSON output")
 
     # Resolve by room
     p_res_room = sub.add_parser("resolve-room-csv", help="Find CSV for floor-room")
     p_res_room.add_argument("floor", type=int)
     p_res_room.add_argument("room", type=int)
-    p_res_room.add_argument("--json", action="store_true")
 
     # Resolve by room code (e.g., 0-7)
     p_res_room2 = sub.add_parser("resolve-room", help="Find CSV and shell/bbox for room code like 0-7")
     p_res_room2.add_argument("room_code")
-    p_res_room2.add_argument("--json", action="store_true")
 
     # Resolve by object_code
     p_res_obj = sub.add_parser("resolve-object", help="Find assets for object_code")
     p_res_obj.add_argument("object_code")
-    p_res_obj.add_argument("--json", action="store_true")
 
-    # RCN
-    p_rcn = sub.add_parser("RCN", help="Reconstruct from object_code or filename")
-    g = p_rcn.add_mutually_exclusive_group(required=True)
-    g.add_argument("--object", dest="object_code")
-    g.add_argument("--filename")
-    p_rcn.add_argument("--only-substr")
-    p_rcn.add_argument("--json", action="store_true")
+    # RCN - Unified format: RCN <object_code>
+    p_rcn = sub.add_parser("RCN", help="Reconstruct mesh from object code")
+    p_rcn.add_argument("object_code", help="Object code (e.g., 0-7-12)")
 
-    # VOL
-    p_vol = sub.add_parser("VOL", help="Compute mesh volume from object_code or filename")
-    g2 = p_vol.add_mutually_exclusive_group(required=True)
-    g2.add_argument("--object", dest="object_code")
-    g2.add_argument("--filename")
-    p_vol.add_argument("--no-auto-recon", action="store_true")
-    p_vol.add_argument("--json", action="store_true")
+    # VOL - Unified format: VOL <object_code>
+    p_vol = sub.add_parser("VOL", help="Compute mesh volume from object code")
+    p_vol.add_argument("object_code", help="Object code (e.g., 0-7-12)")
+    p_vol.add_argument("--no-auto-recon", action="store_true", help="Skip auto-reconstruction if mesh missing")
 
-    # CLR
-    # ARE
-    p_area = sub.add_parser("ARE", help="Compute mesh surface area from object_code or filename")
-    g4 = p_area.add_mutually_exclusive_group(required=True)
-    g4.add_argument("--object", dest="object_code")
-    g4.add_argument("--filename")
-    p_area.add_argument("--no-auto-recon", action="store_true")
-    p_area.add_argument("--json", action="store_true")
-    p_clr = sub.add_parser("CLR", help="Dominant color analysis on a cluster or file")
-    g3 = p_clr.add_mutually_exclusive_group(required=True)
-    g3.add_argument("--object", dest="object_code")
-    g3.add_argument("--filename")
-    p_clr.add_argument("--json", action="store_true")
+    # ARE - Unified format: ARE <object_code>
+    p_area = sub.add_parser("ARE", help="Compute mesh surface area from object code")
+    p_area.add_argument("object_code", help="Object code (e.g., 0-7-12)")
+    p_area.add_argument("--no-auto-recon", action="store_true", help="Skip auto-reconstruction if mesh missing")
 
-    # BBD (example two-object op)
-    p_bbd = sub.add_parser("BBD", help="BBox distance between two object_codes")
-    p_bbd.add_argument("object_code_1")
-    p_bbd.add_argument("object_code_2")
-    p_bbd.add_argument("--json", action="store_true")
+    # CLR - Unified format: CLR <object_code>
+    # CLR - Unified format: CLR <object_code>
+    p_clr = sub.add_parser("CLR", help="Analyze dominant color from object code")
+    p_clr.add_argument("object_code", help="Object code (e.g., 0-7-12)")
 
-    # VIS (visualization)
+    # BBD - Unified format: BBD <object_code_1> <object_code_2>
+    p_bbd = sub.add_parser("BBD", help="Compute distance between two objects")
+    p_bbd.add_argument("object_code_1", help="First object code (e.g., 0-7-12)")
+    p_bbd.add_argument("object_code_2", help="Second object code (e.g., 0-7-15)")
+
+    # VIS - Unified format: VIS <codes...>
     p_vis = sub.add_parser("VIS", help="Prepare and launch visualization for rooms/objects")
     p_vis.add_argument("codes", nargs="+", help="Room codes (e.g., '0-7') and/or object codes (e.g., '0-7-12')")
     p_vis.add_argument("--mode", 
@@ -1100,28 +1110,35 @@ def _cli() -> int:
     p_vis.add_argument("--no-clean", action="store_true", help="Skip cleaning previous outputs (default: clean)")
     p_vis.add_argument("--no-clean-all", action="store_true", help="Do NOT clean all previous outputs (default: clean all)")
     p_vis.add_argument("--no-serve", action="store_true", help="Do NOT auto-start dev server (default: auto-start)")
+    p_vis.add_argument("--no-wait", action="store_true", help="Do NOT wait for user selection (non-interactive mode)")
     p_vis.add_argument("--port", type=int, default=5173, help="Dev server port (default: 5173)")
-    p_vis.add_argument("--json", action="store_true")
 
-    # RMS (Room Manifest Summary)
+    # RMS - Unified format: RMS [site_name]
     p_rms = sub.add_parser("RMS", help="Parse rooms_manifest.csv and summarize floors/rooms")
     p_rms.add_argument("site_name", nargs="?", default=None, help="Site name (optional; auto-detected if omitted)")
     p_rms.add_argument("--visualize", action="store_true", help="Visualize all rooms in multi-rooms mode")
     p_rms.add_argument("--vis-name", help="Visualization output name (default: 'all_rooms_<site>')")
     p_rms.add_argument("--no-serve", action="store_true", help="Do NOT auto-start dev server (default: auto-start)")
     p_rms.add_argument("--no-clean-all", action="store_true", help="Do NOT clean all previous outputs (default: clean all)")
-    p_rms.add_argument("--json", action="store_true")
 
     # check environment
     p_chk = sub.add_parser("check-env", help="Show availability of required executables")
-    p_chk.add_argument("--json", action="store_true")
 
     args = parser.parse_args()
     d = Dispatcher()
+    
+    # Use json_output from config as default
+    use_json = default_json_output
+
+    args = parser.parse_args()
+    d = Dispatcher()
+    
+    # Use json_output from config as default
+    use_json = default_json_output
 
     if args.cmd == "resolve-filename":
         paths = [str(p) for p in d.index.find_by_filename(args.name)]
-        if args.json:
+        if use_json:
             print(json.dumps({"matches": paths}, ensure_ascii=False))
         else:
             for p in paths:
@@ -1137,7 +1154,7 @@ def _cli() -> int:
             "shell": [str(p) for p in shells],
             "shell_uobb": [str(p) for p in uobbs],
         }
-        if args.json:
+        if use_json:
             print(json.dumps(out, ensure_ascii=False))
         else:
             for p in out["csv"]:
@@ -1168,7 +1185,7 @@ def _cli() -> int:
             "shell": [str(p) for p in shells],
             "shell_uobb": [str(p) for p in uobbs],
         }
-        if args.json:
+        if use_json:
             print(json.dumps(out, ensure_ascii=False))
         else:
             for p in out["csv"]:
@@ -1185,12 +1202,12 @@ def _cli() -> int:
     if args.cmd == "resolve-object":
         assets = d.index.find_assets(args.object_code)
         if not assets:
-            if args.json:
+            if use_json:
                 print(json.dumps({"object_code": args.object_code, "found": False}, ensure_ascii=False))
             else:
                 print("<none>")
             return 1
-        if args.json:
+        if use_json:
             print(json.dumps({
                 "object_code": assets.object_code,
                 "clusters": [str(p) for p in assets.clusters],
@@ -1212,8 +1229,8 @@ def _cli() -> int:
                 print(f"# room_dir: {assets.room_dir}")
         return 0
     if args.cmd == "RCN":
-        mesh = d.op_RCN(object_code=args.object_code, filename=args.filename, only_substring=args.only_substr)
-        if args.json:
+        mesh = d.op_RCN(object_code=args.object_code)
+        if use_json:
             mstem = Path(mesh).stem
             method = "unknown"
             if mstem.endswith("_mesh_possion"):
@@ -1227,8 +1244,8 @@ def _cli() -> int:
             print(mesh)
         return 0
     if args.cmd == "VOL":
-        mesh, vol, closed = d.op_VOL(object_code=args.object_code, filename=args.filename, auto_reconstruct=not args.no_auto_recon)
-        if args.json:
+        mesh, vol, closed = d.op_VOL(object_code=args.object_code, auto_reconstruct=not args.no_auto_recon)
+        if use_json:
             print(json.dumps({"mesh": str(mesh), "closed": closed, "volume": vol}, ensure_ascii=False))
         else:
             print(mesh)
@@ -1236,8 +1253,8 @@ def _cli() -> int:
             print(f"volume: {vol}")
         return 0
     if args.cmd == "ARE":
-        mesh, area, closed = d.op_ARE(object_code=args.object_code, filename=args.filename, auto_reconstruct=not args.no_auto_recon)
-        if args.json:
+        mesh, area, closed = d.op_ARE(object_code=args.object_code, auto_reconstruct=not args.no_auto_recon)
+        if use_json:
             print(json.dumps({"mesh": str(mesh), "closed": closed, "area": area}, ensure_ascii=False))
         else:
             print(mesh)
@@ -1245,8 +1262,8 @@ def _cli() -> int:
             print(f"area: {area}")
         return 0
     if args.cmd == "CLR":
-        res = d.op_CLR(object_code=args.object_code, filename=args.filename)
-        if args.json:
+        res = d.op_CLR(object_code=args.object_code)
+        if use_json:
             print(json.dumps(res, ensure_ascii=False))
         else:
             # print raw if available
@@ -1257,7 +1274,7 @@ def _cli() -> int:
         return 0
     if args.cmd == "BBD":
         dist, vec = d.op_BBD(args.object_code_1, args.object_code_2)
-        if args.json:
+        if use_json:
             print(json.dumps({
                 "distance": dist,
                 "vector_1_to_2": {"x": vec[0], "y": vec[1], "z": vec[2]}
@@ -1309,21 +1326,73 @@ def _cli() -> int:
             port=args.port
         )
         
-        if args.json:
-            print(json.dumps(result, ensure_ascii=False))
+        # Simplified output format
+        print(f"Status: {result['status']}")
+        print(f"Mode: {result['mode']}")
+        print(f"Name: {result['name']}")
+        print(f"Viewer URL: {result['viewer_url']}")
+        if 'room_codes' in result:
+            print(f"Rooms: {', '.join(result['room_codes'])}")
+        if 'object_codes' in result:
+            print(f"Objects: {', '.join(result['object_codes'])}")
+        
+        if args.no_serve:
+            # Manual mode: user needs to start server
+            pass
+        elif args.no_wait:
+            # Non-interactive mode: servers started, exit immediately
+            pass
         else:
-            print(f"Status: {result['status']}")
-            print(f"Mode: {result['mode']}")
-            print(f"Name: {result['name']}")
-            print(f"Viewer URL: {result['viewer_url']}")
-            if 'room_codes' in result:
-                print(f"Rooms: {', '.join(result['room_codes'])}")
-            if 'object_codes' in result:
-                print(f"Objects: {', '.join(result['object_codes'])}")
-            if args.no_serve:
-                print("\nTo view, run:")
-                print(f"  cd web/pointcloud-viewer && npm run dev")
-                print(f"  Then open: {result['viewer_url']}")
+            # Interactive mode: wait for user selection
+            import time
+            selection_file = Path("/tmp/viewer_selection.json")
+            
+            # Clear old selection file before waiting
+            if selection_file.exists():
+                selection_file.unlink()
+            
+            timeout = 300  # 5 minutes
+            start_time = time.time()
+            
+            while time.time() - start_time < timeout:
+                if selection_file.exists():
+                    try:
+                        with open(selection_file, 'r') as f:
+                            data = json.load(f)
+                        
+                        # Print selection as JSON
+                        print("\n" + json.dumps(data, ensure_ascii=False, indent=2))
+                        
+                        # Save for later use
+                        if len(data) > 0:
+                            codes = [item.get('itemCode', 'unknown') for item in data]
+                            last_selection = Path("/tmp/last_selection.json")
+                            with open(last_selection, 'w') as f:
+                                json.dump({
+                                    'codes': codes,
+                                    'timestamp': __import__('datetime').datetime.now().isoformat()
+                                }, f, indent=2)
+                        
+                        # Auto-close servers
+                        viewer_dir = d.root / "web" / "pointcloud-viewer"
+                        stop_script = viewer_dir / "stop_dev.sh"
+                        if stop_script.exists():
+                            subprocess.run(['bash', str(stop_script)], 
+                                         stdout=subprocess.DEVNULL, 
+                                         stderr=subprocess.DEVNULL)
+                        break
+                    except Exception as e:
+                        print(f"Error reading selection file: {e}")
+                
+                time.sleep(1)
+            else:
+                # Timeout occurred
+                viewer_dir = d.root / "web" / "pointcloud-viewer"
+                stop_script = viewer_dir / "stop_dev.sh"
+                if stop_script.exists():
+                    subprocess.run(['bash', str(stop_script)], 
+                                 stdout=subprocess.DEVNULL, 
+                                 stderr=subprocess.DEVNULL)
         return 0
     if args.cmd == "RMS":
         result = d.op_RMS(
@@ -1333,7 +1402,7 @@ def _cli() -> int:
             auto_serve=not args.no_serve,
             clean_all=not args.no_clean_all
         )
-        if args.json:
+        if use_json:
             print(json.dumps(result, ensure_ascii=False))
         else:
             print(f"Site: {result['site_name']}")
@@ -1354,7 +1423,7 @@ def _cli() -> int:
         return 0
     if args.cmd == "check-env":
         info = d.env_status()
-        if args.json:
+        if use_json:
             print(json.dumps(info, ensure_ascii=False))
         else:
             print(f"repo_root: {info['repo_root']}")
