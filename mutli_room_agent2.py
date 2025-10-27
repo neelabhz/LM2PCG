@@ -304,7 +304,7 @@ EXTERNAL TOOL ACCESS (Requires object_code, e.g., '0-1-5'):
                 prompt += f"   - Objects: {room['object_count']} items. Top Types: {object_summary or 'None'}\n"
                 prompt += f"   - Planes: {wall_info}\n\n"
 
-            prompt += "Note: Tool execution is limited to single-room context.\n"
+            prompt += "Note: Tool execution is limited to single-room context. \n"
 
         # --- Tool Usage Instruction ---
         prompt += """
@@ -615,20 +615,35 @@ def demo_agent():
 
         # NOTE: Using object codes that likely exist based on the previous database logs
         test_queries = [
-            # 1. VISUAL/NLP: Ask color via object NAME (Should find code, CLR will fail, image will attach, LLM answers visually)
-            "What is the color of the shell in room 2 floor 0? And describe its material.",
+            # 1. CLR on WORKING ASSET (0-7-12 is couch, confirmed functional externally)
+            "What is the dominant color of the couch 0-7-12 in room 7 floor 0? Provide the weight and RGB values.",
 
-            # 2. TOOL/ID: Distance via specific codes (Should succeed, no image attached)
+            # 2. BBD: Distance between two objects in room 2 floor 0 (Should succeed and synthesize)
             "What is the distance between the chair object 0-2-4 and the shell object 0-2-3 in room 2 floor 0?",
 
-            # 3. TOOL/ID: Volume via object name (Should find code, succeed, no image attached)
+            # 3. VOL: Volume check using NLP (Should succeed and synthesize)
             "What is the volume of the window in room 2 floor 0?",
 
-            # 4. DATA/VISUAL: Multi-faceted geometric and visual query (Image must attach)
+            # 4. COMPLEX VISUAL/GEOMETRIC QUERY (Image must attach)
             "In room 6 floor 0, what is the total wall area and what is the appearance of the curtains?",
 
-            # 5. DATA: Multi-Room Plane Comparison (No image attached)
-            "Which room has the highest number of wall planes and what is the difference in area compared to the room with the fewest planes?"
+            # 5. NEW: Distance between two tables in different rooms (Multi-room BBD)
+            "What is the distance between object 0-4-3 and 0-5-5?",
+
+            # 6. NEW: Total count and area of floor planes (Multi-room plane summary)
+            "Compare the total count and area of all floor planes across all floors.",
+
+            # 7. NEW: Finding smallest object of a class (Requires looking up sizes in inventory)
+            "Which chair in room 3 floor 0 has the smallest width?",
+
+            # 8. NEW: Combined Visual Fallback & Area Check
+            "What is the appearance of the plant in room 1 floor 0, and what is its center (X, Y) coordinate?",
+
+            # 9. NEW: CLR on another object (Curtain) (Tests CLR failure handling and visual fallback)
+            "What is the color of the curtain in room 6 floor 0? Use the best method possible.",
+
+            # 10. NEW: Comparative analysis for Windows
+            "Which room has the highest number of windows?"
         ]
 
         for query in test_queries:
@@ -638,14 +653,15 @@ def demo_agent():
 
             result = agent.query(query)
 
-            if "error" not in result:
-                print(f"📝 SCOPE: {result['scope']}")
-                if not result['scope'].startswith('multi'):
-                    print(f"📍 CONTEXT: {result['room']} on {result['floor']}")
-                print(f"🖼️ IMAGES USED: {result['used_images']} ({result.get('images_count', 0)} available)")
-                print(f"\n📋 RESPONSE:\n{textwrap.fill(result['response'], width=80)}\n")
-            else:
+            if "error" in result:
                 print(f"❌ ERROR: {result['error']}")
+                continue
+
+            print(f"📝 SCOPE: {result['scope']}")
+            if not result['scope'].startswith('multi'):
+                print(f"📍 CONTEXT: {result['room']} on {result['floor']}")
+            print(f"🖼️ IMAGES USED: {result['used_images']} ({result.get('images_count', 0)} available)")
+            print(f"\n📋 RESPONSE:\n{textwrap.fill(result['response'], width=80)}\n")
 
         agent.close()
 

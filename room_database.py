@@ -26,7 +26,7 @@ class SpatialDatabaseCorrect:
         CRITICAL FIX: Explicitly dropping tables to ensure the new 'object_code'
         column is created before the index is created.
         """
-        print("🧹 Ensuring clean schema by dropping old tables...")
+        print(" Ensuring clean schema by dropping old tables...")
         # Drop tables in dependency order
         self.cursor.execute("DROP TABLE IF EXISTS planes")
         self.cursor.execute("DROP TABLE IF EXISTS images")
@@ -36,7 +36,7 @@ class SpatialDatabaseCorrect:
         self.conn.commit()
         print("✓ Old tables dropped.")
 
-        # Table 1: Floors (Unchanged)
+        # Table 1: Floors
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS floors (
                 floor_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +47,7 @@ class SpatialDatabaseCorrect:
             )
         """)
 
-        # Table 2: Rooms (Unchanged)
+        # Table 2: Rooms
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS rooms (
                 room_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +67,7 @@ class SpatialDatabaseCorrect:
             )
         """)
 
-        # Table 3: Objects (Updated to include object_code)
+        # Table 3: Objects
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS objects (
                 object_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,7 +86,7 @@ class SpatialDatabaseCorrect:
             )
         """)
 
-        # Table 4: Images (panoramas for each room) - Unchanged
+        # Table 4: Images (panoramas for each room)
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS images (
                 image_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +98,7 @@ class SpatialDatabaseCorrect:
             )
         """)
 
-        # Table 5: Planes (New table for planes_data.csv - SCHEMA ADJUSTED)
+        # Table 5: Planes
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS planes (
                 plane_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -536,7 +536,7 @@ def populate_database_fixed():
     """Populate database with fixed CSV naming"""
 
     # NOTE: The data path is explicitly set here to match your requested structure.
-    DATA_ROOT = "output/full_house"
+    DATA_ROOT = "output"
     print(f" POPULATING DATABASE WITH UPDATED SCHEMA (Root: {DATA_ROOT})")
     print("=" * 70)
 
