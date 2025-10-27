@@ -16,7 +16,8 @@ class VolOutput(BaseModel):
 class ClrOutput(BaseModel):
     object_code: str
     M: int
-    colors: List[Dict[str, Any]]
+    # FIX: Changed 'colors' to 'components' to match the actual JSON output
+    components: List[Dict[str, Any]]
 
 
 # FIX: Updated to handle dictionary output from C++ tool for coordinates (e.g., {'x': x, 'y': y, 'z': z})
@@ -68,7 +69,7 @@ class AiApiWrapper:
                 text=True,
                 check=True,
                 encoding='utf-8',
-                timeout=30  # Enforcing timeout to prevent hangs (e.g., during RCN/VOL)
+                timeout=120  # Enforcing timeout to prevent hangs (e.g., during RCN/VOL)
             )
 
             # --- JSON Parsing Logic ---
@@ -84,7 +85,7 @@ class AiApiWrapper:
             return json_results
 
         except subprocess.TimeoutExpired:
-            print(f"❌ API Call Failed ({head_code}): Command timed out after 30 seconds.")
+            print(f"❌ API Call Failed ({head_code}): Command timed out after 120 seconds.")
             return None
 
         except subprocess.CalledProcessError as e:
@@ -128,7 +129,8 @@ class AiApiWrapper:
 
         if results and results[0]:
             try:
-                if 'M' in results[0] and 'colors' in results[0]:
+                # FIX: Check for 'components' key instead of 'colors'
+                if 'M' in results[0] and 'components' in results[0]:
                     return ClrOutput(object_code=object_code, **results[0])
 
                 # Check if the error is due to missing color data (e.g., C++ prints an error JSON)
@@ -158,3 +160,4 @@ class AiApiWrapper:
                 print(f"❌ BBD General Error for {object_code_1}/{object_code_2}: {e}")
                 return None
         return None
+

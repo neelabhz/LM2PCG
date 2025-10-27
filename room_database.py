@@ -5,8 +5,6 @@ import glob
 from typing import Dict, List, Tuple
 
 
-# NOTE: This is the updated database population script for your project.
-
 class SpatialDatabaseCorrect:
     """
     DATABASE:
@@ -357,11 +355,17 @@ class SpatialDatabaseCorrect:
             for room_name, room_data in floor_data['rooms'].items():
                 print(f"  🏠 Processing {room_name}...")
 
+                # --- MODIFICATION: Skip rooms without images ---
+                if not room_data['images']:
+                    print(f"    ⚠ SKIPPING {room_name}: No panorama images found.")
+                    continue
+                # -----------------------------------------------
+
                 room_id = self.add_room(
                     floor_id=floor_id,
                     room_name=room_name,
                     room_number=room_data['room_number'],
-                    room_type=self._infer_room_type(room_name),
+                    room_type='unknown',  # Set to 'unknown' as folder names are generic
                     geometric_csv=room_data['obj_csv_path'],
                     scan_date="2025-01-01",
                     notes=f"Auto-imported from {room_data['path']}"
@@ -392,30 +396,12 @@ class SpatialDatabaseCorrect:
 
         print(f"\n✅ Database populated successfully!")
         print(f"   Floors: {len(structure)}")
-        print(f"   Rooms: {total_rooms}")
+        print(f"   Rooms: {total_rooms} (Skipped rooms without images)")
         print(f"   Objects: {total_objects}")
         print(f"   Planes: {total_planes}")
         print(f"   Images: {total_images}")
 
-    def _infer_room_type(self, room_name: str) -> str:
-        """Infer room type from room name (Unchanged)"""
-        room_name_lower = room_name.lower()
-        if 'living' in room_name_lower or 'lounge' in room_name_lower:
-            return 'living_room'
-        elif 'bed' in room_name_lower:
-            return 'bedroom'
-        elif 'bath' in room_name_lower:
-            return 'bathroom'
-        elif 'kitchen' in room_name_lower:
-            return 'kitchen'
-        elif 'office' in room_name_lower or 'study' in room_name_lower:
-            return 'office'
-        elif 'conference' in room_name_lower or 'meeting' in room_name_lower:
-            return 'conference'
-        elif 'hall' in room_name_lower or 'corridor' in room_name_lower:
-            return 'hallway'
-        else:
-            return 'unknown'
+    # --- REMOVED _infer_room_type function ---
 
     def _update_floor_statistics(self):
         """Update floor statistics after population (Unchanged)"""
@@ -578,3 +564,4 @@ def populate_database_fixed():
 
 if __name__ == "__main__":
     populate_database_fixed()
+

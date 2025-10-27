@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from PIL import Image
 import io
 import traceback
+import webcolors  # <-- NEW: Import the color library
+
 # Assuming ai_api_wrapper.py is in the same directory or accessible via PYTHONPATH
 from ai_api_wrapper import AiApiWrapper
 
@@ -53,8 +55,8 @@ class FinalSpatialAIAgent:
         self.floors_df = pd.read_sql_query("SELECT * FROM floors ORDER BY floor_number", self.conn)
         self.rooms_df = pd.read_sql_query("""
             SELECT r.*, f.floor_name, f.floor_number
-            FROM rooms r 
-            JOIN floors f ON r.floor_id = f.floor_id 
+            FROM rooms r
+            JOIN floors f ON r.floor_id = f.floor_id
             ORDER BY f.floor_number, r.room_number
         """, self.conn)
 
@@ -70,8 +72,8 @@ class FinalSpatialAIAgent:
 
         # Set a default room that has objects
         rooms_with_objects_df = pd.read_sql_query("""
-            SELECT r.room_id FROM rooms r 
-            JOIN objects o ON r.room_id = o.room_id 
+            SELECT r.room_id FROM rooms r
+            JOIN objects o ON r.room_id = o.room_id
             GROUP BY r.room_id LIMIT 1
         """, self.conn)
 
@@ -87,6 +89,29 @@ class FinalSpatialAIAgent:
             print("⚠ No rooms found in the database.")
 
         print("✅ Final Spatial AI Agent initialized")
+
+    # --- NEW: Helper function for finding the closest color name ---
+    def _find_closest_color_name(self, requested_rgb: Tuple[int, int, int]) -> str:
+        """Finds the nearest CSS3 color name for a given RGB tuple."""
+        min_distance = float('inf')
+        closest_name = "unknown"
+
+        try:
+            # FIX: Use CSS3_NAMES_TO_HEX instead
+            for name, hex_val in webcolors.CSS3_NAMES_TO_HEX.items():
+                ref_rgb = webcolors.hex_to_rgb(hex_val)
+                # Simple Euclidean distance squared (faster than full sqrt)
+                distance = sum((a - b) ** 2 for a, b in zip(requested_rgb, ref_rgb))
+
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_name = name
+            return closest_name
+        except Exception as e:
+            # More specific error message, but removed the extra hint
+            print(f"⚠️ Color name lookup failed for RGB {requested_rgb}: {e}")
+            return "unknown"
+    # --- END NEW HELPER ---
 
     def _parse_room_reference(self, query: str) -> Optional[Tuple[str, int]]:
         """Parse room number (string) and floor number (int) from the query."""
@@ -123,14 +148,14 @@ class FinalSpatialAIAgent:
 
         return None
 
-    def _find_object_code_by_nlp(self, room_id: int, query: str) -> Optional[str]:
+    def _find_all_object_codes_by_nlp(self, room_id: int, query: str) -> List[str]:
         """
-        NEW: Finds the object code of the first matching object class in the room,
-        based on keywords in the user query.
+        NEW: Finds ALL object codes that match a generic class name found in the query.
+        Returns a list of object codes.
         """
         room_summary = self.get_room_summary(room_id)
         if not room_summary:
-            return None
+            return []
 
         # Common object classes used as keywords (adjust based on your dataset)
         class_keywords = [
@@ -146,13 +171,16 @@ class FinalSpatialAIAgent:
                 break
 
         if target_class:
-            # Find the first object of that class in the room's inventory
-            for obj in room_summary['objects']:
-                if obj['class'].lower() == target_class:
-                    print(f"🤖 Found candidate object via NLP: {obj['object_code']} (Class: {target_class})")
-                    return obj['object_code']
+            # Find ALL objects of that class in the room's inventory
+            matching_codes = [
+                obj['object_code'] for obj in room_summary['objects']
+                if obj['class'].lower() == target_class
+            ]
+            if matching_codes:
+                print(f"🤖 Found {len(matching_codes)} candidates via NLP for class: {target_class}")
+            return matching_codes
 
-        return None
+        return []
 
     def get_room_summary(self, room_id: int) -> Dict:
         """Get room summary including object_code and planes data."""
@@ -162,9 +190,9 @@ class FinalSpatialAIAgent:
         try:
             # 1. Room Info
             room = pd.read_sql_query("""
-                SELECT 
+                SELECT
                     r.room_id, r.room_name, r.room_number, r.room_type, f.floor_name, f.floor_number,
-                    COALESCE(r.total_area, 0.0) as total_area, 
+                    COALESCE(r.total_area, 0.0) as total_area,
                     COALESCE(r.total_volume, 0.0) as total_volume,
                     COALESCE(r.length, 0.0) as length, COALESCE(r.width, 0.0) as width, COALESCE(r.height, 0.0) as height
                 FROM rooms r JOIN floors f ON r.floor_id = f.floor_id WHERE r.room_id = ?
@@ -174,8 +202,8 @@ class FinalSpatialAIAgent:
 
             # 2. Objects with object_code (essential for external API)
             objects = pd.read_sql_query("""
-                SELECT 
-                    class, object_code, obj_name, center_x, center_y, center_z, length, width, height 
+                SELECT
+                    class, object_code, obj_name, center_x, center_y, center_z, length, width, height
                 FROM objects
                 WHERE room_id = ?
                 ORDER BY class, object_code
@@ -183,8 +211,8 @@ class FinalSpatialAIAgent:
 
             # 3. Planes (Walls/Floors)
             planes = pd.read_sql_query("""
-                SELECT 
-                    plane_class, area, normal_x, normal_y, normal_z 
+                SELECT
+                    plane_class, area, normal_x, normal_y, normal_z
                 FROM planes
                 WHERE room_id = ?
                 ORDER BY plane_class, area DESC
@@ -192,8 +220,8 @@ class FinalSpatialAIAgent:
 
             # 4. Images
             images = pd.read_sql_query("""
-                SELECT image_id, image_name, image_path 
-                FROM images 
+                SELECT image_id, image_name, image_path
+                FROM images
                 WHERE room_id = ?
                 ORDER BY image_id
             """, self.conn, params=[room_id])
@@ -228,6 +256,26 @@ class FinalSpatialAIAgent:
                 wall_planes = [p for p in room_summary['planes'] if p['plane_class'].lower() == 'wall']
                 room_summary['room']['wall_count'] = len(wall_planes)
                 room_summary['room']['wall_area_total'] = sum(p['area'] for p in wall_planes)
+
+                # --- FIX: Check for empty object list before running Pandas operations ---
+                all_objects = room_summary['objects']
+                if not all_objects:
+                    room_summary['room']['top_objects_details'] = {}
+                    all_rooms_data.append(room_summary)
+                    continue
+                # ------------------------------------------------------------------------
+
+                # Get top 5 classes by count
+                class_counts = pd.DataFrame(all_objects).groupby('class').size().nlargest(5)
+
+                object_codes_by_class = {}
+                for class_name, count in class_counts.items():
+                    codes = [obj['object_code'] for obj in all_objects if obj['class'] == class_name]
+                    # Format: CLASS_NAME (COUNT) [CODE1, CODE2, ...]
+                    object_codes_by_class[class_name] = f"{class_name.upper()} ({count}) [{', '.join(codes[:5])}]"
+
+                room_summary['room']['top_objects_details'] = object_codes_by_class
+                # -------------------------------------------------------------
 
                 all_rooms_data.append(room_summary)
         return all_rooms_data
@@ -295,14 +343,15 @@ EXTERNAL TOOL ACCESS (Requires object_code, e.g., '0-1-5'):
             # --- Provide aggregated plane data for multi-room analysis ---
             for i, rd in enumerate(room_data, 1):
                 room = rd['room']
-                objects = rd['objects']
 
                 wall_info = f"Walls: {room.get('wall_count', 0)} planes, Total Area: {room.get('wall_area_total', 0.0):.2f}m²"
-                object_summary = ", ".join(set([obj['class'] for obj in objects[:5]]))
+
+                # Fetch detailed object codes for multi-room context
+                top_obj_list = '\n     - '.join([f"{k}: {v}" for k, v in room.get('top_objects_details', {}).items()])
 
                 prompt += f"{i}. 🏢 {room['room_name']} on {room['floor_name']} ({room['room_type']})\n"
-                prompt += f"   - Objects: {room['object_count']} items. Top Types: {object_summary or 'None'}\n"
-                prompt += f"   - Planes: {wall_info}\n\n"
+                prompt += f"   - Objects: {room['object_count']} items.\n   - {wall_info}\n"
+                prompt += f"   - Top 5 Classes (with Codes):\n     - {top_obj_list}\n\n"
 
             prompt += "Note: Tool execution is limited to single-room context. \n"
 
@@ -317,7 +366,7 @@ Example:
 - Response: TOOL: CLR 0-2-3
 
 ---
-CRITICAL INSTRUCTION: If an 'EXTERNAL API RESULT' is present in the prompt, you MUST ignore the 'TOOL: ...' instruction above and provide the final answer using the result data immediately. 
+CRITICAL INSTRUCTION: If an 'EXTERNAL API RESULT' is present in the prompt, you MUST ignore the 'TOOL: ...' instruction above and provide the final answer using the result data immediately.
 RESPONSE GUIDELINES:
 1. **NARRATIVE & DETAIL:** Provide a well-structured, detailed, and professional narrative.
 2. **CALCULATION BREAKDOWN:** For any comparison or derived metric (e.g., total area, distance, difference), show the specific inputs (object codes, metrics) used to reach the conclusion.
@@ -436,45 +485,74 @@ RESPONSE GUIDELINES:
         if tool_to_run:
             # Step 1: Resolve codes (use specific codes first, then try NLP)
             target_codes = valid_codes
-            if not target_codes and not self.current_room_id is None:
-                # Try to find a single object code using NLP
-                code_from_nlp = self._find_object_code_by_nlp(self.current_room_id, user_query)
-                if code_from_nlp:
-                    target_codes = [code_from_nlp]
-                    print(f"🔍 Resolved query to object code: {target_codes[0]}")
-                else:
-                    print(f"⚠️ Tool query failed: No specific object code found or resolvable via NLP.")
-                    return None
 
-            # Step 2: Execute the resolved tool command
-            if tool_to_run == 'CLR' and len(target_codes) >= 1:
-                print(f"🛠️ Detected CLR command. Executing for code: {target_codes[0]}")
-                result = self.api_wrapper.analyze_dominant_color(target_codes[0])
-                if result:
-                    color_desc = f"Dominant colors ({result.M} found): "
-                    for c in result.colors:
-                        rgb = f"({int(c['mean_r'])},{int(c['mean_g'])},{int(c['mean_b'])})"
-                        color_desc += f"[Weight: {c['weight']:.2f}, RGB: {rgb}] "
-                    return f"EXTERNAL API RESULT (CLR {target_codes[0]}): {color_desc.strip()}"
-                return f"EXTERNAL API RESULT (CLR {target_codes[0]}): Color analysis failed. (Likely missing color data in asset)."
+            # --- Pluralized NLP Lookup (Only for CLR/VOL) ---
+            if tool_to_run in ['CLR', 'VOL']:
+                # If no specific codes were provided, but a class was mentioned (e.g., "window")
+                if not target_codes and not self.current_room_id is None:
+                    # Retrieve ALL matching codes for the class name found by NLP
+                    target_codes = self._find_all_object_codes_by_nlp(self.current_room_id, user_query)
+                    if not target_codes:
+                        print(f"⚠️ Tool query failed: No specific object code found or resolvable via NLP.")
+                        return None
+                    print(f"🔍 Resolved query to all object codes ({len(target_codes)} items).")
 
+                # Step 2: Execute the resolved tool command for all objects (if VOL/CLR)
+                if tool_to_run in ['CLR', 'VOL'] and len(target_codes) > 0:
+                    combined_results = []
+
+                    for code in target_codes:
+                        print(f"🛠️ Executing {tool_to_run} for code: {code}")
+                        if tool_to_run == 'CLR':
+                            result = self.api_wrapper.analyze_dominant_color(code)
+                            if result:
+                                # --- MODIFIED: Use result.components and iterate ---
+                                color_descs = []
+                                # Use .components attribute from Pydantic model
+                                for comp in result.components:
+                                    mean = comp.get('mean', [0, 0, 0])
+                                    # Ensure mean has 3 values before trying to access indices
+                                    if len(mean) >= 3:
+                                        # --- NEW: Get color name ---
+                                        rgb_tuple = (int(mean[0]), int(mean[1]), int(mean[2]))
+                                        color_name = self._find_closest_color_name(rgb_tuple) # Call the helper
+                                        rgb_str = f"RGB: {rgb_tuple}, Name: \"{color_name}\"" # Add name to string
+                                        # --- END NEW ---
+                                    else:
+                                        rgb_str = "RGB: (N/A)"
+                                    weight_str = f"Weight: {comp.get('weight', 0):.2f}"
+                                    color_descs.append(f"[{weight_str}, {rgb_str}]")
+
+                                if not color_descs:
+                                    desc = f"CLR ({code}): Found {result.M} components, but no color data parsed."
+                                else:
+                                    desc = f"CLR ({code}): Found {result.M} dominant color(s): {', '.join(color_descs)}"
+                                # --- END MODIFIED ---
+                            else:
+                                desc = f"CLR ({code}): Color analysis failed."
+
+                        elif tool_to_run == 'VOL':
+                            result = self.api_wrapper.calculate_volume(code)
+                            if result:
+                                status = 'Valid' if result.closed else 'Unclosed'
+                                desc = f"VOL ({code}): Volume is {result.volume:.3f}m³, Mesh Status: {status}"
+                            else:
+                                desc = f"VOL ({code}): Volume calculation failed."
+
+                        combined_results.append(desc)
+
+                    return f"EXTERNAL API RESULT (MULTI-TOOL {tool_to_run}): \n" + "\n".join(combined_results)
+
+            # Step 2b: Execute BBD (requires two unique codes)
             elif tool_to_run == 'BBD' and len(target_codes) >= 2:
                 obj1, obj2 = target_codes[0], target_codes[1]
                 print(f"🛠️ Detected BBD command. Executing for {obj1} and {obj2}")
                 result = self.api_wrapper.calculate_bbox_distance(obj1, obj2)
                 if result:
                     v = result.vector_1_to_2
-                    vec_str = f"({v['x']:.3f}, {v['y']:.3f}, {v['z']:.3f})"
+                    vec_str = f"({v.get('x', 0.0):.3f}, {v.get('y', 0.0):.3f}, {v.get('z', 0.0):.3f})"
                     return f"EXTERNAL API RESULT (BBD {obj1} {obj2}): Distance is {result.distance:.3f}m, Vector: {vec_str}."
                 return f"EXTERNAL API RESULT (BBD {obj1} {obj2}): Distance calculation failed."
-
-            elif tool_to_run == 'VOL' and len(target_codes) >= 1:
-                obj_code = target_codes[0]
-                print(f"🛠️ Detected VOL command. Executing for code: {obj_code}")
-                result = self.api_wrapper.calculate_volume(obj_code)
-                if result:
-                    return f"EXTERNAL API RESULT (VOL {obj_code}): Volume is {result.volume:.3f}m³, Mesh Closed: {result.closed}."
-                return f"EXTERNAL API RESULT (VOL {obj_code}): Volume calculation failed."
 
         return None  # No tool command was initiated
 
@@ -616,7 +694,7 @@ def demo_agent():
         # NOTE: Using object codes that likely exist based on the previous database logs
         test_queries = [
             # 1. CLR on WORKING ASSET (0-7-12 is couch, confirmed functional externally)
-            "What is the dominant color of the couch 0-7-12 in room 7 floor 0? Provide the weight and RGB values.",
+            "What is the dominant color of the couch 0-3-0 in room 3 floor 0?",
 
             # 2. BBD: Distance between two objects in room 2 floor 0 (Should succeed and synthesize)
             "What is the distance between the chair object 0-2-4 and the shell object 0-2-3 in room 2 floor 0?",
@@ -628,7 +706,7 @@ def demo_agent():
             "In room 6 floor 0, what is the total wall area and what is the appearance of the curtains?",
 
             # 5. NEW: Distance between two tables in different rooms (Multi-room BBD)
-            "What is the distance between object 0-4-3 and 0-5-5?",
+            "What is the distance between object 0-4-3 and 0-3-7?",
 
             # 6. NEW: Total count and area of floor planes (Multi-room plane summary)
             "Compare the total count and area of all floor planes across all floors.",
@@ -640,10 +718,13 @@ def demo_agent():
             "What is the appearance of the plant in room 1 floor 0, and what is its center (X, Y) coordinate?",
 
             # 9. NEW: CLR on another object (Curtain) (Tests CLR failure handling and visual fallback)
-            "What is the color of the curtain in room 6 floor 0? Use the best method possible.",
+            "What is the color of the curtain in room 2 floor 0? Use the best method possible.",
 
             # 10. NEW: Comparative analysis for Windows
-            "Which room has the highest number of windows?"
+            "Which room has the highest number of windows?",
+
+            # 11. PLURAL VOLUME CHECK (New Feature Test)
+            "What is the volume of all windows in room 3 floor 0?"
         ]
 
         for query in test_queries:
@@ -672,3 +753,4 @@ def demo_agent():
 
 if __name__ == "__main__":
     demo_agent()
+
