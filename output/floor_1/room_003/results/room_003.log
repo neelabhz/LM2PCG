@@ -1,31 +1,30 @@
+  Cluster size stats: min=4842, max=76540, ratio=15.8075, no_filter_ratio=2 -> apply filtering
+File: door_003.ply, points: 89185, clusters(raw/filtered): 3/1
+  Avg cluster size: 29726.3, filter threshold (factor=0.3): 8917.9
+  - raw cluster 0: size=76540
+  - raw cluster 1: size=7797
+  - raw cluster 2: size=4842
+  - kept cluster 0: size=76540
+  ✓ saved UOBB: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/door_003/1-3-0_door_uobb.ply
+  ✓ saved cluster PLY: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/door_003/1-3-0_door_cluster.ply
+Saved 1/1 filtered clusters to: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/door_003
   Detected *shell* -> treat as single cluster, skip clustering and filtering
-File: shell_003.ply, points: 1906758, shell -> skip clustering/filtering
-  ✓ saved UOBB: output/floor_1/room_003/results/shell/shell_003/1-3-0_shell_uobb.ply
-  ✓ copied shell PLY: output/floor_1/room_003/results/shell/shell_003/1-3-0_shell.ply
-Saved 1/1 shell UOBB to: output/floor_1/room_003/results/shell/shell_003
-  Cluster size stats: min=57, max=60319, ratio=1058.23, no_filter_ratio=2 -> apply filtering
-File: door_003.ply, points: 83361, clusters(raw/filtered): 4/2
-  Avg cluster size: 20831, filter threshold (factor=0.7): 14581.7
-  - raw cluster 0: size=60319
-  - raw cluster 1: size=57
-  - raw cluster 2: size=22869
-  - raw cluster 3: size=79
-  - kept cluster 0: size=60319
-  - kept cluster 1: size=22869
-  ✓ saved UOBB: output/floor_1/room_003/results/filtered_clusters/door_003/1-3-1_door_uobb.ply
-  ✓ saved cluster PLY: output/floor_1/room_003/results/filtered_clusters/door_003/1-3-1_door_cluster.ply
-  ✓ saved UOBB: output/floor_1/room_003/results/filtered_clusters/door_003/1-3-2_door_uobb.ply
-  ✓ saved cluster PLY: output/floor_1/room_003/results/filtered_clusters/door_003/1-3-2_door_cluster.ply
-Saved 2/2 filtered clusters to: output/floor_1/room_003/results/filtered_clusters/door_003
-  Cluster size stats: min=55, max=84, ratio=1.52727, no_filter_ratio=2 -> skip filtering
-File: window_003.ply, points: 139, clusters(raw/filtered): 2/2
-  Avg cluster size: 69.5, filter threshold (factor=0.7): 48.65
-  - raw cluster 0: size=84
-  - raw cluster 1: size=55
-  - kept cluster 0: size=84
-  - kept cluster 1: size=55
-  ✓ saved UOBB: output/floor_1/room_003/results/filtered_clusters/window_003/1-3-3_window_uobb.ply
-  ✓ saved cluster PLY: output/floor_1/room_003/results/filtered_clusters/window_003/1-3-3_window_cluster.ply
-  ✓ saved UOBB: output/floor_1/room_003/results/filtered_clusters/window_003/1-3-4_window_uobb.ply
-  ✓ saved cluster PLY: output/floor_1/room_003/results/filtered_clusters/window_003/1-3-4_window_cluster.ply
-Saved 2/2 filtered clusters to: output/floor_1/room_003/results/filtered_clusters/window_003
+File: shell_003.ply, points: 1503866, shell -> skip clustering/filtering
+  ✓ saved UOBB: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/shell/shell_003/1-3-1_shell_uobb.ply
+Saved 1/1 shell UOBB to: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/shell/shell_003
+  Cluster size stats: min=57, max=5243, ratio=91.9825, no_filter_ratio=2 -> apply filtering
+File: window_003.ply, points: 8516, clusters(raw/filtered): 6/2
+  Avg cluster size: 1381, filter threshold (factor=0.3): 414.3
+  - raw cluster 0: size=223
+  - raw cluster 1: size=2562
+  - raw cluster 2: size=142
+  - raw cluster 3: size=5243
+  - raw cluster 4: size=59
+  - raw cluster 5: size=57
+  - kept cluster 0: size=2562
+  - kept cluster 1: size=5243
+  ✓ saved UOBB: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/window_003/1-3-2_window_uobb.ply
+  ✓ saved cluster PLY: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/window_003/1-3-2_window_cluster.ply
+  ✓ saved UOBB: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/window_003/1-3-3_window_uobb.ply
+  ✓ saved cluster PLY: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/window_003/1-3-3_window_cluster.ply
+Saved 2/2 filtered clusters to: /mnt/c/Users/seghe/Desktop/LLM/SpatialLLM/data/output/floor_1/room_003/results/filtered_clusters/window_003
