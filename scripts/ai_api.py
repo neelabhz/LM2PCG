@@ -1326,15 +1326,34 @@ def _cli() -> int:
             port=args.port
         )
         
-        # Simplified output format
-        print(f"Status: {result['status']}")
-        print(f"Mode: {result['mode']}")
-        print(f"Name: {result['name']}")
-        print(f"Viewer URL: {result['viewer_url']}")
-        if 'room_codes' in result:
-            print(f"Rooms: {', '.join(result['room_codes'])}")
-        if 'object_codes' in result:
-            print(f"Objects: {', '.join(result['object_codes'])}")
+        # Output JSON or human-readable format
+        if use_json:
+            # JSON output for API wrapper
+            json_output = {
+                "status": result['status'],
+                "mode": result['mode'],
+                "name": result['name'],
+                "viewer_url": result['viewer_url']
+            }
+            if 'room_codes' in result:
+                json_output['room_codes'] = result['room_codes']
+            if 'object_codes' in result:
+                json_output['objects'] = result['object_codes']
+            print(json.dumps(json_output, ensure_ascii=False))
+        else:
+            # Human-readable output for terminal
+            print(f"Status: {result['status']}")
+            print(f"Mode: {result['mode']}")
+            print(f"Name: {result['name']}")
+            print(f"Viewer URL: {result['viewer_url']}")
+            if 'room_codes' in result:
+                print(f"Rooms: {', '.join(result['room_codes'])}")
+            if 'object_codes' in result:
+                print(f"Objects: {', '.join(result['object_codes'])}")
+        
+        # Skip interactive waiting if in JSON mode (for API wrapper)
+        if use_json:
+            return 0
         
         if args.no_serve:
             # Manual mode: user needs to start server
