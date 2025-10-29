@@ -112,7 +112,20 @@ class APIHandler(BaseHTTPRequestHandler):
                 return
             
             body = self.rfile.read(content_length)
-            data = json.loads(body.decode('utf-8'))
+            payload = json.loads(body.decode('utf-8'))
+            
+            # Support two formats:
+            # 1. New format with session_id: {"session_id": "...", "selections": [...]}
+            # 2. Legacy format: [...] (array directly)
+            session_id = None
+            if isinstance(payload, dict):
+                session_id = payload.get('session_id')
+                data = payload.get('selections', [])
+            elif isinstance(payload, list):
+                data = payload
+            else:
+                self._send_error(400, 'Invalid request format')
+                return
             
             # Validate data structure
             if not isinstance(data, list):
@@ -121,7 +134,10 @@ class APIHandler(BaseHTTPRequestHandler):
             
             # Print friendly real-time message to terminal
             print("\n" + "="*60)
-            print("🎯 实时检测到用户选择！")
+            if session_id:
+                print(f"🎯 实时检测到用户选择！(Session: {session_id})")
+            else:
+                print("🎯 实时检测到用户选择！")
             print("="*60)
             
             if len(data) == 0:
@@ -142,11 +158,18 @@ class APIHandler(BaseHTTPRequestHandler):
             print()
             
             # Save selection to file for AI agent
-            selection_file = Path("/tmp/viewer_selection.json")
+            # If session_id is provided, save to session-specific file
+            if session_id:
+                selection_file = Path(f"/tmp/viewer_selection_{session_id}.json")
+                print(f"💾 选择已保存到: {selection_file} (session-specific)")
+            else:
+                selection_file = Path("/tmp/viewer_selection.json")
+                print(f"💾 选择已保存到: {selection_file} (legacy)")
+            
             try:
-                with open(selection_file, 'w') as f:
+                with open(selection_file, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
-                print(f"💾 选择已保存到: {selection_file}\n")
+                print(f"✅ 文件写入成功\n")
             except Exception as e:
                 print(f"⚠️  保存选择文件失败: {e}\n")
             

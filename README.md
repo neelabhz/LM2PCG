@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline   1.3.0-beta
+# Indoor Point Cloud Pipeline   1.3.0-beta.2
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 

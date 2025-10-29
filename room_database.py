@@ -121,11 +121,125 @@ class SpatialDatabaseCorrect:
         self.conn.commit()
         print("✓ Database tables created for new workflow")
 
+    def scan_from_manifest(self, data_path: str = "Data") -> Dict:
+        """
+        NEW: Scan data directory based on rooms_manifest.csv files.
+        This method reads all rooms_manifest.csv files under floor_* directories
+        and uses them as the source of truth for room information.
+        """
+        print(f"🔍 Scanning data directory based on rooms_manifest.csv: {data_path}")
+
+        structure = {}
+        if not os.path.exists(data_path):
+            print(f"❌ Data directory not found: {data_path}")
+            return structure
+
+        # Find all floor directories
+        floor_pattern = os.path.join(data_path, "floor_*")
+        floor_dirs = glob.glob(floor_pattern)
+
+        for floor_dir in sorted(floor_dirs):
+            floor_name = os.path.basename(floor_dir)
+            floor_number = int(floor_name.split('_')[1]) if '_' in floor_name else 0
+
+            # Look for rooms_manifest.csv in this floor directory
+            manifest_path = os.path.join(floor_dir, "rooms_manifest.csv")
+            
+            if not os.path.exists(manifest_path):
+                print(f"⚠️  No rooms_manifest.csv found in {floor_name}, skipping...")
+                continue
+
+            print(f"  📄 Reading manifest: {manifest_path}")
+            
+            structure[floor_name] = {'path': floor_dir, 'floor_number': floor_number, 'rooms': {}}
+
+            try:
+                # Read the manifest CSV
+                manifest_df = pd.read_csv(manifest_path)
+                manifest_df.columns = manifest_df.columns.str.strip()
+                
+                print(f"     Found {len(manifest_df)} rooms in manifest")
+
+                # Process each room from the manifest
+                for _, row in manifest_df.iterrows():
+                    # Extract room_id from manifest (this is the room number)
+                    room_id_from_manifest = int(row['room_id']) if 'room_id' in row else None
+                    
+                    if room_id_from_manifest is None:
+                        print(f"     ⚠️  Skipping row without room_id")
+                        continue
+                    
+                    # Generate room_name and room_number from manifest room_id
+                    room_number = str(room_id_from_manifest).zfill(3)  # e.g., "007"
+                    room_name = f"room_{room_number}"  # e.g., "room_007"
+                    
+                    # Construct expected room directory path
+                    room_dir = os.path.join(floor_dir, room_name)
+                    
+                    # Check if room directory exists (optional - we can work without it)
+                    room_exists = os.path.exists(room_dir)
+                    
+                    if not room_exists:
+                        print(f"     ℹ️  Room directory not found: {room_name} (will create entry anyway)")
+                    
+                    # Look for object CSV
+                    obj_csv_path = None
+                    if room_exists:
+                        obj_csv_pattern = os.path.join(room_dir, f"{room_name}.csv")
+                        obj_csv_files = glob.glob(obj_csv_pattern)
+                        obj_csv_path = obj_csv_files[0] if obj_csv_files else None
+                    
+                    # Look for planes CSV
+                    plane_csv_path = None
+                    if room_exists:
+                        plane_csv_pattern = os.path.join(room_dir, "planes_data.csv")
+                        plane_csv_files = glob.glob(plane_csv_pattern)
+                        plane_csv_path = plane_csv_files[0] if plane_csv_files else None
+                    
+                    # Look for images
+                    image_files = []
+                    if room_exists:
+                        image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.JPG', '*.JPEG']
+                        image_files = [
+                            f for ext in image_extensions 
+                            for f in glob.glob(os.path.join(room_dir, ext))
+                        ]
+                    
+                    # Extract additional info from manifest
+                    room_type = row.get('room_type', 'unknown')
+                    ply_path = row.get('ply_path', '')
+                    
+                    # Store room information
+                    structure[floor_name]['rooms'][room_name] = {
+                        'path': room_dir,
+                        'room_number': room_number,
+                        'room_id_from_manifest': room_id_from_manifest,
+                        'room_type': room_type,
+                        'ply_path': ply_path,
+                        'obj_csv_path': obj_csv_path,
+                        'plane_csv_path': plane_csv_path,
+                        'images': sorted(image_files),
+                        'has_obj_csv': bool(obj_csv_path),
+                        'has_plane_csv': bool(plane_csv_path),
+                        'image_count': len(image_files),
+                        'room_exists': room_exists
+                    }
+                    
+                    print(f"     ✓ {room_name} (room_id={room_id_from_manifest}, type={room_type}, images={len(image_files)})")
+
+            except Exception as e:
+                print(f"     ❌ Error reading manifest for {floor_name}: {e}")
+                continue
+
+        return structure
+    
     def scan_data_directory(self, data_path: str = "Data") -> Dict:
         """
-        Scan the Data directory and discover floors, rooms, object CSVs,
-        plane CSVs, and images.
+        DEPRECATED: Old method that scans directories directly.
+        Use scan_from_manifest() instead for manifest-based scanning.
         """
+        print(f"⚠️  WARNING: Using deprecated directory scanning method.")
+        print(f"   Consider using scan_from_manifest() for manifest-based scanning.")
         print(f"🔍 Scanning data directory: {data_path}")
 
         structure = {}
@@ -340,12 +454,19 @@ class SpatialDatabaseCorrect:
             print(f"✓ Added {count} panorama images")
         return count
 
-    def populate_from_structure(self, structure: Dict):
-        """Populate database from discovered folder structure (Updated for Planes)"""
+    def populate_from_structure(self, structure: Dict, require_images: bool = False):
+        """
+        Populate database from discovered folder structure (Updated for manifest-based scanning).
+        
+        Args:
+            structure: Dictionary containing floor and room information
+            require_images: If True, skip rooms without images (default: False for manifest mode)
+        """
         total_rooms = 0
         total_objects = 0
         total_images = 0
         total_planes = 0
+        skipped_rooms = 0
 
         for floor_name, floor_data in structure.items():
             print(f"\n Processing {floor_name}...")
@@ -355,17 +476,20 @@ class SpatialDatabaseCorrect:
             for room_name, room_data in floor_data['rooms'].items():
                 print(f"  🏠 Processing {room_name}...")
 
-                # --- MODIFICATION: Skip rooms without images ---
-                if not room_data['images']:
+                # Optional: Skip rooms without images (configurable)
+                if require_images and not room_data['images']:
                     print(f"    ⚠ SKIPPING {room_name}: No panorama images found.")
+                    skipped_rooms += 1
                     continue
-                # -----------------------------------------------
 
+                # Use room_type from manifest if available, otherwise default to 'unknown'
+                room_type = room_data.get('room_type', 'unknown')
+                
                 room_id = self.add_room(
                     floor_id=floor_id,
                     room_name=room_name,
                     room_number=room_data['room_number'],
-                    room_type='unknown',  # Set to 'unknown' as folder names are generic
+                    room_type=room_type,  # Use room_type from manifest
                     geometric_csv=room_data['obj_csv_path'],
                     scan_date="2025-01-01",
                     notes=f"Auto-imported from {room_data['path']}"
@@ -376,19 +500,21 @@ class SpatialDatabaseCorrect:
                     obj_count = self.import_geometric_csv(room_id, room_data['obj_csv_path'])
                     total_objects += obj_count
                 else:
-                    print(f"    ⚠ No Object CSV file found for {room_name}")
+                    print(f"    ℹ️  No Object CSV file found for {room_name}")
 
-                # 2. Import planes data - NEW
+                # 2. Import planes data
                 if room_data['has_plane_csv']:
                     plane_count = self.import_planes_csv(room_id, room_data['plane_csv_path'])
                     total_planes += plane_count
                 else:
-                    print(f"    ⚠ No Planes CSV file found for {room_name}")
+                    print(f"    ℹ️  No Planes CSV file found for {room_name}")
 
                 # 3. Add images
                 if room_data['images']:
                     img_count = self.add_room_images(room_id, room_data['images'])
                     total_images += img_count
+                else:
+                    print(f"    ℹ️  No images found for {room_name}")
 
                 total_rooms += 1
 
@@ -396,7 +522,9 @@ class SpatialDatabaseCorrect:
 
         print(f"\n✅ Database populated successfully!")
         print(f"   Floors: {len(structure)}")
-        print(f"   Rooms: {total_rooms} (Skipped rooms without images)")
+        print(f"   Rooms: {total_rooms}")
+        if skipped_rooms > 0:
+            print(f"   Skipped: {skipped_rooms} rooms (no images)")
         print(f"   Objects: {total_objects}")
         print(f"   Planes: {total_planes}")
         print(f"   Images: {total_images}")
@@ -519,7 +647,13 @@ class SpatialDatabaseCorrect:
 
 
 def populate_database_fixed():
-    """Populate database with fixed CSV naming"""
+    """
+    DEPRECATED: Old method using directory scanning.
+    Use populate_database_from_manifest() instead.
+    """
+    print("⚠️  WARNING: This method is deprecated.")
+    print("   Use populate_database_from_manifest() for manifest-based database generation.")
+    print()
 
     # NOTE: The data path is explicitly set here to match your requested structure.
     DATA_ROOT = "output2"
@@ -529,10 +663,7 @@ def populate_database_fixed():
     # Initialize database
     db = SpatialDatabaseCorrect("spatial_rooms.db")
 
-    # Clean database before starting
-    # db.reset_database() # Removed external call, now handled in __init__
-
-    # Scan data directory
+    # Scan data directory (old method)
     structure = db.scan_data_directory(DATA_ROOT)
 
     if not structure:
@@ -549,8 +680,8 @@ def populate_database_fixed():
             print(
                 f"    {status}{plane_status} {room_name}: {room_data['image_count']} images, Object CSV: {room_data['has_obj_csv']}, Plane CSV: {room_data['has_plane_csv']}")
 
-    # Populate database
-    db.populate_from_structure(structure)
+    # Populate database (with image requirement)
+    db.populate_from_structure(structure, require_images=True)
 
     # Show final overview
     print("\n" + "=" * 70)
@@ -562,6 +693,52 @@ def populate_database_fixed():
     print(f"\n✅ Database created: spatial_rooms.db")
 
 
+def populate_database_from_manifest():
+    """
+    NEW: Populate database based on rooms_manifest.csv files.
+    This is the recommended method that uses manifest files as the source of truth.
+    """
+    DATA_ROOT = "output2"
+    print(f"📋 POPULATING DATABASE FROM ROOMS_MANIFEST.CSV (Root: {DATA_ROOT})")
+    print("=" * 70)
+
+    # Initialize database
+    db = SpatialDatabaseCorrect("spatial_rooms.db")
+
+    # Scan data directory based on manifest files
+    structure = db.scan_from_manifest(DATA_ROOT)
+
+    if not structure:
+        print(f"❌ No manifest files found under {DATA_ROOT}. Please check folder structure.")
+        db.close()
+        return
+
+    print(f"\n📊 Discovered structure from manifests:")
+    for floor_name, floor_data in structure.items():
+        print(f"  {floor_name}: {len(floor_data['rooms'])} rooms")
+        for room_name, room_data in floor_data['rooms'].items():
+            status = "✓" if room_data['room_exists'] else "⚠"
+            obj_status = "O" if room_data['has_obj_csv'] else " "
+            plane_status = "P" if room_data['has_plane_csv'] else " "
+            img_status = "I" if room_data['images'] else " "
+            print(
+                f"    {status}{obj_status}{plane_status}{img_status} {room_name} (ID:{room_data['room_id_from_manifest']}, type:{room_data['room_type']}, images:{room_data['image_count']})")
+
+    # Populate database (no image requirement for manifest mode)
+    db.populate_from_structure(structure, require_images=False)
+
+    # Show final overview
+    print("\n" + "=" * 70)
+    print(" FINAL DATABASE OVERVIEW")
+    print("=" * 70)
+    print(db.get_database_overview())
+
+    db.close()
+    print(f"\n✅ Database created: spatial_rooms.db")
+    print(f"   Source: rooms_manifest.csv files in floor_* directories")
+
+
 if __name__ == "__main__":
-    populate_database_fixed()
+    # Use the new manifest-based method by default
+    populate_database_from_manifest()
 
