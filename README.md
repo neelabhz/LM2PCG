@@ -17,7 +17,18 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 
 ## Quick Start
 
-### Prerequisites
+### Dependencies
+
+| Component | Minimum Version | Tested Version | Status |
+|-----------|----------------|----------------|--------|
+| CMake | 3.16 | 4.0.2 | Required |
+| C++ Standard | C++17 | C++17 | Required |
+| PCL | 1.10 | 1.15.1_1 | Required |
+| Eigen3 | (any) | 3.4.1 | Required |
+| CGAL | (any) | 6.1 | Required |
+| Boost | (any) | 1.89.0 | Required |
+| Python | 3.x | 3.8+ | Required for AI API |
+| Node.js | 16+ | 18+ | Required for web viewer |
 
 ```bash
 # macOS
@@ -135,11 +146,11 @@ python3 scripts/ai_api.py VIS 0-7 --no-wait
 ```
 
 **Key Features**:
-- ✅ **Unified Format**: All commands use `<OPERATION> <ID>` (no `--object`, `--filename`, or `--json` flags)
-- ✅ **JSON by Default**: Configured in `data/configs/default.yaml` (`json_output: true`)
-- ✅ **Interactive VIS**: Auto-starts servers, waits for selection, outputs JSON, auto-closes
-- ✅ **Auto-Detection**: Automatically detects room vs object codes, visualization modes
-- ✅ **AI Agent Ready**: Structured JSON output for automated workflows
+- **Unified Format**: All commands use `<OPERATION> <ID>` (no `--object`, `--filename`, or `--json` flags)
+- **JSON by Default**: Configured in `data/configs/default.yaml` (`json_output: true`)
+- **Interactive VIS**: Auto-starts servers, waits for selection, outputs JSON, auto-closes
+- **Auto-Detection**: Automatically detects room vs object codes, visualization modes
+- **AI Agent Ready**: Structured JSON output for automated workflows
 
 **Operations**: `RCN` (reconstruct), `VOL` (volume), `ARE` (area), `CLR` (color), `BBD` (distance), `RMS` (room summary), `VIS` (visualization)
 
