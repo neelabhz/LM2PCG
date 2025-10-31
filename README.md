@@ -19,13 +19,32 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 
 ### Prerequisites
 
+**Required:**
+- CMake 3.16+
+- C++17 compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- PCL 1.10+
+- Boost, Eigen3
+
+**For mesh processing (pcg_reconstruct, pcg_volume, pcg_area):**
+- **CGAL 5.3+** (required for unified IO headers)
+
 ```bash
 # macOS
 brew install cmake cgal boost eigen pcl
 
-# Linux (Debian/Ubuntu)
+# Linux (Debian/Ubuntu 22.04+)
 sudo apt-get install cmake build-essential libpcl-dev libcgal-dev libeigen3-dev libboost-all-dev
+
+# Linux (Ubuntu 20.04 or older with CGAL < 5.3)
+# You need to build CGAL from source:
+wget https://github.com/CGAL/cgal/releases/download/v5.6/CGAL-5.6.tar.xz
+tar xf CGAL-5.6.tar.xz && cd CGAL-5.6
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+sudo make install
 ```
+
+> **Note**: If CGAL < 5.3 is detected, mesh processing tools will be skipped during build. Only `pcg_room`, `pcg_color`, and `pcg_bbox` will be built.
 
 ### Build
 
