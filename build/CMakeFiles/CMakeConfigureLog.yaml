@@ -384,3 +384,45 @@ events:
         
       exitCode: 2
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:250 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindOpenMP.cmake:557 (_OPENMP_GET_FLAGS)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:338 (find_package)"
+      - "/opt/homebrew/share/pcl-1.15/PCLConfig.cmake:581 (find_external_library)"
+      - "CMakeLists.txt:8 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/Users/jacksonye/Documents/GitHub/LM2PCG/build/CMakeFiles/CMakeScratch/TryCompile-r21acu"
+      binary: "/Users/jacksonye/Documents/GitHub/LM2PCG/build/CMakeFiles/CMakeScratch/TryCompile-r21acu"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/opt/homebrew/share/pcl-1.15/Modules"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_Xclang fopenmp"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jacksonye/Documents/GitHub/LM2PCG/build/CMakeFiles/CMakeScratch/TryCompile-r21acu'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a316d/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_a316d.dir/build.make CMakeFiles/cmTC_a316d.dir/build
+        Building CXX object CMakeFiles/cmTC_a316d.dir/OpenMPTryFlag.cpp.o
+        /usr/bin/c++   -Xclang -fopenmp -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_a316d.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_a316d.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_a316d.dir/OpenMPTryFlag.cpp.o -c /Users/jacksonye/Documents/GitHub/LM2PCG/build/CMakeFiles/CMakeScratch/TryCompile-r21acu/OpenMPTryFlag.cpp
+        /Users/jacksonye/Documents/GitHub/LM2PCG/build/CMakeFiles/CMakeScratch/TryCompile-r21acu/OpenMPTryFlag.cpp:2:10: fatal error: 'omp.h' file not found
+        #include <omp.h>
+                 ^~~~~~~
+        1 error generated.
+        make[1]: *** [CMakeFiles/cmTC_a316d.dir/OpenMPTryFlag.cpp.o] Error 1
+        make: *** [cmTC_a316d/fast] Error 2
+        
+      exitCode: 2
+...

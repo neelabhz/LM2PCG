@@ -3885,4 +3885,5 @@ CMakeFiles/pcg_volume.dir/src/apps/pcg_volume.cpp.o: \
   /opt/homebrew/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_3.h \
   /opt/homebrew/include/CGAL/Polygon_mesh_processing/bbox.h \
   /opt/homebrew/include/CGAL/license/Polygon_mesh_processing/miscellaneous.h \
-  /opt/homebrew/include/CGAL/boost/graph/generators.h
+  /opt/homebrew/include/CGAL/boost/graph/generators.h \
+  /opt/homebrew/include/CGAL/Polygon_mesh_processing/triangulate_faces.h
