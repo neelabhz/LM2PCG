@@ -2,7 +2,65 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
-## 1.3.0-beta.2 / 2025-10-29
+## 1.3.0 / 2025-11-03
+
+### Geometry Calculation Accuracy Improvements
+
+#### Critical Bug Fix: Polygon Face Triangulation
+- **Fixed 50% calculation error in area and volume tools** caused by quad/polygon faces
+  - Added automatic triangulation preprocessing in `pcg_volume` and `pcg_area`
+  - CGAL PLY reader previously handled only ~50% of quad faces correctly
+  - Now uses `CGAL::Polygon_mesh_processing::triangulate_faces()` after mesh loading
+  - Validation: cube test shows 0.00% error (was ~50% before)
+  - Reconstruction accuracy improved dramatically (e.g., gemstone0: +527% → +0.3%, sofa20: +92% → -0.1%)
+
+#### New Feature: Adaptive Voxel Volume Calculation
+- **Implemented robust volume calculation for non-closed meshes** (`mesh_volume_adaptive_voxel()`)
+  - AABB tree-based ray casting for inside/outside testing
+  - 3-level adaptive boundary refinement for accuracy
+  - Auto-computed base voxel size (20 voxels along longest axis)
+  - Typical accuracy: 5-8% underestimation (inherent to voxel methods)
+  - Validation: sphere r=5 sub3 shows -0.86% error with signed volume, -5.60% with voxel method
+
+#### Enhanced Volume Calculation Workflow
+- **Automatic method selection for optimal accuracy**
+  - Closed meshes: Use signed volume method (0% error for polyhedra)
+  - Non-closed meshes: Automatically fall back to adaptive voxel method (5-8% error)
+  - Removed skip logic: all meshes now get volume calculated
+  - User can still force voxel method with `--voxel` flag
+
+#### Validation and Documentation
+- **Comprehensive testing with 8 test geometries**
+  - Cubes, tetrahedron, spheres, cylinders, cone with known theoretical values
+  - Results documented in `test_report_pcg_area_volume.tex`
+  - Polyhedra: 0.00% error with triangulation + signed volume
+  - Curved surfaces: sub-1% error due to mesh discretization
+- **Method descriptions** documented in `method_description_volume_area.tex`
+  - Signed volume method: Divergence theorem for closed meshes
+  - Adaptive voxel method: Ray casting with boundary refinement
+  - Usage recommendations based on mesh topology
+
+### Files Modified
+- `src/apps/pcg_volume.cpp`: Added triangulation preprocessing, auto voxel fallback
+- `src/apps/pcg_area.cpp`: Added triangulation preprocessing
+- `src/geometry/volume.cpp`: Implemented `mesh_volume_adaptive_voxel()` with AABB tree
+- `include/pcg/geometry/volume.hpp`: Added function declaration for adaptive voxel method
+
+## 1.3.0-beta.2 / 2025-10-30
+
+### Build System Improvements
+
+#### CGAL Version Requirement
+- **Added explicit CGAL 5.3+ requirement** in CMakeLists.txt
+  - `find_package(CGAL 5.3 QUIET COMPONENTS Core)` replaces unversioned lookup
+  - Prevents compilation errors on systems with older CGAL versions
+  - Enhanced error messages with installation instructions
+  - Graceful degradation: mesh tools skipped if CGAL < 5.3
+
+- **Documentation Updates**
+  - Added CGAL version requirement to README.md
+  - Included manual build instructions for Ubuntu 20.04 and older systems
+  - Clear separation of required vs optional dependencies
 
 ### Major Improvements
 
