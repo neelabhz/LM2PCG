@@ -2,6 +2,7 @@
 #include "pcg/params.hpp"
 
 #include <CGAL/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 #include <iostream>
 #include <filesystem>
 #include <iomanip>
@@ -42,6 +43,9 @@ int main(int argc, char** argv) {
             std::cerr << "✗ Read failed or empty: " << path << "\n";
             continue;
         }
+
+        // Triangulate all polygon faces to ensure correct area calculation
+        CGAL::Polygon_mesh_processing::triangulate_faces(mesh);
 
         const bool is_closed = CGAL::is_closed(mesh);
         const double area = pcg::geom::mesh_surface_area(mesh);

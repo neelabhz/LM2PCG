@@ -1,4 +1,4 @@
-# Indoor Point Cloud Pipeline   1.3.0-beta
+# Indoor Point Cloud Pipeline   1.3.0
 
 [![Release](https://img.shields.io/github/v/release/Jackson513ye/LM2PCG?sort=semver)](https://github.com/Jackson513ye/LM2PCG/releases)
 
@@ -10,7 +10,12 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 - **FEC-style clustering**: Radius-based with smart filtering
 - **Upright bounding boxes**: Optimal OBBs using convex hull + rotating calipers
 - **Reconstruction**: Poisson with acceptance checks + AF fallback
-- **Analysis tools**: Volume, surface area, dominant color, bbox distance
+- **Accurate geometry analysis**: 
+  - Volume calculation with automatic method selection (signed volume for closed, adaptive voxel for non-closed)
+  - Automatic triangulation preprocessing (fixes 50% polygon face calculation error)
+  - Surface area calculation with sub-1% accuracy on test geometries
+  - Dominant color analysis using GMM with perceptual distance
+  - Bounding box distance and point-to-bbox queries
 - **Unified AI API**: Simplified Python interface with `<OPERATION> <ID>` format ([docs/AI_API.md](docs/AI_API.md))
 - **Interactive Web Viewer**: Real-time 3D visualization with selection monitoring ([docs/POINTCLOUD_VIEWER.md](docs/POINTCLOUD_VIEWER.md))
 - **JSON-First Output**: Configuration-based structured output for AI agents
@@ -30,13 +35,32 @@ A compact C++17 pipeline for indoor point-cloud processing with PCL and optional
 | Python | 3.x | 3.8+ | Required for AI API |
 | Node.js | 16+ | 18+ | Required for web viewer |
 
+**Required:**
+- CMake 3.16+
+- C++17 compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- PCL 1.10+
+- Boost, Eigen3
+
+**For mesh processing (pcg_reconstruct, pcg_volume, pcg_area):**
+- **CGAL 5.3+** (required for unified IO headers)
+
 ```bash
 # macOS
 brew install cmake cgal boost eigen pcl
 
-# Linux (Debian/Ubuntu)
+# Linux (Debian/Ubuntu 22.04+)
 sudo apt-get install cmake build-essential libpcl-dev libcgal-dev libeigen3-dev libboost-all-dev
+
+# Linux (Ubuntu 20.04 or older with CGAL < 5.3)
+# You need to build CGAL from source:
+wget https://github.com/CGAL/cgal/releases/download/v5.6/CGAL-5.6.tar.xz
+tar xf CGAL-5.6.tar.xz && cd CGAL-5.6
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+sudo make install
 ```
+
+> **Note**: If CGAL < 5.3 is detected, mesh processing tools will be skipped during build. Only `pcg_room`, `pcg_color`, and `pcg_bbox` will be built.
 
 ### Build
 
@@ -95,14 +119,20 @@ Converts clusters to meshes using Poisson (with validation) or AF fallback.
 ### 3. pcg_volume - Volume Analysis
 ```bash
 ./build/pcg_volume <mesh_file> [mesh_file_2 ...]
+./build/pcg_volume --voxel <mesh_file>  # Force voxel method
 ```
-Computes volume for closed meshes.
+Computes mesh volume with automatic method selection:
+- **Closed meshes**: Uses signed volume method (0% error for polyhedra)
+- **Non-closed meshes**: Automatically uses adaptive voxel method (5-8% error)
+- **Adaptive voxel**: AABB tree ray casting with 3-level boundary refinement
+
+All meshes are automatically triangulated to fix polygon face calculation errors.
 
 ### 4. pcg_area - Surface Area Analysis
 ```bash
 ./build/pcg_area <mesh_file> [mesh_file_2 ...]
 ```
-Computes surface area for both open and closed meshes.
+Computes surface area for both open and closed meshes. Automatically triangulates polygon faces for accurate calculation (fixes 50% calculation error from quad faces).
 
 ### 5. pcg_color - Dominant Color
 ```bash

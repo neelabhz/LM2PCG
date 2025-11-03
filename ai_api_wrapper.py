@@ -33,6 +33,9 @@ class VisOutput(BaseModel):
     name: Optional[str] = None
     viewer_url: Optional[str] = None
     objects: Optional[List[str]] = None
+    requires_selection: bool = False  # NEW: Indicates if user selection is needed
+    session_id: Optional[str] = None  # NEW: Selection session identifier
+    selection_file: Optional[str] = None  # NEW: Path to selection result file
     error: Optional[str] = None
 
 

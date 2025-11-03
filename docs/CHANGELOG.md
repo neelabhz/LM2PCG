@@ -2,6 +2,215 @@
 
 All notable changes to this project are documented here. This log mirrors the style of `docs/CHANGELOG.md` and focuses on the latest integrations for AI orchestration and structured outputs.
 
+## 1.3.0 / 2025-11-03
+
+### Geometry Calculation Accuracy Improvements
+
+#### Critical Bug Fix: Polygon Face Triangulation
+- **Fixed 50% calculation error in area and volume tools** caused by quad/polygon faces
+  - Added automatic triangulation preprocessing in `pcg_volume` and `pcg_area`
+  - CGAL PLY reader previously handled only ~50% of quad faces correctly
+  - Now uses `CGAL::Polygon_mesh_processing::triangulate_faces()` after mesh loading
+  - Validation: cube test shows 0.00% error (was ~50% before)
+  - Reconstruction accuracy improved dramatically (e.g., gemstone0: +527% → +0.3%, sofa20: +92% → -0.1%)
+
+#### New Feature: Adaptive Voxel Volume Calculation
+- **Implemented robust volume calculation for non-closed meshes** (`mesh_volume_adaptive_voxel()`)
+  - AABB tree-based ray casting for inside/outside testing
+  - 3-level adaptive boundary refinement for accuracy
+  - Auto-computed base voxel size (20 voxels along longest axis)
+  - Typical accuracy: 5-8% underestimation (inherent to voxel methods)
+  - Validation: sphere r=5 sub3 shows -0.86% error with signed volume, -5.60% with voxel method
+
+#### Enhanced Volume Calculation Workflow
+- **Automatic method selection for optimal accuracy**
+  - Closed meshes: Use signed volume method (0% error for polyhedra)
+  - Non-closed meshes: Automatically fall back to adaptive voxel method (5-8% error)
+  - Removed skip logic: all meshes now get volume calculated
+  - User can still force voxel method with `--voxel` flag
+
+#### Validation and Documentation
+- **Comprehensive testing with 8 test geometries**
+  - Cubes, tetrahedron, spheres, cylinders, cone with known theoretical values
+  - Results documented in `test_report_pcg_area_volume.tex`
+  - Polyhedra: 0.00% error with triangulation + signed volume
+  - Curved surfaces: sub-1% error due to mesh discretization
+- **Method descriptions** documented in `method_description_volume_area.tex`
+  - Signed volume method: Divergence theorem for closed meshes
+  - Adaptive voxel method: Ray casting with boundary refinement
+  - Usage recommendations based on mesh topology
+
+### Files Modified
+- `src/apps/pcg_volume.cpp`: Added triangulation preprocessing, auto voxel fallback
+- `src/apps/pcg_area.cpp`: Added triangulation preprocessing
+- `src/geometry/volume.cpp`: Implemented `mesh_volume_adaptive_voxel()` with AABB tree
+- `include/pcg/geometry/volume.hpp`: Added function declaration for adaptive voxel method
+
+## 1.3.0-beta.2 / 2025-10-30
+
+### Build System Improvements
+
+#### CGAL Version Requirement
+- **Added explicit CGAL 5.3+ requirement** in CMakeLists.txt
+  - `find_package(CGAL 5.3 QUIET COMPONENTS Core)` replaces unversioned lookup
+  - Prevents compilation errors on systems with older CGAL versions
+  - Enhanced error messages with installation instructions
+  - Graceful degradation: mesh tools skipped if CGAL < 5.3
+
+- **Documentation Updates**
+  - Added CGAL version requirement to README.md
+  - Included manual build instructions for Ubuntu 20.04 and older systems
+  - Clear separation of required vs optional dependencies
+
+### Major Improvements
+
+#### AI Agent System Prompt Enhancement
+- **Embedded Comprehensive System Prompt**: Moved complete system instructions from external documentation into code
+  - Removed dependency on `COMPREHENSIVE_SYSTEM_PROMPT.md` that LLM cannot access at runtime
+  - Embedded full system prompt (~350 lines) directly into `_create_system_prompt()` method
+  - Includes all tool specifications, RGB color interpretation guides, response guidelines, and best practices
+  - LLM now receives complete instructions in every API call
+
+- **Enhanced System Prompt Structure**
+  - Added visual section dividers (═══) for improved readability
+  - 9 major sections: Core Identity, System Architecture, Data Model, Available Tools, Tool Invocation, Response Guidelines, Critical Instructions, Advanced Capabilities, Limitations
+  - Detailed RGB color interpretation with 5 examples
+  - Complete tool usage protocols for VOL, CLR, BBD, RCN, VIS
+  - 10 comprehensive response guidelines with formatting examples
+
+#### Database Schema Updates
+- **Room Type Classification Support** (`room_database.py`)
+  - Added `room_type` column to rooms table (VARCHAR default 'unknown')
+  - Added automatic data migration for existing databases
+  - Schema version tracking system (version 2)
+  - Support for semantic room queries (kitchen, bedroom, hallway, etc.)
+
+- **Enhanced Data Integrity**
+  - Added NOT NULL constraints on essential columns (room_name, floor_name)
+  - Improved error handling for schema migrations
+  - Better validation for room and object data
+
+#### Room Type Enrichment System
+- **Vision-Based Room Classification** (`enrich_room_types.py`)
+  - New automated room type classification using GPT-4o vision model
+  - Processes room panorama images to determine room types
+  - Updates database with classified types (kitchen, bedroom, living_room, etc.)
+  - Handles rooms without images gracefully
+  - Batch processing support for multiple rooms
+
+#### API Wrapper Enhancements
+- **Selection Session Support** (`ai_api_wrapper.py`)
+  - Added `session_id` parameter to `visualize_point_cloud()` method
+  - Enables user selection tracking in 3D viewer
+  - Supports interactive workflows with confirmation dialogs
+
+#### API Server Improvements (`scripts/api_server.py`)
+- **Selection Confirmation Endpoint**
+  - New `/api/confirm-selection` endpoint for viewer interactions
+  - Accepts POST requests with selected object data
+  - Writes selection to session-specific JSON files (`/tmp/viewer_selection_{session_id}.json`)
+  - Enables agent to wait for and process user selections
+
+- **Enhanced Path Resolution**
+  - Improved object and room path resolution logic
+  - Better error messages for missing resources
+  - More robust file serving capabilities
+
+### Added Features
+
+#### Agent Capabilities
+- **Interactive Selection Workflow** (`mutli_room_agent2.py`)
+  - New `_wait_for_user_selection()` method
+  - Polls for user selections with configurable timeout (default 60s)
+  - Progress indicators every 10 seconds
+  - Automatic cleanup of selection files
+  - Returns structured object list or None on timeout
+
+- **Auto-Triggered Visualization**
+  - Detects room display queries automatically
+  - Triggers VIS tool for "show", "display", "visualize" keywords
+  - Works with room names (kitchen, bedroom) and room codes (0-1)
+  - Seamless integration with query processing
+
+- **Semantic Room Type Parsing**
+  - Enhanced `_parse_room_reference()` with NLP context patterns
+  - Matches room type names in natural language queries
+  - Supports phrases like "show the kitchen", "visualize bedroom"
+  - Fallback to word boundary matching for broader coverage
+
+### Changed
+
+#### System Prompt Documentation
+- Removed references to external documentation files in docstrings
+- Updated class and method documentation to reflect embedded prompts
+- Simplified documentation structure
+
+#### Code Organization
+- Removed redundant tool specification comments
+- Consolidated RGB color interpretation in single location
+- Better separation of concerns in prompt generation
+
+### Removed
+
+#### Test Files Cleanup
+- Deleted obsolete test files:
+  - `scripts/test_ai_agent_workflow.py` (57 lines removed)
+  - `scripts/test_manual_ops.py` (40 lines removed)
+  - `scripts/test_realtime_selection.py` (95 lines removed)
+- Removed empty `test_ai_wrapper.py` file
+
+### Documentation
+
+#### Updated Documentation Files
+- **COMPREHENSIVE_SYSTEM_PROMPT.md**: Retained as developer reference
+  - Still contains complete system documentation
+  - Now explicitly marked as developer-only reference
+  - LLM receives content through embedded prompt instead
+
+### Technical Details
+
+#### Statistics
+- **Code Changes**:
+  - `mutli_room_agent2.py`: +438 lines (major prompt enhancement)
+  - `room_database.py`: +217 lines (schema updates and migrations)
+  - `enrich_room_types.py`: +27 lines (vision classification)
+  - `scripts/api_server.py`: +33 lines (selection endpoint)
+  - Total: ~715 lines added, ~310 lines removed
+
+#### Database Schema
+```sql
+-- New room_type column
+ALTER TABLE rooms ADD COLUMN room_type VARCHAR DEFAULT 'unknown';
+
+-- Schema version tracking
+PRAGMA user_version = 2;
+```
+
+#### Selection File Format
+```json
+[
+  {
+    "id": "cluster-0-1-5",
+    "name": "chair (object_id: 0-1-5)",
+    "role": "object",
+    "code": "0-1-5"
+  }
+]
+```
+
+### Developer Notes
+- System prompt is now self-contained in code - no external file dependencies
+- Database migrations handled automatically on connection
+- Room type classification can be run separately via `enrich_room_types.py`
+- Selection workflow requires both frontend (port 5173) and backend (port 8090) servers
+- Session IDs must be unique for concurrent selection workflows
+
+### Migration Guide
+- Existing databases will auto-migrate to schema version 2 on first connection
+- Run `enrich_room_types.py` to classify existing rooms with images
+- No breaking changes to existing API calls
+- Selection workflow is optional and backwards compatible
+
 ## 1.3.0-beta / 2025-10-27
 
 ### Breaking Changes

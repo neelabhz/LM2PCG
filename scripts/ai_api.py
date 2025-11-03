@@ -76,7 +76,10 @@ def build_dir(root: Path) -> Path:
 
 
 def output_root(root: Path) -> Path:
-    return root / "output"
+    # Check for OUTPUT_DIR environment variable, default to "output2"
+    # (Changed from "output" to "output2" to match current database)
+    output_dir_name = os.getenv("OUTPUT_DIR", "output2")
+    return root / output_dir_name
 
 
 def is_room_dir(p: Path) -> bool:

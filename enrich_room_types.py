@@ -38,12 +38,19 @@ def get_db_connection(db_path: str) -> Optional[Tuple[sqlite3.Connection, sqlite
         print(f"❌ Database connection error: {e}")
         return None
 
-def get_unknown_rooms(cursor: sqlite3.Cursor) -> List[int]:
-    """Fetches room IDs for rooms with 'unknown' type."""
+def get_unknown_rooms(cursor: sqlite3.Cursor) -> List[Tuple[int, str]]:
+    """Fetches room IDs and room codes for rooms with 'unknown' or generic types that need classification."""
     try:
-        cursor.execute("SELECT room_id FROM rooms WHERE room_type = 'unknown' OR room_type IS NULL")
+        cursor.execute("""
+            SELECT r.room_id, f.floor_number, r.room_number 
+            FROM rooms r 
+            JOIN floors f ON r.floor_id = f.floor_id 
+            WHERE r.room_type = 'unknown' OR r.room_type IS NULL OR r.room_type = 'some room'
+            ORDER BY f.floor_number, CAST(r.room_number AS INTEGER)
+        """)
         rooms = cursor.fetchall()
-        return [row[0] for row in rooms]
+        # Return list of (room_id, room_code) tuples
+        return [(row[0], f"{row[1]}-{int(row[2])}") for row in rooms]
     except sqlite3.Error as e:
         print(f"❌ Error fetching unknown rooms: {e}")
         return []
@@ -154,19 +161,19 @@ def main():
     conn, cursor = db_info
 
     # 3. Get Rooms to Process
-    unknown_room_ids = get_unknown_rooms(cursor)
-    if not unknown_room_ids:
-        print("✅ No rooms with 'unknown' type found. Database is up-to-date.")
+    unknown_rooms = get_unknown_rooms(cursor)
+    if not unknown_rooms:
+        print("✅ No rooms needing classification found. Database is up-to-date.")
         conn.close()
         return
 
-    print(f"🔍 Found {len(unknown_room_ids)} rooms with unknown type to process.")
+    print(f"🔍 Found {len(unknown_rooms)} rooms to classify (unknown/some room types).")
 
     # 4. Process Each Room
     processed_count = 0
     updated_count = 0
-    for room_id in unknown_room_ids:
-        print(f"\nProcessing Room ID: {room_id}...")
+    for room_id, room_code in unknown_rooms:
+        print(f"\nProcessing Room {room_code} (DB room_id: {room_id})...")
         processed_count += 1
 
         # Get image paths

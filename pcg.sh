@@ -51,9 +51,3 @@ fi
 echo "🚀 Running: pcg_room $1"
 echo ""
 "$PCG_ROOM_EXE" "$1"
-
-# Run RMS operation after pcg_room completes
-echo ""
-echo "📊 Running RMS (Room Manifest Summary)..."
-echo ""
-python3 "$SCRIPT_DIR/scripts/ai_api.py" RMS --visualize --vis-name all_rooms

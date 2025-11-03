@@ -57,9 +57,10 @@ target_link_libraries(pcg_bbox PRIVATE pcg ${PCL_LIBRARIES})
 
 
 # Optional: CGAL for reconstruction app
-find_package(CGAL QUIET COMPONENTS Core)
+# Require CGAL 5.3 or higher for unified IO headers
+find_package(CGAL 5.3 QUIET COMPONENTS Core)
 if(CGAL_FOUND)
-    message(STATUS "CGAL found: building pcg_reconstruct")
+    message(STATUS "CGAL found: ${CGAL_VERSION} - building pcg_reconstruct, pcg_volume, pcg_area")
     add_executable(pcg_reconstruct src/apps/pcg_reconstruct.cpp)
     target_include_directories(pcg_reconstruct PRIVATE include ${PCL_INCLUDE_DIRS})
     target_link_libraries(pcg_reconstruct PRIVATE pcg ${PCL_LIBRARIES} CGAL::CGAL)
@@ -74,7 +75,11 @@ if(CGAL_FOUND)
     target_include_directories(pcg_area PRIVATE include ${PCL_INCLUDE_DIRS})
     target_link_libraries(pcg_area PRIVATE pcg ${PCL_LIBRARIES} CGAL::CGAL)
 else()
-    message(STATUS "CGAL not found: pcg_reconstruct will not be built")
+    message(WARNING "CGAL >= 5.3 not found: pcg_reconstruct, pcg_volume, and pcg_area will not be built")
+    message(STATUS "Install CGAL 5.3+ to enable mesh processing features:")
+    message(STATUS "  Ubuntu/Debian: sudo apt install libcgal-dev")
+    message(STATUS "  macOS: brew install cgal")
+    message(STATUS "  Or build from source: https://github.com/CGAL/cgal/releases")
 endif()
 
 # Installation rules (optional)
