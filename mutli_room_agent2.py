@@ -1429,12 +1429,14 @@ def demo_agent():
         test_queries = [  # Shortened list for brevity, keeping relevant cases
             "What is the dominant color of the couch 0-3-0 in room 3 floor 0?",
             "What is the distance between chair 0-2-4 and shell 0-2-3 in room 2 floor 0?",
-            # "Show me the couch 0-3-0 in room 3 floor 0",
-            # "Visualize the chairs in room 2 floor 0",
-            # "Display the current room",
+            "Whar is the volume of the table in room 4 floor 1?",
+            "Show me the couch 0-3-0 in room 3 floor 0",
+            "Visualize the chairs in room 2 floor 0",
             "How many chairs are in the kitchen?",
             "List the tables in the bedroom.",
             "which room has the highest width of the chair",
+            "Which room has the largest floor area?",
+            "List all rooms with a floor area greater than 20 square meters",
             "What is the distance between the chair and the door in the kitchen?",  # Should trigger BBD NLP
         ]
         for i, query in enumerate(test_queries, 1):
